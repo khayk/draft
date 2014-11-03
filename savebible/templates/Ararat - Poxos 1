@@ -1,0 +1,431 @@
+REQUEST
+
+Remote Address:188.164.153.34:80
+Request URL:http://www.biblesociety.am/main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1130
+Request Method:GET
+Status Code:200 OK
+Request Headersview source
+Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Encoding:gzip,deflate,sdch
+Accept-Language:en-US,en;q=0.8,ru;q=0.6,hy;q=0.4
+Connection:keep-alive
+Cookie:__utmt=1; __utma=122114968.460453342.1413229692.1414690829.1414693068.9; __utmb=122114968.3.10.1414693068; __utmc=122114968; __utmz=122114968.1414220084.2.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided)
+Host:www.biblesociety.am
+Referer:http://www.biblesociety.am/main.php?testament_id=2&book_id=60&chapter_id=1133&submit=%3E%3E&lang=a&content=bible&page-id=8&subpage-id=1
+User-Agent:Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36
+Query String Parametersview sourceview URL encoded
+lang:a
+content:bible
+page-id:8
+subpage-id:1
+testament_id:2
+book_id:60
+chapter_id:1130
+Response Headersview source
+Connection:Keep-Alive
+Content-Type:text/html
+Date:Thu, 30 Oct 2014 18:23:55 GMT
+Keep-Alive:timeout=5, max=100
+Server:Apache
+Transfer-Encoding:chunked
+X-Powered-By:PHP/5.3.29
+
+RESPONSE
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Հայաստանի Աստվածաշնչային ընկերություն / </title>
+<meta name="description" content="Հայաստանի Աստվածաշնչային ընկերություն" />
+<meta name="keywords" content="Աստվածաշունչ" />
+
+<link href=styles/arm.css rel=stylesheet type=text/css /><script type="text/javascript" src="scripts/jquery.min.js"></script>
+
+<link href="styles/default.css" rel="stylesheet" type="text/css" />
+<link href="styles/hovergallery.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="scripts/fp-gallery/js/sliderman.1.3.6.js"></script>
+<link rel="stylesheet" type="text/css" href="scripts/fp-gallery/css/sliderman.css" />
+<link rel="stylesheet" type="text/css" href="scripts/fp-gallery/css/sliderman_3.css" />
+<script type="text/javascript" src="scripts/ajaxload.js"></script>
+<link rel="stylesheet" type="text/css" href="scripts/bibles/balloontip.css" />
+<script type="text/javascript" src="scripts/bibles/balloontip.js"></script>
+<script type="text/javascript" src="scripts/mp3player/swfobject.js"></script>
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-33110756-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+<script src="scripts/AC_RunActiveContent.js" type="text/javascript"></script>
+
+<script type="text/javascript" language="javascript">
+
+     $(function() {
+
+            $(this).bind("contextmenu", function(e) {
+
+                e.preventDefault();
+
+            });
+
+        }); 
+</script>
+<script type="text/JavaScript"> 
+function killCopy(e){ return false } 
+function reEnable(){ return true } 
+document.onselectstart=new Function ("return false"); 
+if (window.sidebar)
+{ document.onmousedown=killCopy; 
+document.onclick=reEnable; } 
+</script>
+</head>
+<body onload = "setTimeout('showImage()', 4000); resizeFrame(document.getElementById('quiz'));">
+
+<div id="mainwrap"><div id="main-top"><img src="images/top/logo.gif" alt="Հայաստանի Աստվածաշնչային ընկերություն" align="middle" title="Հայաստանի Աստվածաշնչային ընկերություն" style="float:left"/><img src=images/top/ABS_a.gif border=0 class=logo><span class="langswitch">
+<a href="main.php?lang=a&page-id=8&subpage-id=1"><img src="images/arm.jpg" border="0"></a>
+<!--a href="main.php?lang=e"><img src="images/eng.jpg" border="0"></a--></span>
+
+<link rel="stylesheet" type="text/css" href="scripts/top_menu/jqueryslidemenu.css" />
+
+
+<script type="text/javascript" src="scripts/jquery.min.js"></script>
+<script type="text/javascript" src="scripts/top_menu/jqueryslidemenu.js"></script>
+
+<div id="myslidemenu" class="jqueryslidemenu">
+<ul>
+<li><a href="main.php?lang=a&page-id=1"><img src="images/top/home.gif" border="0" /></a></li>
+<li><a href=#><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ՄԵՐ ՄԱՍԻՆ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+
+  <ul>
+    <li><a href=main.php?lang=a&page-id=2&subpage-id=22>Միացյալ Աստվածաշնչային ընկերություն</a></li>
+   <li><a href=main.php?lang=a&page-id=2&subpage-id=23>Հայաստանի Աստվածաշնչային ընկերություն</a></li>
+   <li><a href=main.php?lang=a&page-id=2&subpage-id=27>Կառուցվածք</a></li>
+   </ul>
+</li>
+<li><a href="main.php?lang=a&page-id=3"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ԾՐԱԳՐԵՐԸ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=4"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ՀՐԱՏԱՐԱԿՈՒԹՅՈՒՆՆԵՐ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=5"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ԼՐԱՏՈՒ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=6"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ԻՆՉՊԵՍ ՕԳՆԵԼ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=7"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ՄԵՐ ԲԱՐԵԿԱՄՆԵՐԸ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=19"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ՄԵՐ ՀԱՍՑԵՆ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+</ul>
+</div>
+
+
+ </div>
+<div id="main-left"><link href="scripts/left_menu/dropdown.vertical.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="scripts/left_menu/default.ultimate.css" media="screen" rel="stylesheet" type="text/css" />
+
+<!--[if lt IE 7]>
+<script type="text/javascript" src="js/jquery/jquery.js"></script>
+<script type="text/javascript" src="js/jquery/jquery.dropdown.js"></script>
+<![endif]-->
+
+<ul id="nav" class="dropdown dropdown-vertical" style="margin:7px;">
+    <li><a href="#" class=dir>ԱՍՏՎԱԾԱՇՈՒՆՉ ՄԱՏՅԱՆ</span></a>
+    
+  <ul>
+    <li><img src=scripts/left_menu/cross.png class=bible_submenu /><a href="main.php?lang=a&content=bible&page-id=8&subpage-id=1">«Արարատ» թարգմանություն</a></li>
+   <li><img src=scripts/left_menu/cross.png class=bible_submenu /><a href="main.php?lang=a&content=bible&page-id=8&subpage-id=2">«Էջմիածին» թարգմանություն</a></li>
+   </ul>
+    </li>
+<li><a href="main.php?lang=a&page-id=9" >ՄԱՆՈՒԿՆԵՐԻ ԱՍՏՎԱԾԱՇՈՒՆՉ</a>
+        </li>
+<li><a href="main.php?lang=a&page-id=10" >ԲԱՑԱՏՐՈՒԹՅՈՒՆ ՍԲ. ԳՐՔԻ</a>
+        </li>
+<li><a href="#" class=dir>ԾԱՂԿԱՔԱՂ ՍԲ. ԳԻՐՔ</span></a>
+    
+  <ul>
+    <li><a href="main.php?lang=a&page-id=11&subpage-id=29">ՀԻՍՈՒՍԻ ԱՌԱԿՆԵՐԸ</a></li>
+   <li><a href="main.php?lang=a&page-id=11&subpage-id=30">ՀԻՍՈՒՍԻ ՀՐԱՇՔՆԵՐԸ</a></li>
+   <li><a href="main.php?lang=a&page-id=11&subpage-id=31">ՀԻՍՈՒՍԻ ՈՒՍՈՒՑՈՒՄՆԵՐԸ</a></li>
+   </ul>
+    </li>
+<li><a href="#" class=dir>ՍԲ. ԳՐՔԻ ԲԱՌԱՐԱՆ</span></a>
+    
+  <ul>
+    <li><a href="main.php?lang=a&page-id=12&subpage-id=20">ՏԵՂԱՆՈՒՆՆԵՐ</a></li>
+   <li><a href="main.php?lang=a&page-id=12&subpage-id=21">ԱՆՁՆԱՆՈՒՆՆԵՐ</a></li>
+   <li><a href="main.php?lang=a&page-id=12&subpage-id=26">ԱՍՏՎԱԾԱՇՆՉԻ ՈՒՍՈՒՑՄԱՆ ԲԱՆԱԼԻ</a></li>
+   </ul>
+    </li>
+<li><a href="main.php?lang=a&page-id=13&first-letter=ա&navig=concordance_by_letter" >ՀԱՄԱԲԱՐԲԱՌ</a>
+        </li>
+<li><a href="main.php?lang=a&page-id=20" >ՀԱՐՑՈՒՄ</a>
+        </li>
+</ul><a href=main.php?lang=a&page-id=18><img src=datas/quiz/learn_bible.jpg border=0 /></a><div align="center" style="margin-bottom:15px;">
+<H2 style="font-size:16px; color:#000099;">ՏԵՂԵԿԱԲԵՐ<br><span style="font-size:12px; font-weight:normal;">#1 Մայիս 2013</span></H2>
+<a href="datas/newsletter/Issue-3-Arm.pdf" target="_blank"><img src="datas/newsletter/Issue-3-Arm.jpg" width="160" border="0" /></a>
+</div>
+</div>
+
+
+<div id="main-center">
+
+<div id=row_pages><H3>ԱՍՏՎԱԾԱՇՈՒՆՉ ՄԱՏՅԱՆ | «Արարատ» թարգմանություն</H3></div>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#wait_1').hide();
+    $('#testament_id').change(function(){
+      $('#wait_1').show();
+      $('#result_1').hide();
+      $("#lang");
+      $.get("scripts/bibles/func.php", {
+        func: "testament_id",
+        drop_var: $('#testament_id').val()
+      }, function(response){
+        $('#result_1').fadeOut();
+        setTimeout("finishAjax('result_1', '"+escape(response)+"')", 400);
+      });
+        return false;
+    });
+});
+
+function finishAjax(id, response) {
+  $('#wait_1').hide();
+  $('#'+id).html(unescape(response));
+  $('#'+id).fadeIn();
+}
+function finishAjax_tier_three(id, response) {
+  $('#wait_2').hide();
+  $('#'+id).html(unescape(response));
+  $('#'+id).fadeIn();
+}
+</script>
+<img src="images/bg/dr-right.png" style="float:right" /><img src="images/bg/dr-left.png" style="float:left" /><div id ="daily-reading-selector" align="left">
+<form action="" method="GET">
+  
+   <select name="testament_id" id="testament_id" class="fields">
+    
+      <option value="" selected="selected" disabled="disabled">Ընտրեք</option>
+      
+      <option value="1">Հին Կտակարան</option><option value="2">Նոր Կտակարան</option>    
+    </select> 
+    
+    <span id="wait_1" style="display: none;">
+    <img alt="Please Wait" src="scripts/daily-reading-select/ajax-loader.gif"/>
+    </span>
+    <span id="result_1" style="display: none;"></span>
+    <span id="wait_2" style="display: none;">
+    <img alt="Please Wait" src="scripts/daily-reading-select/ajax-loader.gif"/>
+    </span>
+    <span id="result_2" style="display: none;"></span> 
+  <input name="lang" type="hidden" value="a" />
+  <input name="content" type="hidden" value="bible" />
+  <input name="page-id" type="hidden" value="8" />
+  <input name="subpage-id" type="hidden" value="1" />
+</form>
+</div>
+<span style="float:right; margin-left:20px;"> <a href="main.php?lang=a&action=search-bible">Որոնում<img src="images/search.png" align="absmiddle" border="0" hspace="4" /></a></span>
+
+
+
+<div id="bible_chapter_navig">
+<span class=selected_chapter>1</span> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1131>2</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1132>3</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1133>4</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1134>5</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1135>6</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1136>7</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1137>8</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1138>9</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1139>10</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1140>11</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1141>12</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1142>13</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1143>14</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1144>15</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1145>16</a> | 
+</div>
+
+<hr size="1" style="clear:both" />
+<h4>Նոր Կտակարան | ՊՕՂՈՍ ԱՌԱՔԵԱԼԻ ԹՈՒՂԹԸ</h4>
+<h2>ԳԼ. 1</h2>
+<p><p>Արդարութիւնը աւետարանի շնորհքիցն է գալիս և ոչ թէ ապականուած բնութեան օրէնքիցը։ </p>
+
+<p>1Պօղոս Յիսուս Քրիստոսի ծառայ՝ <a href="#" rel="ftn1" name="_ftnref1" title=""><sup>*</sup></a> կանչուած առաքեալ՝ Աստուծոյ աւետարանի համար <a href="#" rel="ftn2" name="_ftnref2" title=""><sup>*</sup></a> որոշուած, 2Այն որ <a href="#" rel="ftn3" name="_ftnref3" title=""><sup>*</sup></a> առաջուց <a href="#" rel="ftn4" name="_ftnref4" title=""><sup>*</sup></a> խոստացաւ իր մարգարէների ձեռովը սուրբ գրքերումը, 3Իր Որդու համար, ու <a href="#" rel="ftn5" name="_ftnref5" title=""><sup>*</sup></a> մարմնի կողմանէ <a href="#" rel="ftn6" name="_ftnref6" title=""><sup>*</sup></a> Դաւիթի զաւակիցն եղաւ. 4Եւ Աստուծոյ Որդի սահմանուեցաւ զօրութիւնով՝ <a href="#" rel="ftn7" name="_ftnref7" title=""><sup>*</sup></a> սրբութեան Հոգու կողմանէ՝ <a href="#" rel="ftn8" name="_ftnref8" title=""><sup>*</sup></a> մեռելներից յարութիւն առնելուցը, մեր Տէր Յիսուս Քրիստոսի համար, 5Որով ընդունեցինք <a href="#" rel="ftn9" name="_ftnref9" title=""><sup>*</sup></a> շնորհք եւ առաքելութիւն՝ <a href="#" rel="ftn10" name="_ftnref10" title=""><sup>*</sup></a> հաւատքի հնազանդութեան համար ամեն ազգերի մէջ <a href="#" rel="ftn11" name="_ftnref11" title=""><sup>*</sup></a> նորա անունի համար. 6Որոնց միջումը դուք էլ Յիսուս Քրիստոսի կանչուածներն էք. 7Ձեզ ամենիդ՝ որ Հռովմումն էք՝ Աստուծոյ սիրելիներիդ՝ <a href="#" rel="ftn12" name="_ftnref12" title=""><sup>*</sup></a> կանչուած սուրբերիդ, <a href="#" rel="ftn13" name="_ftnref13" title=""><sup>*</sup></a> շնորհք լինի ձեզ եւ խաղաղութիւն Աստուածանից՝ մեր Հօրիցը եւ Տէր Յիսուս Քրիստոսիցը։ </p>
+
+<p>8Առաջ <a href="#" rel="ftn14" name="_ftnref14" title=""><sup>*</sup></a> գոհանում եմ Աստուածանից Յիսուս Քրիստոսի ձեռովը ձեր ամենի համար. Որ <a href="#" rel="ftn15" name="_ftnref15" title=""><sup>*</sup></a> ձեր հաւատքը բոլոր աշխարհքի մէջ պատմվում է։ 9Որովհետեւ <a href="#" rel="ftn16" name="_ftnref16" title=""><sup>*</sup></a> Աստուած ինձ վկայ է, <a href="#" rel="ftn17" name="_ftnref17" title=""><sup>*</sup></a> որին ես պաշտում եմ իմ հոգովը նորա Որդու աւետարանումը, թէ ինչպէս անդադար ձեզ յիշում եմ։ 10<a href="#" rel="ftn18" name="_ftnref18" title=""><sup>*</sup></a> Ամեն ժամանակ իմ աղօթքներումն <a href="#" rel="ftn19" name="_ftnref19" title=""><sup>*</sup></a> աղաչելով՝ որ լինի թէ մի անգամ յաջողուի ինձ՝ <a href="#" rel="ftn20" name="_ftnref20" title=""><sup>*</sup></a> Աստուծոյ կամքովը ձեզ մօտ գալ։ 11Որովհետեւ շատ ցանկանում եմ ձեզ տեսնել, <a href="#" rel="ftn21" name="_ftnref21" title=""><sup>*</sup></a> որ մի հոգեւոր շնորհք հաղորդեմ ձեզ ձեր հաստատուելու համար. 12Այսինքն՝ որ <a href="#" rel="ftn22" name="_ftnref22" title=""><sup>*</sup></a> ձեզ հետ մխիթարուիմ մեր փոխադարձ՝ իմ եւ ձեր հաւատքի միջոցով։ 13Եղբարք, չեմ կամենում որ դուք չ’գիտենաք, <a href="#" rel="ftn23" name="_ftnref23" title=""><sup>*</sup></a> թէ շատ անգամ միտքս դրի որ ձեզ մօտ գամ, (թէեւ <a href="#" rel="ftn24" name="_ftnref24" title=""><sup>*</sup></a> մինչեւ հիմա արգիլուեցայ.) <a href="#" rel="ftn25" name="_ftnref25" title=""><sup>*</sup></a> որ ձեր միջումն էլ պտուղ ունենամ՝ ինչպէս եւ ուրիշ հեթանոսների մէջ։ 14Որովհետեւ ես Յոյներին եւ Բարբարոսներին, իմաստուններին եւ անմիտներին <a href="#" rel="ftn26" name="_ftnref26" title=""><sup>*</sup></a> պարտական եմ։ 15Այնպէս՝ իմովսանն յօժար եմ ձեզ էլ, որ Հռովմումն էք՝ աւետարանը քարոզել։ </p>
+
+<p>16Որովհետեւ <a href="#" rel="ftn27" name="_ftnref27" title=""><sup>*</sup></a> ես Քրիստոսի աւետարանը ամօթ չեմ համարում. Որովհետեւ <a href="#" rel="ftn28" name="_ftnref28" title=""><sup>*</sup></a> Աստուծոյ զօրութիւն է <a href="#" rel="ftn29" name="_ftnref29" title=""><sup>*</sup></a> փրկելու համար ամեն հաւատացողին, առաջ Հրէային՝ եւ յետոյ Յոյնին։ 17Որովհետեւ <a href="#" rel="ftn30" name="_ftnref30" title=""><sup>*</sup></a> Աստուծով արդարութիւնը նորանով յայտնվում է՝ հաւատքից հաւատքի մէջ. Ինչպէս գրուած է թէ <a href="#" rel="ftn31" name="_ftnref31" title=""><sup>*</sup></a> Արդարը հաւատքից կ’ապրի։ </p>
+
+<p>18Որովհետեւ <a href="#" rel="ftn32" name="_ftnref32" title=""><sup>*</sup></a> Աստուծոյ բարկութիւնն երկնքիցը յայտնվում է մարդկանց ամեն ամբարշտութեան եւ անիրաւութեան վերայ, որ ճշմարտութիւնն անիրաւութիւնով բռնում են։ 19Որովհետեւ <a href="#" rel="ftn33" name="_ftnref33" title=""><sup>*</sup></a> Աստուծոյ գիտելիքը յայտնի է նորանցում. Որ <a href="#" rel="ftn34" name="_ftnref34" title=""><sup>*</sup></a> Աստուած յայտնեց նորանց։ 20Որովհետեւ նորա <a href="#" rel="ftn35" name="_ftnref35" title=""><sup>*</sup></a> աներեւոյթ բաները աշխարհքի սկզբիցն ստեղծուածներովն իմացուելով տեսնվում են, որ է՝ նորա մշտնջենաւոր զօրութիւնը եւ Աստուածութիւնը, այնպէս որ անպատասխան մնան։ 21Որովհետեւ Աստուծուն ճանաչելով, նորան Աստուծոյ պէս չ’փառաւորեցին՝ կամ շնորհակալ չ’եղան. <a href="#" rel="ftn36" name="_ftnref36" title=""><sup>*</sup></a> այլ իրանց մտածմունքներումն ունայնացան եւ նորանց անմիտ սրտերը խաւարուեցան։ 22Ասելով <a href="#" rel="ftn37" name="_ftnref37" title=""><sup>*</sup></a> թէ իմաստուն են՝ յիմարեցան. 23Եւ անեղծ <a href="#" rel="ftn38" name="_ftnref38" title=""><sup>*</sup></a> Աստուծոյ փառքը փոխեցին եղծանելի մարդի եւ թռչունների եւ չորքոտանիների եւ սողունների պատկերի նմանութեան հետ. 24<a href="#" rel="ftn39" name="_ftnref39" title=""><sup>*</sup></a> Նորա համար Աստուած էլ նորանց մատնեց իրանց սրտերի ցանկութեան մէջ՝ պղծութեան համար. <a href="#" rel="ftn40" name="_ftnref40" title=""><sup>*</sup></a> որ խայտառակեն իրանց մարմիններն <a href="#" rel="ftn41" name="_ftnref41" title=""><sup>*</sup></a> իրանց անձերումը։ 25Որոնք Աստուծոյ <a href="#" rel="ftn42" name="_ftnref42" title=""><sup>*</sup></a> ճշմարտութիւնը <a href="#" rel="ftn43" name="_ftnref43" title=""><sup>*</sup></a> ստութեան հետ փոխեցին. Եւ երկրպագեցին եւ պաշտեցին ստեղծուածներին քան թէ Ստեղծողին. Որ օրհնեալ է ի յաւիտեանս. Ամէն։ 26Նորա համար Աստուած մատնեց նորանց <a href="#" rel="ftn44" name="_ftnref44" title=""><sup>*</sup></a> անարգ կիրքերի. Եւ նորանց էգերը բնական գործածութիւնը փոխեցին անբնականի հետ։ 27Այնպէս էլ արուները կնոջ բնական գործածութիւնը թողելով, իրանց ցանկութիւններովն իրար հետ բորբոքուեցան. Արուներն արուների հետ խայտառակութիւն էին գործում, եւ այն փոխարէնը՝ որ արժան էր իրանց մոլութեանն՝ իրանց անձերումը ընդունում էին։ 28Եւ ինչպէս որ չ’ընտրեցին՝ Աստուծուն ունենալ իրանց գիտութեան մէջ, Աստուած մատնեց նորանց անարգ մտքի որ <a href="#" rel="ftn45" name="_ftnref45" title=""><sup>*</sup></a> անարժան բաներ գործեն. 29Որոնք լցուած են ամեն անիրաւութիւնով, պոռնկութիւնով, անզգամութիւնով, ագահութիւնով, չարութինով, լիքը նախանձով, մարդասպանութիւնով, կռիւով, նենգութիւնով, չարաբարութիւնով. 30Քսուներ, բամբասողներ, աստուածատողներ, թշնամանողներ, ամբարտաւաններ, գոռոզներ, չար բաներ հնարողներ, ծնողների անհնազանդներ. 31Անմիտներ, ուխտադրուժներ, անգութներ, անհաշտներ, անողորմներ. 32<a href="#" rel="ftn46" name="_ftnref46" title=""><sup>*</sup></a> Որ Աստուծոյ իրաւունքները հասկանալով՝ թէ այսպիսի բաներ գործողները <a href="#" rel="ftn47" name="_ftnref47" title=""><sup>*</sup></a> մահի արժանի են, ոչ թէ միայն այս բաներն անում են, <a href="#" rel="ftn48" name="_ftnref48" title=""><sup>*</sup></a> այլ գործողներին էլ կամակից են լինում։ </p></p>
+<div class="balloonstyle" id="ftn1" name="ftn1" ><sup>*</sup>1.1 Գոր. իբ. 21։ ա Կոր. ա. 1։ Գաղ. ա. 1։ ա Տիմ. ա. 1։ բ. 7։ բ Տիմ. ա. 11։</div>
+
+<div class="balloonstyle" id="ftn2" name="ftn2" ><sup>*</sup>1.1 Գոր. թ. 15։ ժգ. 2։ Գաղ. ա. 15։</div>
+
+<div class="balloonstyle" id="ftn3" name="ftn3" ><sup>*</sup>1.2 Գլ. գ. 21։ ժզ. 26։ Գաղ. դ. 8։</div>
+
+<div class="balloonstyle" id="ftn4" name="ftn4" ><sup>*</sup>1.2 Տես Գոր. իզ. 6։ Տիտ. ա. 2։</div>
+
+<div class="balloonstyle" id="ftn5" name="ftn5" ><sup>*</sup>1.3 Յովհ. ա. 14։ Գաղ. դ. 4։</div>
+
+<div class="balloonstyle" id="ftn6" name="ftn6" ><sup>*</sup>1.3 Մատ. ա. 6, 16։ Ղուկ. ա. 32։ Գոր. բ. 30։ բ Տիմ. բ. 8։</div>
+
+<div class="balloonstyle" id="ftn7" name="ftn7" ><sup>*</sup>1.4 Գոր. ժգ. 33։</div>
+
+<div class="balloonstyle" id="ftn8" name="ftn8" ><sup>*</sup>1.4 Եբր. թ. 14։</div>
+
+<div class="balloonstyle" id="ftn9" name="ftn9" ><sup>*</sup>1.5 Գլ. ժբ. 3։ ժե. 15։ ա Կոր. ժե. 10։ Գաղ. ա. 15։ բ. 9։ Եփես. գ. 8։</div>
+
+<div class="balloonstyle" id="ftn10" name="ftn10" ><sup>*</sup>1.5 Գոր. զ. 7։ Գլ. ժզ. 26։</div>
+
+<div class="balloonstyle" id="ftn11" name="ftn11" ><sup>*</sup>1.5 Գոր. թ. 15։</div>
+
+<div class="balloonstyle" id="ftn12" name="ftn12" ><sup>*</sup>1.7 Գլ. թ. 24։ ա Կոր. ա. 2։ ա Թես. դ. 7։</div>
+
+<div class="balloonstyle" id="ftn13" name="ftn13" ><sup>*</sup>1.7 ա կոր. ա. 3։ բ Կոր. ա. 2։ Գաղ. ա. 3։</div>
+
+<div class="balloonstyle" id="ftn14" name="ftn14" ><sup>*</sup>1.8 ա Կոր. ա. 4։ Փիլ. ա. 3։ Կող. ա. 3, 4։ ա Թես. ա. 2։ Փիլիմ. 4։</div>
+
+<div class="balloonstyle" id="ftn15" name="ftn15" ><sup>*</sup>1.8 Գլ. ժզ. 19։ ա Թես. ա. 8։</div>
+
+<div class="balloonstyle" id="ftn16" name="ftn16" ><sup>*</sup>1.9 Գլ. թ. 1։ բ Կոր. ա. 23։ Փիլ. ա. 8։ ա Թես. բ. 5։</div>
+
+<div class="balloonstyle" id="ftn17" name="ftn17" ><sup>*</sup>1.9 Գոր. իէ. 23։ բ Տիմ. ա. 3։</div>
+
+<div class="balloonstyle" id="ftn18" name="ftn18" ><sup>*</sup>1.10 ա Թես. գ. 10։</div>
+
+<div class="balloonstyle" id="ftn19" name="ftn19" ><sup>*</sup>1.10 Գլ. ժե. 23, 32։ ա Թես. գ. 10։</div>
+
+<div class="balloonstyle" id="ftn20" name="ftn20" ><sup>*</sup>1.10 Գլ. ժե. 32։ Յակ. դ. 15։</div>
+
+<div class="balloonstyle" id="ftn21" name="ftn21" ><sup>*</sup>1.11 Գլ. ժե. 29։</div>
+
+<div class="balloonstyle" id="ftn22" name="ftn22" ><sup>*</sup>1.12 բ Կոր. դ. 13։ Տիտ. ա. 4։ բ Պետ. ա. 1։</div>
+
+<div class="balloonstyle" id="ftn23" name="ftn23" ><sup>*</sup>1.13 Գլ. ժե. 23։</div>
+
+<div class="balloonstyle" id="ftn24" name="ftn24" ><sup>*</sup>1.13 Տես Գոր. ժզ. 7։ ա Թես. բ. 18։</div>
+
+<div class="balloonstyle" id="ftn25" name="ftn25" ><sup>*</sup>1.13 Փիլ. դ. 17։</div>
+
+<div class="balloonstyle" id="ftn26" name="ftn26" ><sup>*</sup>1.14 ա Կոր. թ. 16։</div>
+
+<div class="balloonstyle" id="ftn27" name="ftn27" ><sup>*</sup>1.16 Սաղ. խ. 9, 10։ Մար. ը. 38։ բ Տիմ. ա. 8։</div>
+
+<div class="balloonstyle" id="ftn28" name="ftn28" ><sup>*</sup>1.16 ա Կոր. ա. 18։ ժե. 2։</div>
+
+<div class="balloonstyle" id="ftn29" name="ftn29" ><sup>*</sup>1.16 Ղուկ. բ. 30-32։ իդ. 47։ Գոր. դ. 26։ ժգ. 26, 46։ Գլ. բ. 9։</div>
+
+<div class="balloonstyle" id="ftn30" name="ftn30" ><sup>*</sup>1.17 Գլ. գ. 21։</div>
+
+<div class="balloonstyle" id="ftn31" name="ftn31" ><sup>*</sup>1.17 Ամբ. բ. 4։ Յովհ. դ. 36։ Գաղ. գ. 11։ Փիլ. գ. 9։ Եբր. ժ. 38։</div>
+
+<div class="balloonstyle" id="ftn32" name="ftn32" ><sup>*</sup>1.18 Գոր. ժէ. 30։ Եփես. ե. 6։ Կող. գ. 6։</div>
+
+<div class="balloonstyle" id="ftn33" name="ftn33" ><sup>*</sup>1.19 Գոր. ժդ. 16։</div>
+
+<div class="balloonstyle" id="ftn34" name="ftn34" ><sup>*</sup>1.19 Յովհ. ա. 9։</div>
+
+<div class="balloonstyle" id="ftn35" name="ftn35" ><sup>*</sup>1.20 Սաղ. ժթ. 1։ Գոր. ժդ. 16։ ժէ. 27։</div>
+
+<div class="balloonstyle" id="ftn36" name="ftn36" ><sup>*</sup>1.21 դ Թագ. ժէ. 15։ Երեմ. բ. 5։ Եփես. դ. 17, 18։</div>
+
+<div class="balloonstyle" id="ftn37" name="ftn37" ><sup>*</sup>1.22 Երեմ. ժ. 14։</div>
+
+<div class="balloonstyle" id="ftn38" name="ftn38" ><sup>*</sup>1.23 բ Օր. դ. 16 ևլն։ Սաղ. ճզ. 20։ Ես. խ. 18, 25։ Երեմ. բ. 11։ Եզեկ. ը. 10։ Գոր. ժէ. 29։</div>
+
+<div class="balloonstyle" id="ftn39" name="ftn39" ><sup>*</sup>1.24 Սաղ. ձա. 12։ Գոր. է. 42։ Եփես. դ. 18, 19։ բ Թես. բ. 10։</div>
+
+<div class="balloonstyle" id="ftn40" name="ftn40" ><sup>*</sup>1.24 Ղև. ժը. 22։</div>
+
+<div class="balloonstyle" id="ftn41" name="ftn41" ><sup>*</sup>1.24 ա Կոր. զ. 18։ ա Թես. դ. 4։ ա Պետ. դ. 3։</div>
+
+<div class="balloonstyle" id="ftn42" name="ftn42" ><sup>*</sup>1.25 ա Թես. ա. 9։ ա յովհ. ե. 20։</div>
+
+<div class="balloonstyle" id="ftn43" name="ftn43" ><sup>*</sup>1.25 Ես. խդ. 20։ Երեմ. ժ. 14։ ժգ. 25։ Ամովս. բ. 4։</div>
+
+<div class="balloonstyle" id="ftn44" name="ftn44" ><sup>*</sup>1.26 Ղև. ժը. 22, 23։ Եփես. ե. 12։ Յուդ. 10։</div>
+
+<div class="balloonstyle" id="ftn45" name="ftn45" ><sup>*</sup>1.28 Եփես. ե. 4։</div>
+
+<div class="balloonstyle" id="ftn46" name="ftn46" ><sup>*</sup>1.32 Գլ. բ. 2։</div>
+
+<div class="balloonstyle" id="ftn47" name="ftn47" ><sup>*</sup>1.32 Գլ. զ. 21։</div>
+
+<div class="balloonstyle" id="ftn48" name="ftn48" ><sup>*</sup>1.32 Սաղ. ծ. 18։ Ովս. է. 3։</div><hr size="1" />
+<div id="bible_chapter_navig">
+<span class=selected_chapter>1</span> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1131>2</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1132>3</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1133>4</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1134>5</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1135>6</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1136>7</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1137>8</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1138>9</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1139>10</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1140>11</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1141>12</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1142>13</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1143>14</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1144>15</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=2&book_id=60&chapter_id=1145>16</a> | 
+</div>
+
+
+<div id="facebook" style="background-color:#FFFFFF">
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<div class="fb-like-box" style="margin-top:15px;" data-href="http://www.facebook.com/pages/%D5%80%D5%A1%D5%B5%D5%A1%D5%BD%D5%BF%D5%A1%D5%B6%D5%AB-%D4%B1%D5%BD%D5%BF%D5%BE%D5%A1%D5%AE%D5%A1%D5%B7%D5%B6%D5%B9%D5%A1%D5%B5%D5%AB%D5%B6-%D4%B8%D5%B6%D5%AF%D5%A5%D6%80%D5%B8%D6%82%D5%A9%D5%B5%D5%B8%D6%82%D5%B6-The-Bible-Society-of-Armenia/306402589377339" data-width="775" data-height="300" data-show-faces="true" data-stream="false" data-header="false"></div>
+</div>
+
+</div><div id="main-right"><div id="right-header" align="center">ՄՏՈՐՈՒՄՆԵՐ</div>
+<div id="main-right-articles-inside">
+<img src=scripts/thumb.php?file=../datas/articles/117.jpg&width=63&height=80 vspace=10 class=main-article-img><a href="main.php?lang=a&page-id=16&article-id=117" style="color:#000000">2. ԽՈՆԱՐՀՈՒԹՅՈՒՆ
+(Մաքսավորի և փարիսեցու կիրակի)
+Հաջորդ կիրակին կոչվում է «Մաքսավորի և փարիսեցու կիրակի»: Դրա նախօրեին`  շաբաթ երեկոյան ժամերգության ժամանակ, ա...</a>
+<div align="right" style="margin-right:10px;"><b>2014 / Մարտ / 26</b></div>
+
+</div>
+<!--div id="right-header" align="center"></div-->
+<div id="right-header" align="center">ԿԱՐԴԱԼ</div>
+<div id="main-right-yearbook-inside" align="center" class="hovergallery">
+<img src=scripts/thumb.php?file=../datas/articles/68.jpg&width=120&height=120 vspace=10><br><b><a href=main.php?lang=a&page-id=23&content=literature&literature-id=1>Հույն աստվածաբան Զիսիմոս Վիրվիլիսի «Հովհաննես Աստվածաբան՝ սիրո աշակերտը» գիրքը, որը ներկայացնում է Հովհաննես առաքյալի կյանքը և ուսուցումները:</a></b>
+<hr size="1">
+</div>
+</div>  <div style="clear:both";></div>
+<div id="footer">
+<img src="images/logo_small.gif" align="absmiddle" hspace="10" vspace="2"> ©  2012, Հայաստանի Աստվածաշնչային ընկերություն, հեղինակային իրավունքները պաշտպանված են օրենքով</div>
+</div>
+
+</div>
+</body>
+</html>

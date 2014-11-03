@@ -51,7 +51,7 @@ function extractOptions(loc, str, callback) {
    //var matches = re.exec(text);
    var order = 1;
 
-   var chaps = [];
+   var options = [];
    while ((arr = re.exec(str)) !== null) {
       var fnameonly = arr[3];
       fnameonly = fnameonly.trim();
@@ -63,10 +63,10 @@ function extractOptions(loc, str, callback) {
       //console.log(msg);
       ++order;
 
-      chaps.push({'id': arr[1], 'name': arr[2]});
+      options.push({'id': arr[2], 'name': arr[3]});
    }
 
-   callback(null, chaps);
+   callback(null, options);
 }
 //   });
 
@@ -88,6 +88,7 @@ function test() {
    })
 }
 
+var = fnChapter = 'http://www.biblesociety.am/main.php?testament_id=1&book_id=6&chapter_id=108&submit=%3E%3E&lang=a&content=bible&page-id=8&subpage-id=1'
 
 var rootUrl = 'http://www.biblesociety.am/scripts/bibles/func.php?func=';
    var fnTestament = 'testament_id&drop_var=';
@@ -138,7 +139,9 @@ var bibles = [
          {name: 'old', id: 1},
          {name: 'new', id: 2}
       ]
-   },
+   }
+
+/*   ,
 
    {
       name: 'ejmiacin',
@@ -146,7 +149,7 @@ var bibles = [
          {name: 'old', id: 3},
          {name: 'new', id: 4}
       ]
-   }
+   }*/
 ];
 
 var spacing = 0;
@@ -184,7 +187,7 @@ bibles.forEach(function(item) {
                return;
             }
             enterScope();
-            extractOptions(loc, data, bookChaptersExtracted);
+            extractOptions(loc, data, onBookAvailable);
             leaveScope();
          })
       })
@@ -195,7 +198,7 @@ bibles.forEach(function(item) {
 })
 
 
-function bookChaptersExtracted(err, chaps) {
+function onBookAvailable(err, chaps) {
    if (err)
       throw err;
 

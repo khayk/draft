@@ -1,0 +1,91 @@
+generateReqs() -> 'req', ''
+
+{
+    edition   : {name: '', bibles: [bible-1, ... , bible-N]}
+    bible     : [testamnet list],
+    testamnet : {name: '', books: [book-1, book-2, ... , book-N]},
+    book      : {name: '', chapters: [ids]},
+    chapter   : [id list]
+}
+
+{
+    edition: {
+        name     : 'Ararat',
+        subpage  : 1,
+        testament: [
+            {
+                name : 'old',
+                id   : 1,
+                books: []
+            },
+            {
+                name : 'new',
+                id   : 2,
+                books: []
+            }
+        ]
+    }
+}
+
+function bookNameToGlobalID(name) {
+    return name;
+}
+
+function book() {
+    name: 'BOOK',
+    id: 0,
+    chapters: []
+}
+
+function chapter() {
+    name:    'CHAPTER',
+    number:  0,
+    id:      0,
+    content: ''
+}
+
+
+
+var select   = 'http://www.biblesociety.am/scripts/bibles/func.php?func=';
+var content  = 'http://www.biblesociety.am/main.php?lang=a&content=bible&page-id=8&'
+
+
+
+function queryBooks(testament) {
+    
+}
+
+function queryChapter(book) {
+    
+}
+
+function queryContent(chapter) {
+    
+}
+
+
+
+
+var testmant = 'testament_id&drop_var=';
+var book     = 'book_id&drop_var='
+
+var subPage  = 'subpage-id='
+var book     = ''
+
+
+1&testament_id=1&book_id=6&chapter_id=110
+
+
+drop_var       (depends on function)
+subpage-id     (ararat 1, ejmiacin 2)
+testament_id   (1-4)
+book_id        (from the books list)
+chapter_id     (from the chapters list)
+
+
+
+QUERIES
+
+BOOK_LIST -
+CHAP_LIST -
+CHAP_CONT -

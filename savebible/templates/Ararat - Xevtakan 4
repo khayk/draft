@@ -1,0 +1,433 @@
+REQUEST
+
+Remote Address:188.164.153.34:80
+Request URL:http://www.biblesociety.am/main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=110
+Request Method:GET
+Status Code:200 OK
+Request Headersview source
+Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Encoding:gzip,deflate,sdch
+Accept-Language:en-US,en;q=0.8,ru;q=0.6,hy;q=0.4
+Connection:keep-alive
+Cookie:__utmt=1; __utma=122114968.460453342.1413229692.1414690829.1414693068.9; __utmb=122114968.1.10.1414693068; __utmc=122114968; __utmz=122114968.1414220084.2.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided)
+Host:www.biblesociety.am
+Referer:http://www.biblesociety.am/main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=109
+User-Agent:Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36
+Query String Parametersview sourceview URL encoded
+lang:a
+content:bible
+page-id:8
+subpage-id:1
+testament_id:1
+book_id:6
+chapter_id:110
+Response Headersview source
+Connection:Keep-Alive
+Content-Type:text/html
+Date:Thu, 30 Oct 2014 18:21:28 GMT
+Keep-Alive:timeout=5, max=100
+Server:Apache
+Transfer-Encoding:chunked
+X-Powered-By:PHP/5.3.29
+
+RESPONSE
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Հայաստանի Աստվածաշնչային ընկերություն / </title>
+<meta name="description" content="Հայաստանի Աստվածաշնչային ընկերություն" />
+<meta name="keywords" content="Աստվածաշունչ" />
+
+<link href=styles/arm.css rel=stylesheet type=text/css /><script type="text/javascript" src="scripts/jquery.min.js"></script>
+
+<link href="styles/default.css" rel="stylesheet" type="text/css" />
+<link href="styles/hovergallery.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="scripts/fp-gallery/js/sliderman.1.3.6.js"></script>
+<link rel="stylesheet" type="text/css" href="scripts/fp-gallery/css/sliderman.css" />
+<link rel="stylesheet" type="text/css" href="scripts/fp-gallery/css/sliderman_3.css" />
+<script type="text/javascript" src="scripts/ajaxload.js"></script>
+<link rel="stylesheet" type="text/css" href="scripts/bibles/balloontip.css" />
+<script type="text/javascript" src="scripts/bibles/balloontip.js"></script>
+<script type="text/javascript" src="scripts/mp3player/swfobject.js"></script>
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-33110756-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+<script src="scripts/AC_RunActiveContent.js" type="text/javascript"></script>
+
+<script type="text/javascript" language="javascript">
+
+     $(function() {
+
+            $(this).bind("contextmenu", function(e) {
+
+                e.preventDefault();
+
+            });
+
+        }); 
+</script>
+<script type="text/JavaScript"> 
+function killCopy(e){ return false } 
+function reEnable(){ return true } 
+document.onselectstart=new Function ("return false"); 
+if (window.sidebar)
+{ document.onmousedown=killCopy; 
+document.onclick=reEnable; } 
+</script>
+</head>
+<body onload = "setTimeout('showImage()', 4000); resizeFrame(document.getElementById('quiz'));">
+
+<div id="mainwrap"><div id="main-top"><img src="images/top/logo.gif" alt="Հայաստանի Աստվածաշնչային ընկերություն" align="middle" title="Հայաստանի Աստվածաշնչային ընկերություն" style="float:left"/><img src=images/top/ABS_a.gif border=0 class=logo><span class="langswitch">
+<a href="main.php?lang=a&page-id=8&subpage-id=1"><img src="images/arm.jpg" border="0"></a>
+<!--a href="main.php?lang=e"><img src="images/eng.jpg" border="0"></a--></span>
+
+<link rel="stylesheet" type="text/css" href="scripts/top_menu/jqueryslidemenu.css" />
+
+
+<script type="text/javascript" src="scripts/jquery.min.js"></script>
+<script type="text/javascript" src="scripts/top_menu/jqueryslidemenu.js"></script>
+
+<div id="myslidemenu" class="jqueryslidemenu">
+<ul>
+<li><a href="main.php?lang=a&page-id=1"><img src="images/top/home.gif" border="0" /></a></li>
+<li><a href=#><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ՄԵՐ ՄԱՍԻՆ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+
+  <ul>
+    <li><a href=main.php?lang=a&page-id=2&subpage-id=22>Միացյալ Աստվածաշնչային ընկերություն</a></li>
+   <li><a href=main.php?lang=a&page-id=2&subpage-id=23>Հայաստանի Աստվածաշնչային ընկերություն</a></li>
+   <li><a href=main.php?lang=a&page-id=2&subpage-id=27>Կառուցվածք</a></li>
+   </ul>
+</li>
+<li><a href="main.php?lang=a&page-id=3"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ԾՐԱԳՐԵՐԸ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=4"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ՀՐԱՏԱՐԱԿՈՒԹՅՈՒՆՆԵՐ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=5"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ԼՐԱՏՈՒ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=6"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ԻՆՉՊԵՍ ՕԳՆԵԼ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=7"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ՄԵՐ ԲԱՐԵԿԱՄՆԵՐԸ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+<li><a href="main.php?lang=a&page-id=19"><img src="scripts/top_menu/left_end.gif" border="0" style="float:left"/><div class="menu_text">ՄԵՐ ՀԱՍՑԵՆ</div><img src="scripts/top_menu/right_end.gif" border="0" style="float:right"/></a>
+
+</li>
+</ul>
+</div>
+
+
+ </div>
+<div id="main-left"><link href="scripts/left_menu/dropdown.vertical.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="scripts/left_menu/default.ultimate.css" media="screen" rel="stylesheet" type="text/css" />
+
+<!--[if lt IE 7]>
+<script type="text/javascript" src="js/jquery/jquery.js"></script>
+<script type="text/javascript" src="js/jquery/jquery.dropdown.js"></script>
+<![endif]-->
+
+<ul id="nav" class="dropdown dropdown-vertical" style="margin:7px;">
+    <li><a href="#" class=dir>ԱՍՏՎԱԾԱՇՈՒՆՉ ՄԱՏՅԱՆ</span></a>
+    
+  <ul>
+    <li><img src=scripts/left_menu/cross.png class=bible_submenu /><a href="main.php?lang=a&content=bible&page-id=8&subpage-id=1">«Արարատ» թարգմանություն</a></li>
+   <li><img src=scripts/left_menu/cross.png class=bible_submenu /><a href="main.php?lang=a&content=bible&page-id=8&subpage-id=2">«Էջմիածին» թարգմանություն</a></li>
+   </ul>
+    </li>
+<li><a href="main.php?lang=a&page-id=9" >ՄԱՆՈՒԿՆԵՐԻ ԱՍՏՎԱԾԱՇՈՒՆՉ</a>
+        </li>
+<li><a href="main.php?lang=a&page-id=10" >ԲԱՑԱՏՐՈՒԹՅՈՒՆ ՍԲ. ԳՐՔԻ</a>
+        </li>
+<li><a href="#" class=dir>ԾԱՂԿԱՔԱՂ ՍԲ. ԳԻՐՔ</span></a>
+    
+  <ul>
+    <li><a href="main.php?lang=a&page-id=11&subpage-id=29">ՀԻՍՈՒՍԻ ԱՌԱԿՆԵՐԸ</a></li>
+   <li><a href="main.php?lang=a&page-id=11&subpage-id=30">ՀԻՍՈՒՍԻ ՀՐԱՇՔՆԵՐԸ</a></li>
+   <li><a href="main.php?lang=a&page-id=11&subpage-id=31">ՀԻՍՈՒՍԻ ՈՒՍՈՒՑՈՒՄՆԵՐԸ</a></li>
+   </ul>
+    </li>
+<li><a href="#" class=dir>ՍԲ. ԳՐՔԻ ԲԱՌԱՐԱՆ</span></a>
+    
+  <ul>
+    <li><a href="main.php?lang=a&page-id=12&subpage-id=20">ՏԵՂԱՆՈՒՆՆԵՐ</a></li>
+   <li><a href="main.php?lang=a&page-id=12&subpage-id=21">ԱՆՁՆԱՆՈՒՆՆԵՐ</a></li>
+   <li><a href="main.php?lang=a&page-id=12&subpage-id=26">ԱՍՏՎԱԾԱՇՆՉԻ ՈՒՍՈՒՑՄԱՆ ԲԱՆԱԼԻ</a></li>
+   </ul>
+    </li>
+<li><a href="main.php?lang=a&page-id=13&first-letter=ա&navig=concordance_by_letter" >ՀԱՄԱԲԱՐԲԱՌ</a>
+        </li>
+<li><a href="main.php?lang=a&page-id=20" >ՀԱՐՑՈՒՄ</a>
+        </li>
+</ul><a href=main.php?lang=a&page-id=18><img src=datas/quiz/learn_bible.jpg border=0 /></a><div align="center" style="margin-bottom:15px;">
+<H2 style="font-size:16px; color:#000099;">ՏԵՂԵԿԱԲԵՐ<br><span style="font-size:12px; font-weight:normal;">#1 Մայիս 2013</span></H2>
+<a href="datas/newsletter/Issue-3-Arm.pdf" target="_blank"><img src="datas/newsletter/Issue-3-Arm.jpg" width="160" border="0" /></a>
+</div>
+</div>
+
+
+<div id="main-center">
+
+<div id=row_pages><H3>ԱՍՏՎԱԾԱՇՈՒՆՉ ՄԱՏՅԱՆ | «Արարատ» թարգմանություն</H3></div>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#wait_1').hide();
+    $('#testament_id').change(function(){
+      $('#wait_1').show();
+      $('#result_1').hide();
+      $("#lang");
+      $.get("scripts/bibles/func.php", {
+        func: "testament_id",
+        drop_var: $('#testament_id').val()
+      }, function(response){
+        $('#result_1').fadeOut();
+        setTimeout("finishAjax('result_1', '"+escape(response)+"')", 400);
+      });
+        return false;
+    });
+});
+
+function finishAjax(id, response) {
+  $('#wait_1').hide();
+  $('#'+id).html(unescape(response));
+  $('#'+id).fadeIn();
+}
+function finishAjax_tier_three(id, response) {
+  $('#wait_2').hide();
+  $('#'+id).html(unescape(response));
+  $('#'+id).fadeIn();
+}
+</script>
+<img src="images/bg/dr-right.png" style="float:right" /><img src="images/bg/dr-left.png" style="float:left" /><div id ="daily-reading-selector" align="left">
+<form action="" method="GET">
+  
+   <select name="testament_id" id="testament_id" class="fields">
+    
+      <option value="" selected="selected" disabled="disabled">Ընտրեք</option>
+      
+      <option value="1">Հին Կտակարան</option><option value="2">Նոր Կտակարան</option>    
+    </select> 
+    
+    <span id="wait_1" style="display: none;">
+    <img alt="Please Wait" src="scripts/daily-reading-select/ajax-loader.gif"/>
+    </span>
+    <span id="result_1" style="display: none;"></span>
+    <span id="wait_2" style="display: none;">
+    <img alt="Please Wait" src="scripts/daily-reading-select/ajax-loader.gif"/>
+    </span>
+    <span id="result_2" style="display: none;"></span> 
+  <input name="lang" type="hidden" value="a" />
+  <input name="content" type="hidden" value="bible" />
+  <input name="page-id" type="hidden" value="8" />
+  <input name="subpage-id" type="hidden" value="1" />
+</form>
+</div>
+<span style="float:right; margin-left:20px;"> <a href="main.php?lang=a&action=search-bible">Որոնում<img src="images/search.png" align="absmiddle" border="0" hspace="4" /></a></span>
+
+
+
+<div id="bible_chapter_navig">
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=107>1</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=108>2</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=109>3</a> | 
+<span class=selected_chapter>4</span> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=111>5</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=112>6</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=113>7</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=114>8</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=115>9</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=116>10</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=117>11</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=118>12</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=119>13</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=120>14</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=121>15</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=122>16</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=123>17</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=124>18</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=125>19</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=126>20</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=127>21</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=128>22</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=129>23</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=130>24</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=131>25</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=132>26</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=133>27</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=134>28</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=135>29</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=136>30</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=137>31</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=138>32</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=139>33</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=140>34</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=141>35</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=142>36</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=143>37</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=144>38</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=145>39</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=146>40</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=147>41</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=148>42</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=149>43</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=150>44</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=151>45</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=152>46</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=153>47</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=154>48</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=155>49</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=156>50</a> | 
+</div>
+
+<hr size="1" style="clear:both" />
+<h4>Հին Կտակարան | ԾՆՆԴՈՑ</h4>
+<h2>ԳԼ. 4</h2>
+<p><p>Կայէն և Աբէլ։ Եղբայրասպանութիւն։ Կայէնի ցեղը։ Սէթ։ </p>
+
+<p>1Եւ Ադամը գիտաց իր կինը՝ Եւան, եւ նա յղացաւ եւ ծնեց Կայէնը. Եւ ասեց. Մարդ ստացայ <a href="#" rel="ftn80" name="_ftnref80" title=""><sup>*</sup></a> Եհովայով։ 2Եւ դարձեալ ծնելիս ծնեց նորա եղբայր Հաբէլը. Եւ Հաբէլը ոչխարների հովիւ էր, բայց Կայէնը <a href="#" rel="ftn81" name="_ftnref81" title=""><sup>*</sup></a> երկրագործ էր։ 3Եւ եղաւ որ օրեր անցկենալուց վերջը՝ Կայէնը <a href="#" rel="ftn82" name="_ftnref82" title=""><sup>*</sup></a> երկրի պտղիցը Եհովային ընծայ մատուցրեց։ 4Եւ Հաբէլն էլ մատուցրեց իր <a href="#" rel="ftn83" name="_ftnref83" title=""><sup>*</sup></a> ոչխարների անդրանիկներիցը եւ նորանց պարարտներիցը։ Եւ <a href="#" rel="ftn84" name="_ftnref84" title=""><sup>*</sup></a> Եհովան Հաբէլին եւ նորա ընծային մտիկ արաւ։ 5Բայց Կայէնին եւ նորա ընծային մտիկ չþարաւ։ Եւ Կայէնը շատ բարկացաւ, եւ երեսը կախեց։ 6Եւ Եհովան՝ Կայէնին ասեց. Ի՞նչու ես բարկացել, եւ ի՞նչու ես երեսդ կախել։ 7Չէ՞ որ եթէ բարի լինիս, կþբարձրանայ. Բայց եթէ բարի չþլինիս, մեղքը դրան մօտ պառկած է. Եւ նա քեզ է փափաքում, բայց դու իշխիր նորա վերայ։ </p>
+
+<p>8Եւ Կայէնն իր Հաբէլ եղբօր հետ խօսեց. Եւ եղաւ որ երբոր նորանք դաշտումն էին, Կայէնը վեր կացաւ իր եղբայր Հաբէլի վերայ եւ <a href="#" rel="ftn85" name="_ftnref85" title=""><sup>*</sup></a> սպանեց նորան։ 9Եւ Եհովան ասեց Կայէնին. Ո՞ւր է քո եղբայր Հաբէլը։ Եւ նա ասեց. Չþգիտեմ. Մի՞թէ ես եղբօրս պահապանն եմ։ 10Եւ նա ասեց. Ի՞նչ ես արել քո եղբօր արիւնի ձայնը երկրիցը <a href="#" rel="ftn86" name="_ftnref86" title=""><sup>*</sup></a> բողոքում է դէպի ինձ։ 11Եւ հիմա դու անիծեալ լինիս այն երկրիցը, որ իր բերանը բացաւ եղբօրդ արիւնը քո ձեռքից ընդունելու։ 12Երբոր երկիրը գործես, նա այլեւս <a href="#" rel="ftn87" name="_ftnref87" title=""><sup>*</sup></a> իր արդիւնքը չտայ քեզ. Երկրի վերայ <a href="#" rel="ftn88" name="_ftnref88" title=""><sup>*</sup></a> աստանդական ու թափառական լինիս։ 13Եւ Կայէնն ասեց Եհովային. Իմ մեղքը մեծ է քան թէ թողութիւն։ 14Ահա <a href="#" rel="ftn89" name="_ftnref89" title=""><sup>*</sup></a> ինձ այսօր երկրի երեսիցը արտաքսեցիր, եւ ես քո երեսիցը պիտի թաք կենամ, եւ երկրի վերայ աստանդական ու թափառական պիտի լինիմ. Եւ կþլինի որ <a href="#" rel="ftn90" name="_ftnref90" title=""><sup>*</sup></a> ամեն ինձ գտնողը ինձ կþսպանէ։ 15Եւ Եհովան ասեց նորան. Ուրեմն ով որ կայէնին սպանէ՝ նորանից եօթնպատիկ վրէժ առնուի։ Եւ Եհովան մի նշան դրաւ Կայէնի վերայ, որ ամեն ով որ նորան գտնէ չþսպանէ նորան։ </p>
+
+<p>16Եւ Կայէնը Եհովայի երեսի առաջից դուրս գնաց եւ Նայիդ երկրումը բնակուեց Եդէմի արեւելքում։ 17Եւ Կայէնը գիտաց իր կինը. Եւ նա յղացաւ եւ ծնեց Ենոքը. Եւ մի քաղաք էր շինում, եւ այն քաղաքի անունը իր որդու անուան պէս Ենոք դրաւ։ 18Եւ Ենոքը ծնեց Գայիրադը, եւ Գայիրադը ծնեց Մայիէլը, եւ Մայիէլը ծնեց Մաթուսայէլը, եւ Մաթուսայէլը ծնեց Ղամէքը։ 19Եւ Ղամէքը երկու կին առաւ իրան. Մէկի անունը Ադդա եւ երկրորդի անունը Սէլլա էր։ 20Եւ Ադդան ծնեց Յոբէլը, որ վրանաբնակների եւ խաշնարածների հայրն եղաւ։ 21Եւ նորա եղբօր անունը Յոբալ էր, որ բոլոր քնարահարների եւ սրնգահարների հայրն եղաւ։ 22Եւ Սէլլան էլ ծնեց Թոբէլ-Կայէնը, որ պղնձից ու երկաթից ամեն տեսակ գործիք էր շինում. Եւ Թոբէլ-Կայէնի քոյրն էր Նաաման։ 23Եւ Ղամէքն իր կանանցը՝ Ադդային եւ Սէլլային ասաց. Լսեցէք ձայնս, ով Ղամէքի կանայք, ականջ դրէք իմ խօսքին, որ մի մարդ սպանեցի՝ ինձ վէրք, ու մի երիտասարդ՝ ինձ հարուածք լինելու համար։ 24Եթէ Կայէնի վրէժը <a href="#" rel="ftn91" name="_ftnref91" title=""><sup>*</sup></a> եօթնապատիկ առնուի, ապա Ղամէքինը՝ եօթանասուն եւ եօթն անգամ։ </p>
+
+<p>25Եւ Ադամը դարձեալ գիտաց իր կնոջը, եւ նա մի որդի ծնեց, եւ նորա անունը կոչեց <a href="#" rel="ftn92" name="_ftnref92" title=""><sup>*</sup></a> Սէթ, որովհետեւ ասաց Աստուած ինձ մի ուրիշ սերունդ տուաւ Հաբէլի փոխանակ, որին սպանեց Կայէնը։ 26Եւ <a href="#" rel="ftn93" name="_ftnref93" title=""><sup>*</sup></a> Սէթին էլ մի որդի ծնուեցաւ, եւ նորա անունը կոչեց Ենովս. Այն ժամանակ <a href="#" rel="ftn94" name="_ftnref94" title=""><sup>*</sup></a> սկսուեցաւ Եհովայի անունը կանչելը։ </p></p>
+<div class="balloonstyle" id="ftn80" name="ftn80" ><sup>*</sup>4.1 Կամ՝ Եհովային</div>
+
+<div class="balloonstyle" id="ftn81" name="ftn81" ><sup>*</sup>4.2 Գլ. գ. 23։ թ. 20։</div>
+
+<div class="balloonstyle" id="ftn82" name="ftn82" ><sup>*</sup>4.3 Թու. ժը. 12։</div>
+
+<div class="balloonstyle" id="ftn83" name="ftn83" ><sup>*</sup>4.4 Թու. ժը. 17։ Առ. գ. 9։</div>
+
+<div class="balloonstyle" id="ftn84" name="ftn84" ><sup>*</sup>4.4 Եբր. ժա. 4։</div>
+
+<div class="balloonstyle" id="ftn85" name="ftn85" ><sup>*</sup>4.8 Մատ. իգ. 35։ ա Յօհ. գ. 12։ Յուդ. 11։</div>
+
+<div class="balloonstyle" id="ftn86" name="ftn86" ><sup>*</sup>4.10 Գլ. ժը. 20։ Եբր. ժբ. 24։ Յայտ. զ. 9, 10։</div>
+
+<div class="balloonstyle" id="ftn87" name="ftn87" ><sup>*</sup>4.12 Ղեւ. իզ. 20։</div>
+
+<div class="balloonstyle" id="ftn88" name="ftn88" ><sup>*</sup>4.12 բ Օր. իը. 65։</div>
+
+<div class="balloonstyle" id="ftn89" name="ftn89" ><sup>*</sup>4.14 Յոբ. ժե. 20-24։</div>
+
+<div class="balloonstyle" id="ftn90" name="ftn90" ><sup>*</sup>4.14 Գլ. թ. 6։</div>
+
+<div class="balloonstyle" id="ftn91" name="ftn91" ><sup>*</sup>4.24 Հմր. 15։</div>
+
+<div class="balloonstyle" id="ftn92" name="ftn92" ><sup>*</sup>4.25 Գլ. ե. 3, 6։</div>
+
+<div class="balloonstyle" id="ftn93" name="ftn93" ><sup>*</sup>4.26 Գլ. ե 6։</div>
+
+<div class="balloonstyle" id="ftn94" name="ftn94" ><sup>*</sup>4.26 Գլ. ժբ. 8։ գ Թագ. ժը. 24։</div><hr size="1" />
+<div id="bible_chapter_navig">
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=107>1</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=108>2</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=109>3</a> | 
+<span class=selected_chapter>4</span> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=111>5</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=112>6</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=113>7</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=114>8</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=115>9</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=116>10</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=117>11</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=118>12</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=119>13</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=120>14</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=121>15</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=122>16</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=123>17</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=124>18</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=125>19</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=126>20</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=127>21</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=128>22</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=129>23</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=130>24</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=131>25</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=132>26</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=133>27</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=134>28</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=135>29</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=136>30</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=137>31</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=138>32</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=139>33</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=140>34</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=141>35</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=142>36</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=143>37</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=144>38</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=145>39</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=146>40</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=147>41</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=148>42</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=149>43</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=150>44</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=151>45</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=152>46</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=153>47</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=154>48</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=155>49</a> | 
+<a href=main.php?lang=a&content=bible&page-id=8&subpage-id=1&testament_id=1&book_id=6&chapter_id=156>50</a> | 
+</div>
+
+
+<div id="facebook" style="background-color:#FFFFFF">
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<div class="fb-like-box" style="margin-top:15px;" data-href="http://www.facebook.com/pages/%D5%80%D5%A1%D5%B5%D5%A1%D5%BD%D5%BF%D5%A1%D5%B6%D5%AB-%D4%B1%D5%BD%D5%BF%D5%BE%D5%A1%D5%AE%D5%A1%D5%B7%D5%B6%D5%B9%D5%A1%D5%B5%D5%AB%D5%B6-%D4%B8%D5%B6%D5%AF%D5%A5%D6%80%D5%B8%D6%82%D5%A9%D5%B5%D5%B8%D6%82%D5%B6-The-Bible-Society-of-Armenia/306402589377339" data-width="775" data-height="300" data-show-faces="true" data-stream="false" data-header="false"></div>
+</div>
+
+</div><div id="main-right"><div id="right-header" align="center">ՄՏՈՐՈՒՄՆԵՐ</div>
+<div id="main-right-articles-inside">
+<img src=scripts/thumb.php?file=../datas/articles/117.jpg&width=63&height=80 vspace=10 class=main-article-img><a href="main.php?lang=a&page-id=16&article-id=117" style="color:#000000">2. ԽՈՆԱՐՀՈՒԹՅՈՒՆ
+(Մաքսավորի և փարիսեցու կիրակի)
+Հաջորդ կիրակին կոչվում է «Մաքսավորի և փարիսեցու կիրակի»: Դրա նախօրեին`  շաբաթ երեկոյան ժամերգության ժամանակ, ա...</a>
+<div align="right" style="margin-right:10px;"><b>2014 / Մարտ / 26</b></div>
+
+</div>
+<!--div id="right-header" align="center"></div-->
+<div id="right-header" align="center">ԿԱՐԴԱԼ</div>
+<div id="main-right-yearbook-inside" align="center" class="hovergallery">
+<img src=scripts/thumb.php?file=../datas/articles/68.jpg&width=120&height=120 vspace=10><br><b><a href=main.php?lang=a&page-id=23&content=literature&literature-id=1>Հույն աստվածաբան Զիսիմոս Վիրվիլիսի «Հովհաննես Աստվածաբան՝ սիրո աշակերտը» գիրքը, որը ներկայացնում է Հովհաննես առաքյալի կյանքը և ուսուցումները:</a></b>
+<hr size="1">
+</div>
+</div>  <div style="clear:both";></div>
+<div id="footer">
+<img src="images/logo_small.gif" align="absmiddle" hspace="10" vspace="2"> ©  2012, Հայաստանի Աստվածաշնչային ընկերություն, հեղինակային իրավունքները պաշտպանված են օրենքով</div>
+</div>
+
+</div>
+</body>
+</html>
