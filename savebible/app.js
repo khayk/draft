@@ -5,7 +5,7 @@ var winston = require('winston');
 
 var logger = new (winston.Logger)({
    transports: [
-      new (winston.transports.Console)(),
+      new (winston.transports.Console)({colorize: true}),
       new (winston.transports.File)({ filename: 'draft.log' })
    ]
 });
@@ -16,7 +16,7 @@ function pad(n, width, z) {
    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
-logger.info(pad('APPLICATION STARTED\n', 45, ' '));
+logger.info(pad('APPLICATION STARTED', 45, ' '));
 
 //var sleep = require('sleep');
 
@@ -281,6 +281,10 @@ function onBookAvailable(err, chaps) {
                              ]);
        logger.info(qstr);
        //console.log(qstr);
+
+       var book  = new Book('Genesis', 91);
+       book.test = testament;
+       queryChapters(book);
    }
 
    function queryChapters(book) {
@@ -290,19 +294,36 @@ function onBookAvailable(err, chaps) {
                               {name: DROP_VAR, val: book.id}
                              ]);
        logger.info(qstr);
+
+       var chap  = new Chapter('Chapter Name', 1766, 1);
+       chap.book = book;
+       queryContent(chap);
    }
 
    function queryContent(chapter) {
-       // bla bla bla
+       var qstr = buildQuery(CONTENT,
+                             [
+                              {name: SUB_PAGE_ID, val: chapter.book.test.subid},
+                              {name: TESTMNT_ID,  val: chapter.book.test.id},
+                              {name: BOOK_ID,     val: chapter.book.id},
+                              {name: CHAP_ID,     val: chapter.id}
+                             ]);
+       logger.info(qstr);
+
+       var path = chapter.book.test.name + '/' +
+                  chapter.book.test.type + '/' +
+                  chapter.book.name + '/' +
+                  pad(chapter.number, 2);
+       logger.info('save at file: ', path);
    }
 
    function main() {
       var tsts = [];
 
-      tsts.push(new Testament('Ararat',   'old', 1, 1));
-      tsts.push(new Testament('Ararat',   'new', 2, 1));
+      //tsts.push(new Testament('Ararat',   'old', 1, 1));
+      // tsts.push(new Testament('Ararat',   'new', 2, 1));
       tsts.push(new Testament('Ejmiacin', 'old', 3, 2));
-      tsts.push(new Testament('Ejmiacin', 'new', 4, 2));
+      // tsts.push(new Testament('Ejmiacin', 'new', 4, 2));
 
       tsts.forEach(function(t) {
          queryBooks(t);
