@@ -1,7 +1,9 @@
-var http = require('http');
-var fs = require('fs');
-var mkdirp = require('mkdirp');
+var http    = require('http');
+var fs      = require('fs');
+var mkdirp  = require('mkdirp');
 var winston = require('winston');
+var sleep   = require('sleep');
+
 
 var logger = new (winston.Logger)({
    transports: [
@@ -17,8 +19,6 @@ function pad(n, width, z) {
 }
 
 logger.info(pad('APPLICATION STARTED', 45, ' '));
-
-//var sleep = require('sleep');
 
 /*
 var pageId = 8;
@@ -45,40 +45,8 @@ for (var i = 107; i < 110; ++i) {
    getFile(i);
 }
 */
-/*
-Ararat    (Old: 1, New: 2)
-Ejmiacin  (Old: 3, New: 4)
 
-select old testement  [http://www.biblesociety.am/scripts/bibles/func.php?func=testament_id&drop_var=1]
-select new testement  [http://www.biblesociety.am/scripts/bibles/func.php?func=testament_id&drop_var=2]
 
- */
-
-function extractOptions(loc, str, callback) {
-   //text.replace(/<(option)\s+value="(\d+)">([Ա-Ֆ\s]+)<\/\1>/gm, "\n$3");
-   var re = /<(option)\s+value="(\d+)">([\s\S]+?)<\/\1>/gm;
-   ///<(option)\s+value="(\d+)">([Ա-Ֆ\s]+)<\/\1>/gm;
-
-   //var matches = re.exec(text);
-   var order = 1;
-
-   var options = [];
-   while ((arr = re.exec(str)) !== null) {
-      var fnameonly = arr[3];
-      fnameonly = fnameonly.trim();
-      //console.log(fnameonly);
-
-      var fname = loc + pad(order, 2) + ' - ' + fnameonly;
-      var what = fs.writeFileSync(fname, fnameonly);
-      var msg = order + '. ' + arr[0];
-      //console.log(msg);
-      ++order;
-
-      options.push({'id': arr[2], 'name': arr[3]});
-   }
-
-   callback(null, options);
-}
 
 //   });
 
@@ -100,22 +68,8 @@ function test() {
    });
 }
 
-function getContentSimulate(url, callback) {
-   enterScope();
-   print('reading file: ' + url);
 
-   var data;
-   try {
-      data = fs.readFileSync(url + '.html', {encoding:'utf8'});
-      callback(null, data);
-   }
-   catch (e) {
-      callback(e);
-   }
-   leaveScope();
-}
-
-// syncroniously download a single url and return result or error
+// download the content of the specified url and fire callback when done
 function getContent(url, callback) {
 
    http.get(options, function(res) {
@@ -134,6 +88,23 @@ function getContent(url, callback) {
       callback(err);
    })
 }
+
+
+function getContentSimulate(url, callback) {
+   enterScope();
+   print('reading file: ' + url);
+
+   var data;
+   try {
+      data = fs.readFileSync(url + '.html', {encoding:'utf8'});
+      callback(null, data);
+   }
+   catch (e) {
+      callback(e);
+   }
+   leaveScope();
+}
+
 
 /*
 // 2 bibles with testaments
@@ -216,8 +187,30 @@ function onBookAvailable(err, chaps) {
 }
 
 
+// var fnameonly = arr[3];
+// fnameonly = fnameonly.trim();
+//console.log(fnameonly);
+//var fname = loc + pad(order, 2) + ' - ' + fnameonly;
+//var what = fs.writeFileSync(fname, fnameonly);
+//var msg = order + '. ' + arr[0];
+//logger.info(msg);
+
 (function() {
 
+   // extract options from the specified string
+   function extractOptions(loc, str, callback) {
+      var re = /<(option)\s+value="(\d+)">([\s\S]+?)<\/\1>/gm;
+      var order = 1;
+      var options = [];
+      while ((arr = re.exec(str)) !== null) {
+         options.push({'order': order, 'id': arr[2], 'name': arr[3].trim()});
+         ++order;
+      }
+
+      callback(null, options);
+   }
+
+   // convert book name to a global name
    function bookNameToGlobalID(name) {
     return name;
    }
@@ -301,20 +294,28 @@ function onBookAvailable(err, chaps) {
    }
 
    function queryContent(chapter) {
-       var qstr = buildQuery(CONTENT,
-                             [
-                              {name: SUB_PAGE_ID, val: chapter.book.test.subid},
-                              {name: TESTMNT_ID,  val: chapter.book.test.id},
-                              {name: BOOK_ID,     val: chapter.book.id},
-                              {name: CHAP_ID,     val: chapter.id}
-                             ]);
-       logger.info(qstr);
+      var qstr = buildQuery(CONTENT,
+                            [
+                            {name: SUB_PAGE_ID, val: chapter.book.test.subid},
+                            {name: TESTMNT_ID,  val: chapter.book.test.id},
+                            {name: BOOK_ID,     val: chapter.book.id},
+                            {name: CHAP_ID,     val: chapter.id}
+                            ]);
+      logger.info(qstr);
 
-       var path = chapter.book.test.name + '/' +
-                  chapter.book.test.type + '/' +
-                  chapter.book.name + '/' +
-                  pad(chapter.number, 2);
-       logger.info('save at file: ', path);
+      // data will be in a utf8 format
+      getContent(qstr, function(err, data) {
+         if (err) {
+            logger.error('Failed to download content of : ' + qstr);
+            return;
+         }
+
+         var path = chapter.book.test.name + '/' +
+         chapter.book.test.type + '/' +
+         chapter.book.name + '/' +
+         pad(chapter.number, 2);
+         logger.info('save at file: ', path);
+      });
    }
 
    function main() {
