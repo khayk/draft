@@ -2,13 +2,12 @@ var http    = require('http');
 var fs      = require('fs');
 var mkdirp  = require('mkdirp');
 var winston = require('winston');
-var sleep   = require('sleep');
-
+//var sleep   = require('sleep');
 
 var logger = new (winston.Logger)({
    transports: [
       new (winston.transports.Console)({colorize: true}),
-      new (winston.transports.File)({ filename: 'draft.log' })
+      new (winston.transports.File)({ filename: 'draft.log', json: false })
    ]
 });
 
@@ -20,93 +19,92 @@ function pad(n, width, z) {
 
 logger.info(pad('APPLICATION STARTED', 45, ' '));
 
-/*
-var pageId = 8;
-var subId  = 1;
-var testId = 1;
-var bookId = 6;
-var chapId = 107;
-
-function getFile(chap) {
-   var url =   'http://www.biblesociety.am/main.php?lang=a' +
-            '&content=bible&page-id=' + pageId +
-            '&subpage-id=' + subId +
-            '&testament_id=' + testId +
-            '&book_id=' + bookId +
-            '&chapter_id=' + chap;
-
-   var file = fs.createWriteStream('gen_' + chap + '.html');
-   var request = http.get(url, function(response) {
-      response.pipe(file);
-   });
-}
-
-for (var i = 107; i < 110; ++i) {
-   getFile(i);
-}
-*/
-
-
-
-//   });
-
-
-   //console.log(matches.length)
-   //console.log(matches[2] + ' - ' + matches[3]);
-   //console.log();
-   //text.replace(/<(option)\s+value="(\d+)">([Ա-Ֆ\s]+)<\/\1>/gm, "\n$2 $3");
-   //console.log(str.split('\n'))
-
-
-function test() {
-   fs.readFile('invest-ejmiacin.html', {encoding:'utf8'}, function(err, data) {
-      if (err) {
-         console.error("Failed to read file.");
-         return;
-      }
-      extractOptions(data);
-   });
-}
-
-
 // download the content of the specified url and fire callback when done
 function getContent(url, callback) {
 
-   http.get(options, function(res) {
+   http.get(url, function(res) {
       var content = '';
       res.setEncoding('utf8');
 
       res.on('data', function(data) {
-         content += data
-      })
+         content += data;
+      });
 
       res.on('end', function() {
          callback(null, content);
-      })
+      });
 
    }).on('error', function(err) {
       callback(err);
-   })
+   });
 }
 
 
 function getContentSimulate(url, callback) {
-   enterScope();
-   print('reading file: ' + url);
-
+   //print('reading file: ' + url);
+   url = 'D:/projects/draft/savebible/templates/Ejmiacin - Xevtakan 4';
    var data;
    try {
-      data = fs.readFileSync(url + '.html', {encoding:'utf8'});
+      data = fs.readFileSync(url, {encoding:'utf8'});
       callback(null, data);
    }
    catch (e) {
       callback(e);
    }
-   leaveScope();
 }
 
 
 /*
+function statistics() {
+   var attrs = {};
+
+   return {
+      discover: function(attr, cnt) {
+         if (attrs[attr]) {
+            attrs[attr].count += count;
+         }
+         else {
+            attrs[attr] = {count: cnt, handled: 0};
+         }
+      },
+
+      handle: function(attr, cnt) {
+         if (attrs[attr]) {
+            attrs[attr].handled += count;
+         }
+         else {
+            attrs[attr] = {count: 0, handled: cnt};
+         }
+      },
+
+      numDiscovered: function(attr) {
+         return attrs[attr].count;
+      },
+
+      numHandled: function(attr) {
+         return attrs[attr].handled;
+      }
+   };
+}
+*/
+/*
+
+
+   // function test() {
+   //    fs.readFile('invest-ejmiacin.html', {encoding:'utf8'}, function(err, data) {
+   //       if (err) {
+   //          logger.error("Failed to read file.");
+   //          return;
+   //       }
+
+   //       extractOptions(data, function(err, opts) {
+   //          logger.info(opts);
+   //       });
+   //    });
+   // }
+
+   // test();
+
 // 2 bibles with testaments
 var bibles = [
    {
@@ -187,18 +185,12 @@ function onBookAvailable(err, chaps) {
 }
 
 
-// var fnameonly = arr[3];
-// fnameonly = fnameonly.trim();
-//console.log(fnameonly);
-//var fname = loc + pad(order, 2) + ' - ' + fnameonly;
-//var what = fs.writeFileSync(fname, fnameonly);
-//var msg = order + '. ' + arr[0];
-//logger.info(msg);
 
 (function() {
 
+
    // extract options from the specified string
-   function extractOptions(loc, str, callback) {
+   function extractOptions(str, callback) {
       var re = /<(option)\s+value="(\d+)">([\s\S]+?)<\/\1>/gm;
       var order = 1;
       var options = [];
@@ -209,6 +201,8 @@ function onBookAvailable(err, chaps) {
 
       callback(null, options);
    }
+
+
 
    // convert book name to a global name
    function bookNameToGlobalID(name) {
@@ -224,12 +218,15 @@ function onBookAvailable(err, chaps) {
        this.books = []
    }
 
-   function Book(name, id) {
+
+   function Book(name, id, number) {
        this.test     = null,
        this.name     = name,
        this.id       = id,
+       this.number   = number,
        this.chapters = []
    }
+
 
    function Chapter(name, id, number) {
        this.book    = null,
@@ -252,6 +249,7 @@ function onBookAvailable(err, chaps) {
    // book chapters:   func=book_id&drop_var=91
    // xevtakan 4 cont: subpage-id=2&testament_id=3&book_id=91&chapter_id=1766
 
+
    function buildQuery(base, fields) {
       var res = base;
       fields.forEach(function(f, i) {
@@ -266,32 +264,82 @@ function onBookAvailable(err, chaps) {
       return res;
    }
 
-   function queryBooks(testament) {
-       var qstr = buildQuery(QUERY,
-                             [
-                              {name: TESTMNT_ID, val: null},
-                              {name: DROP_VAR,   val: testament.id}
-                             ]);
-       logger.info(qstr);
-       //console.log(qstr);
 
-       var book  = new Book('Genesis', 91);
-       book.test = testament;
-       queryChapters(book);
+   function queryBooks(testament) {
+      var qstr = buildQuery(QUERY,
+                            [
+                            {name: TESTMNT_ID, val: null},
+                            {name: DROP_VAR,   val: testament.id}
+                            ]);
+
+      getContent(qstr, function(err, str) {  /// query available books
+         if (err) {
+            logger.error('Query failed: ' + qstr);
+            return;
+         }
+
+         logger.info('started testament processing: ', testament.name);
+         logger.info(qstr);
+
+         extractOptions(str, function(err, opts) {  /// options extracted
+            if (err) {  /// deal with error
+               logger.error('Failed to extract options from data: ', str);
+               return;
+            }
+
+            /// process each entry
+            opts.forEach(function(opt, i) {
+               var book  = new Book(opt.name, opt.id, opt.order);
+               book.test = testament;
+               testament.books.push(book);
+               queryChapters(book);
+            });
+         });
+
+         logger.info('completed testament processing: ', testament.name);
+      });
    }
+
 
    function queryChapters(book) {
-       var qstr = buildQuery(QUERY,
-                             [
-                              {name: BOOK_ID,  val: null},
-                              {name: DROP_VAR, val: book.id}
-                             ]);
-       logger.info(qstr);
+      var qstr = buildQuery(QUERY,
+                            [
+                            {name: BOOK_ID,  val: null},
+                            {name: DROP_VAR, val: book.id}
+                            ]);
 
-       var chap  = new Chapter('Chapter Name', 1766, 1);
-       chap.book = book;
-       queryContent(chap);
+
+
+      getContent(qstr, function(err, str) {  /// query available books
+         if (err) {
+            logger.error('Query failed: ' + qstr);
+            return;
+         }
+
+         logger.info('started book processing: ', book.name);
+         logger.info(qstr);
+
+         extractOptions(str, function(err, opts) {  /// options extracted
+            if (err) {  /// deal with error
+               logger.error('Failed to extract options from data: ', str);
+               return;
+            }
+
+            /// process each entry
+            opts.forEach(function(opt, i) {
+
+               var chap  = new Chapter(opt.name, opt.id, opt.order);
+               chap.book = book;
+               book.chapters.push(chap); /// become a chapter of current book
+               queryContent(chap);
+            });
+         });
+
+         logger.info('completed book processing: ', book.name);
+      });
+
    }
+
 
    function queryContent(chapter) {
       var qstr = buildQuery(CONTENT,
@@ -302,33 +350,53 @@ function onBookAvailable(err, chaps) {
                             {name: CHAP_ID,     val: chapter.id}
                             ]);
       logger.info(qstr);
-
+/*
       // data will be in a utf8 format
-      getContent(qstr, function(err, data) {
+      getContent(qstr, function(err, str) {
          if (err) {
-            logger.error('Failed to download content of : ' + qstr);
+            logger.error('Failed to download content at : ' + qstr);
             return;
          }
 
-         var path = chapter.book.test.name + '/' +
+         var parent = chapter.book.test.name + '/' +
          chapter.book.test.type + '/' +
-         chapter.book.name + '/' +
-         pad(chapter.number, 2);
-         logger.info('save at file: ', path);
-      });
+         chapter.book.name + '/';
+
+         mkdirp(parent, function(err) {
+            if (err) {
+               logger.error('Failed to create directory: ', parent, ', err: ' + err);
+               return;
+            }
+
+            var path = parent + pad(chapter.number, 2) + '.html';
+            var re = /(<hr size="1" style="clear:both" \/>)([\s\S]+)(<hr size="1" \/>)/gm;
+
+            /// find the needed chunk
+            if ((arr = re.exec(str)) !== null) {
+               fs.writeFile(path, arr[2], function(err) {
+                  if (err) {
+                     logger.error('failed to write file: ', path, ', err: ', err);
+                  } else {
+                     logger.info('saved to file: ', path);
+                  }
+               });
+            }
+         });
+      });*/
    }
+
 
    function main() {
       var tsts = [];
 
-      //tsts.push(new Testament('Ararat',   'old', 1, 1));
+      // tsts.push(new Testament('Ararat',   'old', 1, 1));
       // tsts.push(new Testament('Ararat',   'new', 2, 1));
       tsts.push(new Testament('Ejmiacin', 'old', 3, 2));
-      // tsts.push(new Testament('Ejmiacin', 'new', 4, 2));
+      tsts.push(new Testament('Ejmiacin', 'new', 4, 2));
 
       tsts.forEach(function(t) {
          queryBooks(t);
-      })
+      });
    }
 
    main();
