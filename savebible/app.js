@@ -264,6 +264,7 @@ function onBookAvailable(err, chaps) {
       return res;
    }
 
+   var globalOrderNumber = 0;
 
    function queryBooks(testament) {
       var qstr = buildQuery(QUERY,
@@ -289,11 +290,15 @@ function onBookAvailable(err, chaps) {
 
             /// process each entry
             opts.forEach(function(opt, i) {
-               var book  = new Book(opt.name, opt.id, opt.order);
+               if (i > 2 )
+                  return;
+               var book  = new Book(opt.name, opt.id, globalOrderNumber + opt.order);
                book.test = testament;
                testament.books.push(book);
                queryChapters(book);
             });
+
+            globalOrderNumber = globalOrderNumber + opts.length;
          });
 
          logger.info('completed testament processing: ', testament.name);
@@ -316,7 +321,8 @@ function onBookAvailable(err, chaps) {
             return;
          }
 
-         logger.info('started book processing: ', book.name);
+         var sn = pad(book.number, 2) + '-' + book.name;
+         logger.info('started book processing: ', sn);
          logger.info(qstr);
 
          extractOptions(str, function(err, opts) {  /// options extracted
@@ -327,7 +333,8 @@ function onBookAvailable(err, chaps) {
 
             /// process each entry
             opts.forEach(function(opt, i) {
-
+               if (i > 2 )
+                 return;
                var chap  = new Chapter(opt.name, opt.id, opt.order);
                chap.book = book;
                book.chapters.push(chap); /// become a chapter of current book
@@ -335,7 +342,7 @@ function onBookAvailable(err, chaps) {
             });
          });
 
-         logger.info('completed book processing: ', book.name);
+         logger.info('completed book processing: ', sn);
       });
 
    }
@@ -349,9 +356,9 @@ function onBookAvailable(err, chaps) {
                             {name: BOOK_ID,     val: chapter.book.id},
                             {name: CHAP_ID,     val: chapter.id}
                             ]);
-      logger.info(qstr);
-/*
-      // data will be in a utf8 format
+      //logger.info(qstr);
+
+/*      // data will be in a utf8 format
       getContent(qstr, function(err, str) {
          if (err) {
             logger.error('Failed to download content at : ' + qstr);
