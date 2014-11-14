@@ -105,46 +105,11 @@ function statistics() {
 
    // test();
 
-// 2 bibles with testaments
-var bibles = [
-   {
-      name: 'ararat',
-      tests: [
-         {name: 'old', id: 1},
-         {name: 'new', id: 2}
-      ]
-   },
-
-   {
-      name: 'ejmiacin',
-      tests: [
-         {name: 'old', id: 3},
-         {name: 'new', id: 4}
-      ]
-   }
-];
-
-var spacing = 0;
-function print(text) {
-   var x = pad('', spacing, ' ') + text;
-   console.log(x);
-}
-
-function enterScope() {
-   spacing += 3;
-}
-
-function leaveScope() {
-   spacing -= 3;
-}
-
 bibles.forEach(function(item) {
    //console.log(JSON.stringify(item));
-   enterScope();
    print(item.name + '/');
 
    item.tests.forEach(function(tst) {
-      enterScope();
       print(tst.name + '/');
 
       var loc = item.name + '/' + tst.name + '/';
@@ -158,33 +123,12 @@ bibles.forEach(function(item) {
                print(err);
                return;
             }
-            enterScope();
             extractOptions(loc, data, onBookAvailable);
-            leaveScope();
          })
       })
-
-      leaveScope();
    })
-   leaveScope();
 })
 */
-
-function onBookAvailable(err, chaps) {
-   if (err)
-      throw err;
-
-   chaps.forEach(function(chap) {
-      enterScope();
-
-      var url = fnBooks + chap.id;
-      print(url);
-
-      leaveScope();
-   });
-}
-
-
 
 (function() {
 
@@ -202,13 +146,19 @@ function onBookAvailable(err, chaps) {
       callback(null, options);
    }
 
-
-
-   // convert book name to a global name
-   function bookNameToGlobalID(name) {
-    return name;
+   // convert book name to id
+   function bookNameToID(name) {
+      return name;
    }
 
+   function NameMapping() {
+      //m
+      return {
+         nameToId: function(name) {
+            return ;
+         }
+      };
+   }
 
    function Testament(name, type, id, subid) {
        this.name  = name,
@@ -245,11 +195,6 @@ function onBookAvailable(err, chaps) {
    var BOOK_ID     = 'book_id';
    var CHAP_ID     = 'chapter_id';
 
-   // old books:       func=testament_id&drop_var=1
-   // book chapters:   func=book_id&drop_var=91
-   // xevtakan 4 cont: subpage-id=2&testament_id=3&book_id=91&chapter_id=1766
-
-
    function buildQuery(base, fields) {
       var res = base;
       fields.forEach(function(f, i) {
@@ -263,6 +208,7 @@ function onBookAvailable(err, chaps) {
       });
       return res;
    }
+
 
    var globalOrderNumber = 0;
 
