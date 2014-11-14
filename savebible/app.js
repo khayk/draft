@@ -2,12 +2,17 @@ var http    = require('http');
 var fs      = require('fs');
 var mkdirp  = require('mkdirp');
 var winston = require('winston');
-//var sleep   = require('sleep');
+//var sleep = require('sleep');
 
-var logger = new (winston.Logger)({
+var logger = new(winston.Logger)({
    transports: [
-      new (winston.transports.Console)({colorize: true}),
-      new (winston.transports.File)({ filename: 'draft.log', json: false })
+      new(winston.transports.Console)({
+         colorize: true
+      }),
+      new(winston.transports.File)({
+         filename: 'draft.log',
+         json: false
+      })
    ]
 });
 
@@ -45,10 +50,11 @@ function getContentSimulate(url, callback) {
    url = 'D:/projects/draft/savebible/templates/Ejmiacin - Xevtakan 4';
    var data;
    try {
-      data = fs.readFileSync(url, {encoding:'utf8'});
+      data = fs.readFileSync(url, {
+         encoding: 'utf8'
+      });
       callback(null, data);
-   }
-   catch (e) {
+   } catch (e) {
       callback(e);
    }
 }
@@ -139,7 +145,11 @@ bibles.forEach(function(item) {
       var order = 1;
       var options = [];
       while ((arr = re.exec(str)) !== null) {
-         options.push({'order': order, 'id': arr[2], 'name': arr[3].trim()});
+         options.push({
+            'order': order,
+            'id': arr[2],
+            'name': arr[3].trim()
+         });
          ++order;
       }
 
@@ -151,47 +161,87 @@ bibles.forEach(function(item) {
       return name;
    }
 
-   function NameMapping() {
-      //m
+   var NM = (function() {
+      var instance_; // instance stores a reference to the Singleton
+
+      function init() {
+         var namesMap = {};
+
+         return {
+            load: function(file) {
+               data = fs.readFileSync(file, {
+                  encoding: 'utf8'
+               });
+
+               var lines = data.split('\n');
+               lines.forEach(function(s, i) {
+                  var parts = s.split('|');
+                  var key   = parts[0].trim();
+                  var val   = parts[1].trim();
+
+                  var ref = namesMap[key];
+                  if (ref && ref !== val) {
+                     logger.warn(key + ' is already exists');
+                     logger.warn(ref + ' is overwritten with ' + val);
+                  }
+                  namesMap[key] = val;
+                  //logger.info(key, ' -> ',  val);
+               });
+            },
+
+            nameToId: function(key) {
+               var ref = namesMap[key];
+               if (ref)
+                  return ref;
+               logger.error(key + ' does not exists.');
+               return 'ZZZ';
+            }
+         };
+      }
+
       return {
-         nameToId: function(name) {
-            return ;
+         instance: function() {
+            if (!instance_) {
+               instance_ = init();
+            }
+            return instance_;
          }
       };
-   }
+   })();
+
 
    function Testament(name, type, id, subid) {
-       this.name  = name,
-       this.type  = type,
-       this.id    = id,
-       this.subid = subid,
-       this.books = []
+      this.name = name;
+      this.type = type;
+      this.id = id;
+      this.subid = subid;
+      this.books = []
    }
 
 
    function Book(name, id, number) {
-       this.test     = null,
-       this.name     = name,
-       this.id       = id,
-       this.number   = number,
-       this.chapters = []
+      this.test = null;
+      this.name = name;
+      this.id = id;
+      this.number = number;
+      this.chapters = []
    }
 
 
    function Chapter(name, id, number) {
-       this.book    = null,
-       this.name    = name,
-       this.id      = id,
-       this.number  = number,
-       this.content = ''
+      this.book = null;
+      this.name = name;
+      this.id = id;
+      this.number = number;
+      this.content = ''
    }
 
-   var QUERY       = 'http://www.biblesociety.am/scripts/bibles/func.php?func=';
-   var CONTENT     = 'http://www.biblesociety.am/main.php?lang=a&content=bible&page-id=8&';
+   var QUERY   = 'http://www.biblesociety.am/scripts/bibles/func.php?func=';
+   var CONTENT = 'http://www.biblesociety.am/main.php?lang=a&content=bible&page-id=8&';
 
    var TESTMNT_ID  = 'testament_id';
    var DROP_VAR    = 'drop_var';
-   var SUB_PAGE_ID = 'subpage-id';    // (ararat 1, ejmiacin 2)
+   var SUB_PAGE_ID = 'subpage-id'; // (ararat 1, ejmiacin 2)
    var BOOK_ID     = 'book_id';
    var CHAP_ID     = 'chapter_id';
 
@@ -213,13 +263,15 @@ bibles.forEach(function(item) {
    var globalOrderNumber = 0;
 
    function queryBooks(testament) {
-      var qstr = buildQuery(QUERY,
-                            [
-                            {name: TESTMNT_ID, val: null},
-                            {name: DROP_VAR,   val: testament.id}
-                            ]);
+      var qstr = buildQuery(QUERY, [{
+         name: TESTMNT_ID,
+         val: null
+      }, {
+         name: DROP_VAR,
+         val: testament.id
+      }]);
 
-      getContent(qstr, function(err, str) {  /// query available books
+      getContent(qstr, function(err, str) { /// query available books
          if (err) {
             logger.error('Query failed: ' + qstr);
             return;
@@ -228,17 +280,18 @@ bibles.forEach(function(item) {
          logger.info('started testament processing: ', testament.name);
          logger.info(qstr);
 
-         extractOptions(str, function(err, opts) {  /// options extracted
-            if (err) {  /// deal with error
+         extractOptions(str, function(err, opts) { /// options extracted
+            if (err) { /// deal with error
                logger.error('Failed to extract options from data: ', str);
                return;
             }
 
             /// process each entry
             opts.forEach(function(opt, i) {
-               if (i > 2 )
-                  return;
-               var book  = new Book(opt.name, opt.id, globalOrderNumber + opt.order);
+               // if (i > 2)
+               //    return;
+               var nameId = NM.instance().nameToId(opt.name);
+               var book = new Book(nameId, opt.id, globalOrderNumber + opt.order);
                book.test = testament;
                testament.books.push(book);
                queryChapters(book);
@@ -253,15 +306,15 @@ bibles.forEach(function(item) {
 
 
    function queryChapters(book) {
-      var qstr = buildQuery(QUERY,
-                            [
-                            {name: BOOK_ID,  val: null},
-                            {name: DROP_VAR, val: book.id}
-                            ]);
+      var qstr = buildQuery(QUERY, [{
+         name: BOOK_ID,
+         val: null
+      }, {
+         name: DROP_VAR,
+         val: book.id
+      }]);
 
-
-
-      getContent(qstr, function(err, str) {  /// query available books
+      getContent(qstr, function(err, str) { /// query available books
          if (err) {
             logger.error('Query failed: ' + qstr);
             return;
@@ -271,17 +324,17 @@ bibles.forEach(function(item) {
          logger.info('started book processing: ', sn);
          logger.info(qstr);
 
-         extractOptions(str, function(err, opts) {  /// options extracted
-            if (err) {  /// deal with error
+         extractOptions(str, function(err, opts) { /// options extracted
+            if (err) { /// deal with error
                logger.error('Failed to extract options from data: ', str);
                return;
             }
 
             /// process each entry
             opts.forEach(function(opt, i) {
-               if (i > 2 )
-                 return;
-               var chap  = new Chapter(opt.name, opt.id, opt.order);
+               // if (i > 2)
+               //    return;
+               var chap = new Chapter(opt.name, opt.id, opt.order);
                chap.book = book;
                book.chapters.push(chap); /// become a chapter of current book
                queryContent(chap);
@@ -290,30 +343,38 @@ bibles.forEach(function(item) {
 
          logger.info('completed book processing: ', sn);
       });
-
    }
 
 
    function queryContent(chapter) {
-      var qstr = buildQuery(CONTENT,
-                            [
-                            {name: SUB_PAGE_ID, val: chapter.book.test.subid},
-                            {name: TESTMNT_ID,  val: chapter.book.test.id},
-                            {name: BOOK_ID,     val: chapter.book.id},
-                            {name: CHAP_ID,     val: chapter.id}
-                            ]);
+      var qstr = buildQuery(CONTENT, [{
+         name: SUB_PAGE_ID,
+         val: chapter.book.test.subid
+      }, {
+         name: TESTMNT_ID,
+         val: chapter.book.test.id
+      }, {
+         name: BOOK_ID,
+         val: chapter.book.id
+      }, {
+         name: CHAP_ID,
+         val: chapter.id
+      }]);
+
       //logger.info(qstr);
 
-/*      // data will be in a utf8 format
+      // data will be in a utf8 format
       getContent(qstr, function(err, str) {
          if (err) {
-            logger.error('Failed to download content at : ' + qstr);
+            logger.error('Failed to download content at: ' + qstr);
+            //failedQueries.push({obj: chapter, query: qstr});
             return;
          }
 
          var parent = chapter.book.test.name + '/' +
-         chapter.book.test.type + '/' +
-         chapter.book.name + '/';
+                      chapter.book.test.type + '/' +
+                      pad(chapter.book.number, 2) + '-' + 
+                      chapter.book.name + '/';
 
          mkdirp(parent, function(err) {
             if (err) {
@@ -335,17 +396,21 @@ bibles.forEach(function(item) {
                });
             }
          });
-      });*/
+      });
    }
 
 
    function main() {
-      var tsts = [];
+      NM.instance().load('templates/Ararat Books');
+      NM.instance().load('templates/Ejmiacin Books');
 
-      // tsts.push(new Testament('Ararat',   'old', 1, 1));
-      // tsts.push(new Testament('Ararat',   'new', 2, 1));
-      tsts.push(new Testament('Ejmiacin', 'old', 3, 2));
-      tsts.push(new Testament('Ejmiacin', 'new', 4, 2));
+      //console.log(NM.instance().nameToId('ԹՈՒՂԹ ԱՌ ՏԻՏՈՍ'));
+
+      var tsts = [];
+      tsts.push(new Testament('Ararat',   'old', 1, 1));
+      tsts.push(new Testament('Ararat',   'new', 2, 1));
+      // tsts.push(new Testament('Ejmiacin', 'old', 3, 2));
+      // tsts.push(new Testament('Ejmiacin', 'new', 4, 2));
 
       tsts.forEach(function(t) {
          queryBooks(t);
@@ -353,5 +418,4 @@ bibles.forEach(function(item) {
    }
 
    main();
-
 })();
