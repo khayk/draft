@@ -5,7 +5,7 @@ var winston = require('winston');
 //var sleep = require('sleep');
 
 var cfg = {
-   dataRoot:    'c:/Dev/code/projects/personal/mygithub/web-bible/data/',
+   dataRoot:    'd:/projects/mygithub/web-bible/data/',
    mappingFile: 'id-mapping.json',
    environment: 'test',
    encoding:    'utf8'
@@ -511,8 +511,46 @@ bibles.forEach(function(item) {
       });
    }
 
-   function convertBiblesToUSFM() {
+   function readDirFiles(root, callback) {
 
+      var exts = extensions.split(';');
+      // enumerate files in a given directory
+      fs.readdir(dataDir, function(err, files) {
+         if (err) {
+            callback(err, bible);
+            return;
+         }
+
+         files.forEach(function(p) {
+            var e = path.extname(p);
+            if (path.extname(p) === '.usfm') {
+               callback(null, p);
+            }
+         });
+      });
+   }
+
+   // ---------------------------------------------------------------
+   function buildUSFM(file) {
+      var dataDir = dataRoot;
+
+      // enumerate files in a given directory
+      fs.readdir(dataDir, function(err, files) {
+         var bible = new Bible();
+
+         if (err) {
+            callback(err, bible);
+            return;
+         }
+
+         files.forEach(function(p) {
+            if (path.extname(p) === '.usfm') {
+               callback(null, )
+            }
+         });
+
+         callback(null, bible);
+      });
    }
 
    function testObj(val) {
@@ -527,7 +565,7 @@ bibles.forEach(function(item) {
       bbm = new BBM();
       bbm.initialize(cfg);
 
-      downloadBibles();
+      //downloadBibles();
    }
 
    main();
