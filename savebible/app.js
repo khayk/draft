@@ -4,6 +4,13 @@ var mkdirp  = require('mkdirp');
 var winston = require('winston');
 //var sleep = require('sleep');
 
+var cfg = {
+   dataRoot:    'c:/Dev/code/projects/personal/mygithub/web-bible/data/',
+   mappingFile: 'id-mapping.json',
+   environment: 'test',
+   encoding:    'utf8'
+};
+
 var logger = new(winston.Logger)({
    transports: [
       new(winston.transports.Console)({
@@ -21,6 +28,41 @@ function pad(n, width, z) {
    n = n + '';
    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
+
+function QueryHolder() {
+   this.fc = {};
+
+   this.add = function(key, content, fn) {
+      var ref = this.fc[key];
+      if (ref) {
+         logger.warn('the query with key: ' + key + ' is already exists.');
+         return;
+      }
+      this.fc[key] = {
+         content: content,
+         fn: fn
+      };
+   };
+
+   this.find = function(key) {
+      var ref = this.fc[key];
+      if (ref) {
+         return true;
+      }
+      return false;
+   };
+
+   this.repeat = function() {
+      logger.info('repeating problematic queries...');
+      for (var key in this.fc) {
+         var ref = this.fc[key];
+         logger.info(key, ref.content);
+         ref.fn(ref.content);
+      }
+   };
+}
+
+var qh = new QueryHolder();
 
 logger.info(pad('APPLICATION STARTED', 45, ' '));
 
@@ -58,6 +100,46 @@ function getContentSimulate(url, callback) {
       callback(e);
    }
 }
+
+
+function BBMRecord(id, index, abbr, type) {
+   this.id       = id;     // book unique id
+   this.index    = index;  // book order number
+   this.abbr     = abbr;
+   this.type     = type;   // 1 - old, 2 - new, 3 - additional
+}
+
+// books base mapping
+function BBM () {
+   this.records = [];
+   this.recById = {};
+   this.recByOn = {};
+}
+
+
+BBM.prototype = {
+   initialize: function(options) {
+      var file    = options.dataRoot + options.mappingFile;
+      var thisRef = this;
+
+      var data = fs.readFileSync(file, options.encoding);
+      var js = JSON.parse(data);
+      js.forEach(function(x) {
+         var obj = new BBMRecord(x.id, x.index, x.abbr, x.type);
+         thisRef.records.push(obj);
+         thisRef.recById[obj.id]    = thisRef.records.length - 1;
+         thisRef.recByOn[obj.index] = thisRef.records.length - 1;
+      });
+   },
+
+   recordById: function(id) {
+      return this.records[this.recById[id]];
+   },
+
+   recordByOn: function(on) {
+      return this.records[this.recByOn[on]];
+   }
+};
 
 
 /*
@@ -215,7 +297,7 @@ bibles.forEach(function(item) {
       this.type = type;
       this.id = id;
       this.subid = subid;
-      this.books = []
+      this.books = [];
    }
 
 
@@ -224,7 +306,7 @@ bibles.forEach(function(item) {
       this.name = name;
       this.id = id;
       this.number = number;
-      this.chapters = []
+      this.chapters = [];
    }
 
 
@@ -233,7 +315,14 @@ bibles.forEach(function(item) {
       this.name = name;
       this.id = id;
       this.number = number;
-      this.content = ''
+      this.content = '';
+      this.verses = [];
+   }
+
+   function Verse(text, number) {
+      this.chapter = null;
+      this.text    = text;
+      this.number  = number;
    }
 
    var QUERY   = 'http://www.biblesociety.am/scripts/bibles/func.php?func=';
@@ -304,7 +393,6 @@ bibles.forEach(function(item) {
       });
    }
 
-
    function queryChapters(book) {
       var qstr = buildQuery(QUERY, [{
          name: BOOK_ID,
@@ -317,6 +405,7 @@ bibles.forEach(function(item) {
       getContent(qstr, function(err, str) { /// query available books
          if (err) {
             logger.error('Query failed: ' + qstr);
+            qh.add(qstr, book, queryChapters);
             return;
          }
 
@@ -366,14 +455,22 @@ bibles.forEach(function(item) {
       // data will be in a utf8 format
       getContent(qstr, function(err, str) {
          if (err) {
-            logger.error('Failed to download content at: ' + qstr);
-            //failedQueries.push({obj: chapter, query: qstr});
+            if (!qh.find(qstr)) {
+               logger.warn('Failed to download content at: ' + qstr);
+               // repeat failed query one more time
+               qh.add(qstr, chapter, queryContent);
+               logger.info('One more attempt');
+               queryContent(chapter);
+            }
+            else {
+               logger.error('Failed to download content at: ' + qstr);
+            }
             return;
          }
 
          var parent = chapter.book.test.name + '/' +
                       chapter.book.test.type + '/' +
-                      pad(chapter.book.number, 2) + '-' + 
+                      pad(bbm.recordById(chapter.book.name).index, 2) + '-' +
                       chapter.book.name + '/';
 
          mkdirp(parent, function(err) {
@@ -399,12 +496,9 @@ bibles.forEach(function(item) {
       });
    }
 
-
-   function main() {
+   function downloadBibles() {
       NM.instance().load('templates/Ararat Books');
       NM.instance().load('templates/Ejmiacin Books');
-
-      //console.log(NM.instance().nameToId('ԹՈՒՂԹ ԱՌ ՏԻՏՈՍ'));
 
       var tsts = [];
       tsts.push(new Testament('Ararat',   'old', 1, 1));
@@ -415,6 +509,25 @@ bibles.forEach(function(item) {
       tsts.forEach(function(t) {
          queryBooks(t);
       });
+   }
+
+   function convertBiblesToUSFM() {
+
+   }
+
+   function testObj(val) {
+      this.val = val;
+   }
+
+   function testFunction(obj) {
+      console.log(obj.val);
+   }
+
+   function main() {
+      bbm = new BBM();
+      bbm.initialize(cfg);
+
+      downloadBibles();
    }
 
    main();

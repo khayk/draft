@@ -1,0 +1,16 @@
+       KJV       Ararat        Ejmiacin
+NUM -   36         36            35 (head 17 is missing)
+DEU -   34         34            41
+JOS -   24          X            24
+2SA -   24         23            24
+2KI -   25         25            24
+EZR -   10         10             9
+1ES -    X          X            10
+EST -   10         10            19
+PSA -  150        150           148
+WIS -    X          X            19
+SIR -    X                       39
+NAM -    3          3             2
+LAM -    5          5             X
+DAN -   12         12            14
+EZK -   48         48            46
