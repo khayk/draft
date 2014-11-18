@@ -2,6 +2,7 @@ var http    = require('http');
 var fs      = require('fs');
 var mkdirp  = require('mkdirp');
 var winston = require('winston');
+var path    = require('path');
 //var sleep = require('sleep');
 
 var cfg = {
@@ -512,30 +513,39 @@ bibles.forEach(function(item) {
    }
 
 
-   function getDirectories(root) {
-      return fs.readdirSync(root).filter(function(file) {
-         return fs.statSync(file).isDirectory();
+   function getDirectories(dir) {
+      return fs.readdirSync(dir).filter(function(entry) {
+         return fs.statSync(dir + '/' + entry).isDirectory();
       });
    }
 
-
-   function readDirFiles(dir, callback) {
-
-      // enumerate files in a given directory
-      fs.readdir(dataDir, function(err, files) {
+   function readFiles(dir, callback) {
+      fs.readdir(dir, function(err, files) {
          if (err) {
             callback(err, bible);
             return;
          }
-
-         files.forEach(function(p) {
-            var e = path.extname(p);
-            if (path.extname(p) === '.usfm') {
-               callback(null, p);
-            }
-         });
+         callback(null, files);
       });
    }
+
+   // function readFiles(dir, callback) {
+
+   //    // enumerate files in a given directory
+   //    fs.readdir(dir, function(err, files) {
+   //       if (err) {
+   //          callback(err, bible);
+   //          return;
+   //       }
+
+   //       files.forEach(function(p) {
+   //          var e = path.extname(p);
+   //          if (path.extname(p) === '.usfm') {
+   //             callback(null, p);
+   //          }
+   //       });
+   //    });
+   // }
 
    // ---------------------------------------------------------------
    function buildUSFM(file) {
@@ -553,6 +563,30 @@ bibles.forEach(function(item) {
       bbm = new BBM();
       bbm.initialize(cfg);
 
+      var rootDir = 'd:/projects/draft/savebible/attempt2/Ejmiacin/new/';
+      var dirs = getDirectories(rootDir);
+
+      dirs.forEach(function(f) {
+         console.log(f);
+         readFiles(rootDir + f, function(err, files) {
+
+            var htmls = files.filter(function(item) {
+               return path.extname(item) === '.html';
+            });
+
+            htmls.forEach(function(h) {
+               console.log(h);
+            });
+
+         });
+      });
+
+      // readDirectories(rootDir, function(err, files) {
+      //    files.forEach(function(f) {
+
+      //       console.log(f);
+      //    });
+      // });
       //downloadBibles();
    }
 
