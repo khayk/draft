@@ -511,9 +511,16 @@ bibles.forEach(function(item) {
       });
    }
 
-   function readDirFiles(root, callback) {
 
-      var exts = extensions.split(';');
+   function getDirectories(root) {
+      return fs.readdirSync(root).filter(function(file) {
+         return fs.statSync(file).isDirectory();
+      });
+   }
+
+
+   function readDirFiles(dir, callback) {
+
       // enumerate files in a given directory
       fs.readdir(dataDir, function(err, files) {
          if (err) {
@@ -532,25 +539,6 @@ bibles.forEach(function(item) {
 
    // ---------------------------------------------------------------
    function buildUSFM(file) {
-      var dataDir = dataRoot;
-
-      // enumerate files in a given directory
-      fs.readdir(dataDir, function(err, files) {
-         var bible = new Bible();
-
-         if (err) {
-            callback(err, bible);
-            return;
-         }
-
-         files.forEach(function(p) {
-            if (path.extname(p) === '.usfm') {
-               callback(null, )
-            }
-         });
-
-         callback(null, bible);
-      });
    }
 
    function testObj(val) {
