@@ -563,26 +563,44 @@ bibles.forEach(function(item) {
 
    }
 
-   function extractChapter(chap, str) {
+   function extractChapter(curDir, chap, str) {
+
+      /// select all available paragraphs
       var re = /<p>([\s\S]+?)<\/p>/gm;
+      var arr;
+
+      var collector = '';
       while ((arr = re.exec(str)) !== null) {
          var text = arr[1];
-         text.replace(/<(\/*?)(?!(em|p|br\s*\/|strong))\w+?.+>/igm, "");
-         
+
+         // remove all html tag
+         text = text.replace(/<(\/*?)(?!(em|p|br\s*\/|strong))\w+?.+>/igm, "");
+         var re2 = /(\d+)(\D+)/gm;
+
+         collector += text;
       }
+
+      var path = curDir + '.txt';
+      fs.writeFile(path, collector, function(err) {
+         if (err) {
+            logger.error('failed to write file: ', path, ', err: ', err);
+         } else {
+            logger.info('saved to file: ', path);
+         }
+      });
    }
 
    function main() {
-      cfg.dataRoot = 'c:/Dev/code/projects/personal/mygithub/web-bible/data/';
+      var personal = 'c:/Dev/code/projects/personal/';  // LENOVO
+      var personal = 'd:/projects/';                    // DELL
+      cfg.dataRoot = personal + 'mygithub/web-bible/data/';
 
       bbm = new BBM();
       bbm.initialize(cfg);
 
       var tname = 'Ejmiacin';
       var ttype = 'new';
-      //var rootDir = 'd:/projects/';
-      var rootDir = 'c:/Dev/code/projects/personal/';
-      rootDir     += 'draft/savebible/attempt2/' + tname + '/' + ttype + '/';
+      var rootDir = personal + 'draft/savebible/attempt2/' + tname + '/' + ttype + '/';
 
       //var dirs = getDirectories(rootDir);
       var dirs = [];
@@ -592,7 +610,8 @@ bibles.forEach(function(item) {
 
       dirs.forEach(function(d) {
          console.log(d);
-         readFiles(rootDir + d, function(err, files) {
+         var curDir = rootDir + d;
+         readFiles(curDir, function(err, files) {
             if (err) {
                logger.error(err);
                return;
@@ -609,23 +628,24 @@ bibles.forEach(function(item) {
             /// insert book into bible
             bible.books.push(book);
 
-            htmls.forEach(function(h) {
+            h = htmls[0];
+            //htmls.forEach(function(h) {
                console.log(h);
-
-               var str = fs.readFileSync(rootDir + d + '/' + h + '/');
-               var re = /<h4>(.*)<\/h4>[\s\S]+<h2>(ԳԼ.\s(\d+))<\/h2>[\s\S]+<p>(.*)<\/p>/gm;
+               var str = fs.readFileSync(curDir + '/' + h);
+               var re = /<h4>(.*)<\/h4>[\s\S]+<h2>(ԳԼ.\s(\d+))<\/h2>[\s\S]+?<p>([\s\S]+)<\/p>/gm;
                var arr;
                if ( (arr = re.exec(str)) !== null ) {
                   logger.info(arr[1], arr[2]);
 
                   book.name = arr[1].split('|')[1].trim();
                   var chap = new Chapter('', arr[3], arr[3]);
-                  extractChapter(chap, arr[4]);
+                  extractChapter(curDir, chap, arr[4]);
+                  return;
                }
                else {
                   logger.error('Regexp match failed on chapter: ', d + ' ' + h);
                }
-            });
+            //});
 
          });
       });
