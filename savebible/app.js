@@ -575,8 +575,8 @@ bibles.forEach(function(item) {
 
          // remove all html tag
          text = text.replace(/<(\/*?)(?!(em|p|br\s*\/|strong))\w+?.+>/igm, "");
-         var re2 = /(\d+)(\D+)/gm;
 
+         var re2 = /(\d+)(\D+)/gm;
          collector += text;
       }
 
