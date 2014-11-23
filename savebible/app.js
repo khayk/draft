@@ -310,6 +310,22 @@ bibles.forEach(function(item) {
       this.chapters = [];
    }
 
+   Book.prototype = {
+      render: function() {
+         var output = '';
+
+         if (this.chapters.length > 0) {
+            if (this.chapters[0].titles.length > 0) {
+               output += this.chapters[0].titles[0].tt + '\n\n';
+            }
+         }
+
+         this.chapters.forEach(function (c) {
+            output += c.render() + '\n';
+         });
+         return output;
+      }
+   }
 
    function Chapter(name, id, number) {
       this.book = null;
@@ -318,6 +334,19 @@ bibles.forEach(function(item) {
       this.number = number;
       this.content = '';
       this.verses = [];
+      this.titles = [];
+   }
+
+   Chapter.prototype = {
+      render: function(options) {
+         output = this.number + ' ';
+         this.verses.forEach(function (v, i) {
+            if (i > 0)
+               output += ' ' + v.number;
+            output += v.text;
+         });
+         return output;
+      }
    }
 
    function Verse(text, number) {
@@ -563,35 +592,49 @@ bibles.forEach(function(item) {
 
    }
 
-   function extractChapter(curDir, chap, str) {
+   function extractChapter(chap, str) {
 
       /// select all available paragraphs
       var re = /<p>([\s\S]+?)<\/p>/gm;
       var arr;
 
       var collector = '';
+      var verseNumber = 1;
       while ((arr = re.exec(str)) !== null) {
          var text = arr[1];
 
          // remove all html tag
-         text = text.replace(/<(\/*?)(?!(em|p|br\s*\/|strong))\w+?.+>/igm, "");
+         var input = text.replace(/<(\/*?)(?!(em|p|br\s*\/|strong))\w+?.+>/igm, "");
 
-         var re2 = /(\d+)(\D+)/gm;
-         collector += text;
-      }
+         if ( input.match(/^\(.*\)/igm) != null )
+            continue;
 
-      var path = curDir + '.txt';
-      fs.writeFile(path, collector, function(err) {
-         if (err) {
-            logger.error('failed to write file: ', path, ', err: ', err);
-         } else {
-            logger.info('saved to file: ', path);
+         var regex = /(\d+)(\D+)/gm;
+         var matches, found = false;
+         while (matches = regex.exec(input)) {
+            found = true;
+            var verseNum = matches[1].trim();
+            var verseTxt = matches[2].trim();
+
+            if (verseNum != verseNumber) {
+               console.log("Expected: ", verseNumber, ", was: ", verseNum);
+            }
+
+            var verse = new Verse(verseTxt, verseNumber);
+            verse.chapter = chap;
+            chap.verses.push(verse);
+            ++verseNumber;
          }
-      });
+
+         if (found === false) {
+            logger.info("Title: ", input);
+            chap.titles.push({vn: verseNumber, tt: input});
+         }
+      }
    }
 
    function main() {
-      var personal = 'c:/Dev/code/projects/personal/';  // LENOVO
+      //var personal = 'c:/Dev/code/projects/personal/';  // LENOVO
       var personal = 'd:/projects/';                    // DELL
       cfg.dataRoot = personal + 'mygithub/web-bible/data/';
 
@@ -611,6 +654,11 @@ bibles.forEach(function(item) {
       dirs.forEach(function(d) {
          console.log(d);
          var curDir = rootDir + d;
+
+         /// book order number and id
+         var tmp  = d.split('-');
+         var book = new Book('', tmp[1], tmp[0]);
+
          readFiles(curDir, function(err, files) {
             if (err) {
                logger.error(err);
@@ -621,15 +669,11 @@ bibles.forEach(function(item) {
                return path.extname(item) === '.html';
             });
 
-            /// book order number and id
-            var tmp  = d.split('-');
-            var book = new Book('', tmp[1], tmp[0]);
-
             /// insert book into bible
             bible.books.push(book);
 
             h = htmls[0];
-            //htmls.forEach(function(h) {
+            htmls.forEach(function(h) {
                console.log(h);
                var str = fs.readFileSync(curDir + '/' + h);
                var re = /<h4>(.*)<\/h4>[\s\S]+<h2>(ԳԼ.\s(\d+))<\/h2>[\s\S]+?<p>([\s\S]+)<\/p>/gm;
@@ -639,13 +683,23 @@ bibles.forEach(function(item) {
 
                   book.name = arr[1].split('|')[1].trim();
                   var chap = new Chapter('', arr[3], arr[3]);
-                  extractChapter(curDir, chap, arr[4]);
-                  return;
+                  chap.book = book;
+                  extractChapter(chap, arr[4]);
+                  book.chapters.push(chap);
                }
                else {
                   logger.error('Regexp match failed on chapter: ', d + ' ' + h);
                }
-            //});
+            });
+
+            var fpath = curDir + '.txt';
+            fs.writeFile(fpath, book.render(), function(err) {
+               if (err) {
+                  logger.error('failed to write file: ', fpath, ', err: ', err);
+               } else {
+                  logger.info('saved to file: ', fpath);
+               }
+            });
 
          });
       });
