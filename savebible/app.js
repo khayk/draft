@@ -68,26 +68,52 @@ var qh = new QueryHolder();
 
 function CharacterCollector() {
    this.chars = {};
+   this.rm = {};
+
+   this.init = function() {
+      this.rm[String.fromCharCode(parseInt("2019", 16))] = String.fromCharCode(parseInt("55B", 16));
+      this.rm[String.fromCharCode(parseInt("201c", 16))] = String.fromCharCode(parseInt("ab", 16));
+      this.rm[String.fromCharCode(parseInt("201d", 16))] = String.fromCharCode(parseInt("bb", 16));
+      this.rm[String.fromCharCode(parseInt("3A", 16))] = String.fromCharCode(parseInt("589", 16));
+   };
 
    this.collect = function(str) {
       for (var i = 0; i < str.length; ++i)
          this.chars[str[i]] = str.charCodeAt(i).toString(16);
    };
 
+   this.correct = function(str) {
+      var cpy = new String();
+      for (var i = 0; i < str.length; ++i) {
+         cpy[i] = str[i];
+         for (var key in this.rm) {
+            if ( str[i] === key ) {
+               cpy[i] = this.rm[key];
+               break;
+            }
+         }
+
+      }
+      return cpy.toString();
+   }
+
    this.display = function(filter) {
       for (var key in this.chars) {
          if (filter) {
             if (filter(key))
-               console.log(key + " -> ", this.chars[key]);
+               logger.info(key + " -> ", this.chars[key]);
          }
          else {
-            console.log(key + " -> ", this.chars[key]);
+            logger.info(key + " -> ", this.chars[key]);
          }
       }
    };
 }
 
+
 var cc = new CharacterCollector();
+cc.init();
+
 logger.info(pad('APPLICATION STARTED', 45, ' '));
 
 // download the content of the specified url and fire callback when done
@@ -644,7 +670,8 @@ bibles.forEach(function(item) {
             var verseTxt = matches[2].trim();
 
             /// collect characters
-            cc.collect(verseTxt);
+            //cc.collect(txt);
+            //var verseTxt = cc.correct(txt);
 
             var verseNum = null;
             if (matches[1]) {
