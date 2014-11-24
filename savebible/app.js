@@ -65,6 +65,29 @@ function QueryHolder() {
 
 var qh = new QueryHolder();
 
+
+function CharacterCollector() {
+   this.chars = {};
+
+   this.collect = function(str) {
+      for (var i = 0; i < str.length; ++i)
+         this.chars[str[i]] = str.charCodeAt(i).toString(16);
+   };
+
+   this.display = function(filter) {
+      for (var key in this.chars) {
+         if (filter) {
+            if (filter(key))
+               console.log(key + " -> ", this.chars[key]);
+         }
+         else {
+            console.log(key + " -> ", this.chars[key]);
+         }
+      }
+   };
+}
+
+var cc = new CharacterCollector();
 logger.info(pad('APPLICATION STARTED', 45, ' '));
 
 // download the content of the specified url and fire callback when done
@@ -316,7 +339,7 @@ bibles.forEach(function(item) {
 
          if (this.chapters.length > 0) {
             if (this.chapters[0].titles.length > 0) {
-               output += this.chapters[0].titles[0].tt + '\n\n';
+               output += this.chapters[0].titles[0].tt + '\n\n\n';
             }
          }
 
@@ -325,7 +348,7 @@ bibles.forEach(function(item) {
          });
          return output;
       }
-   }
+   };
 
    function Chapter(name, id, number) {
       this.book = null;
@@ -347,7 +370,7 @@ bibles.forEach(function(item) {
          });
          return output;
       }
-   }
+   };
 
    function Verse(text, number) {
       this.chapter = null;
@@ -604,20 +627,35 @@ bibles.forEach(function(item) {
          var text = arr[1];
 
          // remove all html tag
-         var input = text.replace(/<(\/*?)(?!(em|p|br\s*\/|strong))\w+?.+>/igm, "");
+         var input = text.replace(/<([A-Z][A-Z0-9]*)\b[^>]*>(.*?)<\/\1>/igm, "");
+         //var input = text.replace(/<(\/*?)(?!(em|p|br\s*\/|strong))\w+?.+>/igm, "");
 
-         if ( input.match(/^\(.*\)/igm) != null )
+         if ( input.match(/^\(.*\)/igm) !== null )
             continue;
 
-         var regex = /(\d+)(\D+)/gm;
+         var regex = /(\d+)?(\D+)/gm;
          var matches, found = false;
-         while (matches = regex.exec(input)) {
+         while ((matches = regex.exec(input)) !== null) {
+            var tmp = matches[2].trim();
+            if (tmp.toUpperCase() == tmp)
+               continue;
+
             found = true;
-            var verseNum = matches[1].trim();
             var verseTxt = matches[2].trim();
 
-            if (verseNum != verseNumber) {
-               console.log("Expected: ", verseNumber, ", was: ", verseNum);
+            /// collect characters
+            cc.collect(verseTxt);
+
+            var verseNum = null;
+            if (matches[1]) {
+               verseNum = matches[1].trim();
+            }
+
+            if (verseNum === null) {
+               if (verseNumber > 1) {
+                  chap.verses[verseNumber-2].text += ' ' + verseTxt;
+                  continue;
+               }
             }
 
             var verse = new Verse(verseTxt, verseNumber);
@@ -627,15 +665,16 @@ bibles.forEach(function(item) {
          }
 
          if (found === false) {
-            logger.info("Title: ", input);
+            //logger.info("Title: ", input);
             chap.titles.push({vn: verseNumber, tt: input});
          }
       }
    }
 
    function main() {
-      //var personal = 'c:/Dev/code/projects/personal/';  // LENOVO
-      var personal = 'd:/projects/';                    // DELL
+      // var personal = 'c:/Dev/code/projects/personal/';  // LENOVO
+      // var personal = 'd:/projects/';                    // DELL
+      var personal = 'd:/projects/';                       // WORK
       cfg.dataRoot = personal + 'mygithub/web-bible/data/';
 
       bbm = new BBM();
@@ -701,6 +740,9 @@ bibles.forEach(function(item) {
                }
             });
 
+            cc.display(function(c) {
+               return !c.toString().match(/[Ա-Ֆ]/gi);
+            });
          });
       });
 
