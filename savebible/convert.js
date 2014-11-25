@@ -2,48 +2,55 @@
 
 var fs   = require('fs');
 var path = require('path');
+var winston = require('winston');
+
+var logger = new(winston.Logger)({
+   transports: [
+      new(winston.transports.Console)({
+         colorize: true
+      }),
+      new(winston.transports.File)({
+         filename: 'convert.log',
+         json: false
+      })
+   ]
+});
 
 function CharacterCollector() {
    this.chars = {};
    this.rm = {};
 
    this.init = function() {
-      this.rm[String.fromCharCode(parseInt("2019", 16))] = String.fromCharCode(parseInt("55B", 16));
-      this.rm[String.fromCharCode(parseInt("201c", 16))] = String.fromCharCode(parseInt("ab", 16));
-      this.rm[String.fromCharCode(parseInt("201d", 16))] = String.fromCharCode(parseInt("bb", 16));
-      this.rm[String.fromCharCode(parseInt("3A", 16))] = String.fromCharCode(parseInt("589", 16));
+      this.rm[String.fromCharCode(parseInt("55A", 16))] = String.fromCharCode(parseInt("55B", 16));
    };
 
    this.collect = function(str) {
       for (var i = 0; i < str.length; ++i)
-         this.chars[str[i]] = parseInt(str.charCodeAt(i), 16);
+         this.chars[str[i]] = str.charCodeAt(i).toString(16); //parseInt(str.charCodeAt(i), 16);
    };
 
-   this.correct = function(str) {
-      console.log(typeof str);
-      // var cpy = [];
+   this.fix = function(str) {
+      var cpy = [];
       for (var i = 0; i < str.length; ++i) {
+         cpy[i] = str[i];
          for (var key in this.rm) {
             if ( str[i] === key ) {
-               //cpy.push(this.rm[key]);
-               str.replaceAt(i, this.rm[key]);
+               cpy[i] = this.rm[key];
                break;
             }
          }
-         //cpy.push(str[i]);
       }
-      return str;
-      // return cpy.toString();
-   }
+      return cpy.join('');
+   };
 
    this.display = function(filter) {
       for (var key in this.chars) {
          if (filter) {
             if (filter(key))
-               console.log(key + " -> ", this.chars[key]);
+               logger.info(key + " -> ", this.chars[key]);
          }
          else {
-            console.log(key + " -> ", this.chars[key]);
+            logger.info(key + " -> ", this.chars[key]);
          }
       }
    };
@@ -51,25 +58,65 @@ function CharacterCollector() {
 
 var cc = new CharacterCollector();
 
-// cc.collect("HAYK");
-// cc.collect("hayk");
-// cc.collect("Айк");
-// cc.collect("Հա’յկ");
 
-// cc.display(function(c) {
-//    return !c.toString().match(/[Ա-Ֆ]/gi);
+var walk = function(dir, done) {
+   var results = [];
+   fs.readdir(dir, function(err, list) {
+      if (err) return done(err);
+      var pending = list.length;
+      if (!pending) return done(null, results);
+      list.forEach(function(file) {
+         file = dir + '/' + file;
+         fs.stat(file, function(err, stat) {
+            if (stat && stat.isDirectory()) {
+               walk(file, function(err, res) {
+                  results = results.concat(res);
+                  if (!--pending) done(null, results);
+               });
+            } else {
+               results.push(file);
+               if (!--pending) done(null, results);
+            }
+         });
+      });
+   });
+};
+
+function fix_files(file) {
+   console.log(file);
+
+   data = fs.readFileSync(file, {
+      encoding: 'utf8'
+   });
+   //cc.collect(data);
+   data = cc.fix(data);
+
+   fs.writeFile(file, data, function(err) {
+      if (err) {
+         logger.error('failed to write file: ', file, ', err: ', err);
+      } else {
+         logger.info('saved to file: ', file);
+      }
+   });
+}
+
+// walk('d:/projects/draft/savebible/attempt2/արևելահայերեն/', function(err, results) {
+//    if (err) throw err;
+//    //console.log(results);
+//    results.forEach(fix_files);
+
+//    cc.display(function(c) {
+//       return !c.toString().match(/[Ա-Ֆ]/gi);
+//    });
 // });
 
+//var str = "d:/one/two/thee/some.txt";
+//var str = "d:\\one\\two\\thee\\some.txt";
 
-var x = "Հա’յկ";
-cc.init();
-var y = cc.correct(x);
+str = str.replace("\\", "/");
+var arr = str.split("/");
+arr.splice(arr.length - 1, 0, "result");
 
-console.log(x);
-console.log(y);
-
-// if ( cc.correct(x) === x ) {
-//    console.log("BAD");
-// }
+console.log(arr.join("/"));
 
 }());

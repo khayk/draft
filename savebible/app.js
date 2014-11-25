@@ -71,7 +71,7 @@ function CharacterCollector() {
    this.rm = {};
 
    this.init = function() {
-      this.rm[String.fromCharCode(parseInt("2019", 16))] = String.fromCharCode(parseInt("55B", 16));
+      this.rm[String.fromCharCode(parseInt("2019", 16))] = String.fromCharCode(parseInt("55A", 16));
       this.rm[String.fromCharCode(parseInt("201c", 16))] = String.fromCharCode(parseInt("ab", 16));
       this.rm[String.fromCharCode(parseInt("201d", 16))] = String.fromCharCode(parseInt("bb", 16));
       this.rm[String.fromCharCode(parseInt("3A", 16))] = String.fromCharCode(parseInt("589", 16));
@@ -82,8 +82,8 @@ function CharacterCollector() {
          this.chars[str[i]] = str.charCodeAt(i).toString(16);
    };
 
-   this.correct = function(str) {
-      var cpy = new String();
+   this.fix = function(str) {
+      var cpy = [];
       for (var i = 0; i < str.length; ++i) {
          cpy[i] = str[i];
          for (var key in this.rm) {
@@ -92,10 +92,9 @@ function CharacterCollector() {
                break;
             }
          }
-
       }
-      return cpy.toString();
-   }
+      return cpy.join('');
+   };
 
    this.display = function(filter) {
       for (var key in this.chars) {
@@ -671,7 +670,8 @@ bibles.forEach(function(item) {
 
             /// collect characters
             //cc.collect(txt);
-            //var verseTxt = cc.correct(txt);
+            verseTxt = cc.fix(verseTxt);
+            verseTxt = verseTxt.replace("»»", "»");
 
             var verseNum = null;
             if (matches[1]) {
@@ -711,9 +711,9 @@ bibles.forEach(function(item) {
       var ttype = 'new';
       var rootDir = personal + 'draft/savebible/attempt2/' + tname + '/' + ttype + '/';
 
-      //var dirs = getDirectories(rootDir);
-      var dirs = [];
-      dirs.push('49-MAT');
+      var dirs = getDirectories(rootDir);
+      //var dirs = [];
+      //dirs.push('49-MAT');
 
       var bible = new Testament(tname, ttype, 0, 0);
 
@@ -759,6 +759,12 @@ bibles.forEach(function(item) {
             });
 
             var fpath = curDir + '.txt';
+
+            fpath = fpath.replace("\\", "/");
+            var x = fpath.split("/");
+            x.splice(x.length - 1, 0, "result");
+            fpath = x.join("/");
+
             fs.writeFile(fpath, book.render(), function(err) {
                if (err) {
                   logger.error('failed to write file: ', fpath, ', err: ', err);
