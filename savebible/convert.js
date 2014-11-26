@@ -113,10 +113,27 @@ function fix_files(file) {
 //var str = "d:/one/two/thee/some.txt";
 //var str = "d:\\one\\two\\thee\\some.txt";
 
-str = str.replace("\\", "/");
-var arr = str.split("/");
-arr.splice(arr.length - 1, 0, "result");
+   function isUpperCase(str) {
+      var ucount = 0;
+      var arr = str.split('');
 
-console.log(arr.join("/"));
+      console.log(arr);
+
+      arr.forEach(function(ch) {
+         if (ch == ch.toUpperCase())
+            ++ucount;
+      });
+
+      console.log(ucount);
+      if (str.length - ucount <= 3)
+         return true;
+      return false;
+   }
+
+function upperTest(str) {
+   console.log(str, ' is: ', isUpperCase(str));
+}
+
+upperTest('ԱՒԵՏԱՐԱՆ ԸՍՏ ՄԱՏԹԷՈՍԻ ՅԻՍՈՒՍ ՔՐԻՍՏՈՍԻ ԱԶԳԱԲԱՆՈՒԹԻՒՆԸ');
 
 }());

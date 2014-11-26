@@ -364,7 +364,8 @@ bibles.forEach(function(item) {
 
          if (this.chapters.length > 0) {
             if (this.chapters[0].titles.length > 0) {
-               output += this.chapters[0].titles[0].tt + '\n\n\n';
+               //output += this.chapters[0].titles[0].tt + '\n\n\n';
+               output += this.name + '\n\n\n';
             }
          }
 
@@ -640,6 +641,18 @@ bibles.forEach(function(item) {
 
    }
 
+   function isUpperCase(str) {
+      var ucount = 0;
+      var arr = str.split('');
+      arr.forEach(function(ch) {
+         if (ch == ch.toUpperCase())
+            ++ucount;
+      });
+      if (str.length - ucount <= 2)
+         return true;
+      return false;
+   }
+
    function extractChapter(chap, str) {
 
       /// select all available paragraphs
@@ -653,16 +666,14 @@ bibles.forEach(function(item) {
 
          // remove all html tag
          var input = text.replace(/<([A-Z][A-Z0-9]*)\b[^>]*>(.*?)<\/\1>/igm, "");
-         //var input = text.replace(/<(\/*?)(?!(em|p|br\s*\/|strong))\w+?.+>/igm, "");
-
-         if ( input.match(/^\(.*\)/igm) !== null )
+         if ( input.match(/[Ա-Ֆ]+\.?\s?\d+(\.|,|-)/igm) !== null )
             continue;
 
          var regex = /(\d+)?(\D+)/gm;
          var matches, found = false;
          while ((matches = regex.exec(input)) !== null) {
             var tmp = matches[2].trim();
-            if (tmp.toUpperCase() == tmp)
+            if (isUpperCase(tmp))
                continue;
 
             found = true;
