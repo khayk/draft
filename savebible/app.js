@@ -5,7 +5,14 @@ var winston = require('winston');
 var path    = require('path');
 //var sleep = require('sleep');
 
+      //var personal = 'c:/Dev/code/projects/personal/';  // LENOVO
+      //var personal = 'd:/projects/';                    // DELL
+      //var personal = 'd:/projects/';                    // WORK
+
 var cfg = {
+   // 'c:/Dev/code/projects/personal/';  // LENOVO
+   // 'd:/projects/';                    // DELL
+   personal: 'd:/projects/',             // WORK
    dataRoot:    '',
    mappingFile: 'id-mapping.json',
    environment: 'test',
@@ -269,6 +276,15 @@ bibles.forEach(function(item) {
 
 (function() {
 
+   function fwrite(file, data) {
+      fs.writeFile(file, data, function(err) {
+         if (err) {
+            logger.error('failed to write file: ', file, ', err: ', err);
+         } else {
+            logger.info('saved to file: ', file);
+         }
+      });
+   }
 
    // extract options from the specified string
    function extractOptions(str, callback) {
@@ -340,6 +356,9 @@ bibles.forEach(function(item) {
       };
    })();
 
+   var options = function() {
+      this.view = 'test'; // 'usfm', 'single'
+   };
 
    function Testament(name, type, id, subid) {
       this.name = name;
@@ -348,6 +367,16 @@ bibles.forEach(function(item) {
       this.subid = subid;
       this.books = [];
    }
+
+   Testament.prototype = {
+      render: function(opt) {
+         var output = '';
+         this.books.forEach(function (b) {
+            output += b.render(opt) + '\n';
+         });
+         return output;
+      }
+   };
 
 
    function Book(name, id, number) {
@@ -359,18 +388,25 @@ bibles.forEach(function(item) {
    }
 
    Book.prototype = {
-      render: function() {
+      render: function(opt) {
          var output = '';
 
-         if (this.chapters.length > 0) {
-            if (this.chapters[0].titles.length > 0) {
-               //output += this.chapters[0].titles[0].tt + '\n\n\n';
-               output += this.name + '\n\n\n';
+         if (opt.view === 'test') {
+            if (this.chapters.length > 0) {
+               if (this.chapters[0].titles.length > 0) {
+                  //output += this.chapters[0].titles[0].tt + '\n\n\n';
+                  output += this.name + '\n\n\n';
+               }
             }
          }
 
+         if (opt.view === 'usfm') {
+            output += '\\id ' + this.id + '\n';
+            output += '\\mt ' + this.name + '\n';
+         }
+
          this.chapters.forEach(function (c) {
-            output += c.render() + '\n';
+            output += c.render(opt);
          });
          return output;
       }
@@ -387,13 +423,32 @@ bibles.forEach(function(item) {
    }
 
    Chapter.prototype = {
-      render: function(options) {
-         output = this.number + ' ';
-         this.verses.forEach(function (v, i) {
-            if (i > 0)
-               output += ' ' + v.number;
-            output += v.text;
-         });
+      render: function(opt) {
+         output = '';
+
+         if (opt.view === 'test') {
+            output = this.number + ' ';
+            this.verses.forEach(function (v, i) {
+               if (i > 0)
+                  output += ' ' + v.number;
+               output += v.text;
+            });
+            output += '\n';
+         }
+         else if (opt.view === 'single') {
+            this.verses.forEach(function(v, i) {
+               output += v.chapter.book.id + ' ' + v.chapter.number + ':' + v.number + ' ';
+               output += v.text + '\n';
+               //output += v.text + ' ';
+            });
+         }
+         else if (opt.view === 'usfm') {
+            output += '\\c ' + this.number + '\n';
+            this.verses.forEach(function (v, i) {
+               output += '\\v' + ' ' + v.number + ' ';
+               output += v.text + '\n';
+            });
+         }
          return output;
       }
    };
@@ -563,13 +618,7 @@ bibles.forEach(function(item) {
 
             /// find the needed chunk
             if ((arr = re.exec(str)) !== null) {
-               fs.writeFile(path, arr[2], function(err) {
-                  if (err) {
-                     logger.error('failed to write file: ', path, ', err: ', err);
-                  } else {
-                     logger.info('saved to file: ', path);
-                  }
-               });
+               fwrite(path, arr[2]);
             }
          });
       });
@@ -597,36 +646,15 @@ bibles.forEach(function(item) {
       });
    }
 
-   function readFiles(dir, callback) {
-      fs.readdir(dir, function(err, files) {
-         if (err) {
-            callback(err, []);
-            return;
-         }
-         callback(null, files);
+   function buildUSFM(file, tst) {
+      options.view = 'usfm';
+      // var data = tst.render(options);
+      // fwrite(file + '.usfm', data);
+      tst.books.forEach(function(b) {
+         //output += b.render(opt) + '\n';
+         if (b.id)
+            fwrite(file + b.number + '-' + b.id + '.usfm', b.render(options));
       });
-   }
-
-   // function readFiles(dir, callback) {
-
-   //    // enumerate files in a given directory
-   //    fs.readdir(dir, function(err, files) {
-   //       if (err) {
-   //          callback(err, bible);
-   //          return;
-   //       }
-
-   //       files.forEach(function(p) {
-   //          var e = path.extname(p);
-   //          if (path.extname(p) === '.usfm') {
-   //             callback(null, p);
-   //          }
-   //       });
-   //    });
-   // }
-
-   // ---------------------------------------------------------------
-   function buildUSFM(file) {
    }
 
    function testObj(val) {
@@ -651,6 +679,10 @@ bibles.forEach(function(item) {
       if (str.length - ucount <= 2)
          return true;
       return false;
+   }
+
+   function replacer(match, offset, string) {
+      return match.toLowerCase();
    }
 
    function extractChapter(chap, str) {
@@ -683,6 +715,7 @@ bibles.forEach(function(item) {
             //cc.collect(txt);
             verseTxt = cc.fix(verseTxt);
             verseTxt = verseTxt.replace("»»", "»");
+            //verseTxt = verseTxt.replace(/\.\s[Ա-Ֆ]/gm, replacer);
 
             var verseNum = null;
             if (matches[1]) {
@@ -709,25 +742,17 @@ bibles.forEach(function(item) {
       }
    }
 
-   function main() {
-      // var personal = 'c:/Dev/code/projects/personal/';  // LENOVO
-      // var personal = 'd:/projects/';                    // DELL
-      var personal = 'd:/projects/';                       // WORK
-      cfg.dataRoot = personal + 'mygithub/web-bible/data/';
-
-      bbm = new BBM();
-      bbm.initialize(cfg);
-
+   function processDownloaded() {
       var tname = 'Ejmiacin';
       var ttype = 'new';
-      var rootDir = personal + 'draft/savebible/attempt2/' + tname + '/' + ttype + '/';
+      var oname = '';
+      var rootDir = cfg.personal + 'draft/savebible/attempt3/' + tname + '/' + ttype + '/';
 
       var dirs = getDirectories(rootDir);
       //var dirs = [];
       //dirs.push('49-MAT');
 
       var bible = new Testament(tname, ttype, 0, 0);
-
       dirs.forEach(function(d) {
          console.log(d);
          var curDir = rootDir + d;
@@ -736,60 +761,60 @@ bibles.forEach(function(item) {
          var tmp  = d.split('-');
          var book = new Book('', tmp[1], tmp[0]);
 
-         readFiles(curDir, function(err, files) {
-            if (err) {
-               logger.error(err);
-               return;
+         files = fs.readdirSync(curDir);
+
+         var htmls = files.filter(function(item) {
+            return path.extname(item) === '.html';
+         });
+
+         /// insert book into bible
+         bible.books.push(book);
+
+         h = htmls[0];
+         htmls.forEach(function(h) {
+            //console.log(h);
+            var str = fs.readFileSync(curDir + '/' + h);
+            var re = /<h4>(.*)<\/h4>[\s\S]+<h2>(ԳԼ.\s(\d+))<\/h2>[\s\S]+?<p>([\s\S]+)<\/p>/gm;
+            var arr;
+            if ( (arr = re.exec(str)) !== null ) {
+               logger.info(arr[1], arr[2]);
+
+               book.name = arr[1].split('|')[1].trim();
+               var chap = new Chapter('', arr[3], arr[3]);
+               chap.book = book;
+               extractChapter(chap, arr[4]);
+               book.chapters.push(chap);
             }
+            else {
+               logger.error('Regexp match failed on chapter: ', d + ' ' + h);
+            }
+         });
 
-            var htmls = files.filter(function(item) {
-               return path.extname(item) === '.html';
-            });
+         var fpath = curDir + '.txt';
 
-            /// insert book into bible
-            bible.books.push(book);
+         fpath = fpath.replace("\\", "/");
+         var x = fpath.split("/");
+         x.splice(x.length - 1, 0, "result");
+         fpath = x.join("/");
 
-            h = htmls[0];
-            htmls.forEach(function(h) {
-               console.log(h);
-               var str = fs.readFileSync(curDir + '/' + h);
-               var re = /<h4>(.*)<\/h4>[\s\S]+<h2>(ԳԼ.\s(\d+))<\/h2>[\s\S]+?<p>([\s\S]+)<\/p>/gm;
-               var arr;
-               if ( (arr = re.exec(str)) !== null ) {
-                  logger.info(arr[1], arr[2]);
+         options.view = 'single';
+         fwrite(fpath, book.render(options));
 
-                  book.name = arr[1].split('|')[1].trim();
-                  var chap = new Chapter('', arr[3], arr[3]);
-                  chap.book = book;
-                  extractChapter(chap, arr[4]);
-                  book.chapters.push(chap);
-               }
-               else {
-                  logger.error('Regexp match failed on chapter: ', d + ' ' + h);
-               }
-            });
-
-            var fpath = curDir + '.txt';
-
-            fpath = fpath.replace("\\", "/");
-            var x = fpath.split("/");
-            x.splice(x.length - 1, 0, "result");
-            fpath = x.join("/");
-
-            fs.writeFile(fpath, book.render(), function(err) {
-               if (err) {
-                  logger.error('failed to write file: ', fpath, ', err: ', err);
-               } else {
-                  logger.info('saved to file: ', fpath);
-               }
-            });
-
-            cc.display(function(c) {
-               return !c.toString().match(/[Ա-Ֆ]/gi);
-            });
+         cc.display(function(c) {
+            return !c.toString().match(/[Ա-Ֆ]/gi);
          });
       });
 
+      //buildUSFM(rootDir + oname, bible);
+   }
+
+   function main() {
+      cfg.dataRoot = cfg.personal + 'mygithub/web-bible/data/';
+
+      bbm = new BBM();
+      bbm.initialize(cfg);
+
+      processDownloaded();
       //downloadBibles();
    }
 

@@ -113,27 +113,30 @@ function fix_files(file) {
 //var str = "d:/one/two/thee/some.txt";
 //var str = "d:\\one\\two\\thee\\some.txt";
 
-   function isUpperCase(str) {
-      var ucount = 0;
-      var arr = str.split('');
+var re = /\.\s[A-Z]/gm;
+var str = 'Letters O and W. Of the text will be replaced. With o and w';
 
-      console.log(arr);
-
-      arr.forEach(function(ch) {
-         if (ch == ch.toUpperCase())
-            ++ucount;
-      });
-
-      console.log(ucount);
-      if (str.length - ucount <= 3)
-         return true;
-      return false;
-   }
-
-function upperTest(str) {
-   console.log(str, ' is: ', isUpperCase(str));
+function replacer(match, offset, string) {
+  // p1 is nondigits, p2 digits, and p3 non-alphanumerics
+  console.log('match:  ', match);
+  console.log('offset: ', offset);
+  console.log('string: ', string);
+  return match.toLowerCase();
+  //return 'a';//[match].join('').toLowerCase();
 }
 
-upperTest('ԱՒԵՏԱՐԱՆ ԸՍՏ ՄԱՏԹԷՈՍԻ ՅԻՍՈՒՍ ՔՐԻՍՏՈՍԻ ԱԶԳԱԲԱՆՈՒԹԻՒՆԸ');
+var output = str.replace(/\.\s[A-Z]/gm, replacer);
+
+// var arr;
+// while ((arr = re.exec(str)) !== null) {
+//    var x = arr[0];
+//    console.log('Match: ', arr[0]);
+//    x.toLowerCase();
+//    str.splice
+//    //
+// }
+
+console.log(str);
+console.log(output);
 
 }());
