@@ -1,6 +1,19 @@
+var moduleBible = require('./lib-modules/bible.js');
+
+var Verse   = moduleBible.Verse;
+var Chapter = moduleBible.Chapter;
+
+//var verse = new moduleBible.Verse();
+
+var v = new Verse();
+v.render();
+
+var c = new Chapter();
+c.render();
+
 (function() {
 
-var fs   = require('fs');
+//var fs   = require('fs');
 // var path = require('path');
 // var winston = require('winston');
 
@@ -41,8 +54,12 @@ var walk = function(dir, done) {
 };
 */
 
-var mymod = require('./lib-modules/my-module.js');
-mymod.something('hayk');
+
+
+//var x = bib.types.Bible('aaa');
+//var c = new Chapter();
+
+//console.log(c.number);
 
 // walk('d:/projects/draft/savebible/attempt2/արևելահայերեն/', function(err, results) {
 //    if (err) throw err;
