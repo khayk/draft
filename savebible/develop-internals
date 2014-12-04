@@ -1,0 +1,32 @@
+Chapter 1
+1 First verse of book Geneses, 2 Second verse of the Geneses.
+3 Third verse of the Geneses.
+    4 Forth verse of the Geneses.
+
+bible
+    testaments = []
+
+testament
+    books = []
+    type - new,old
+
+book
+    id
+    name
+    type - new,old,secondary
+    chapters = []
+
+chapter
+    verses = []
+    titles = {}
+
+verse
+    words = []
+
+word
+    text = ''
+
+
+dictionary
+    words = []
+    words = {}
