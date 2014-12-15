@@ -30,3 +30,31 @@ word
 dictionary
     words = []
     words = {}
+
+
+Verse 1
+    But unto the Son \add he saith\add*, Thy throne, O God, \add is\add*
+    for ever and ever: a sceptre of righteousness \add is\add* the sceptre
+    of thy kingdom. 
+
+Verse 2
+    \wj  And when they had received \+add it\+add*, they murmured
+    against the goodman of the house,\wj* 
+
+function Word() {
+    orig   = 'Original word'
+}
+
+
+
+Dictionary {
+    addWord(word, verse)
+    getRefs(word, {caseSensitive: true})
+}
+
+Bible
+    Books
+        Chapters
+            Verses
+                Words
+
