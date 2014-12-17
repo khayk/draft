@@ -21,7 +21,12 @@ chapter
     titles = {}
 
 verse
+    number
+    content = [{index, category}]
     words = []
+    punct = []
+    strong = []
+
 
 word
     text = ''
@@ -32,29 +37,88 @@ dictionary
     words = {}
 
 
-Verse 1
-    But unto the Son \add he saith\add*, Thy throne, O God, \add is\add*
-    for ever and ever: a sceptre of righteousness \add is\add* the sceptre
-    of thy kingdom. 
 
-Verse 2
-    \wj  And when they had received \+add it\+add*, they murmured
-    against the goodman of the house,\wj* 
 
-function Word() {
-    orig   = 'Original word'
+a1 a2 ... aN
+lower(ai)
+
+dict {
+    list a[i]
+    list lower(a[i], {verse[x], ... })
+};
+
+words
+    orig = ''  // example: 'And', 'And,', 'And:', 'and'
+               // as it is presented in the original text
+    key  = ''  // lowercased, no punctation
+
+    nopunctlower - { verse[x], ... , verse[y] }
+
+    special = null or {Jesus = T, Prophet = P, Translator = T }
+
+
+
+verse = {i1, i2, i3, ..., iK}
+
+chapter
+    verses = [];
+        words  = [];
+        punct  = [];
+
+    titles = [];
+
+vI \x a1a2...aN\+y b1b2....bM\+y*c1c2...cK\x*
+
+var object = extract(text);
+
+Range() {
+    start
+    end
+}
+
+Range.prototype = {
+    intersect: function(range) {
+        return 'intersection range'
+    }
+
+    union: function(range) {
+        return 'range'
+    }
+
+    empty: function() {
+
+    }
+};
+
+Tag() {
+    this.tag = 'tag name';
+    this.range
+}
+
+Verse() {
+    chap = null;
+    orig = 'text as it is presented in the file';
+    text = [range1, range2, ... , rangeN];
+    tags = [tag1,   tag2,   ... , tagK  ];
+}
+
+Verse.prototype.toText = function() {
+    var result = '';
+    text.forEach(function(range) {
+        result += orig.substr(range.start, range.end);
+    }
+    return result;
+}
+
+Verse.prototype.toHTML = function() {
+    var result = '';
+    text.forEach(function(range) {
+        result += orig.substr(range.start, range.end);
+    }
+    return result;
 }
 
 
+\jw a1a2...aN\+add b1b2....bM\+add*c1c2...cK\jw*
 
-Dictionary {
-    addWord(word, verse)
-    getRefs(word, {caseSensitive: true})
-}
-
-Bible
-    Books
-        Chapters
-            Verses
-                Words
-
+<p><span class="jw">a1a2...aN<span class="add">b1b2...bM</span>c1c2...cK</span></p>
