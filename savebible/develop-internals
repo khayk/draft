@@ -122,3 +122,8 @@ Verse.prototype.toHTML = function() {
 \jw a1a2...aN\+add b1b2....bM\+add*c1c2...cK\jw*
 
 <p><span class="jw">a1a2...aN<span class="add">b1b2...bM</span>c1c2...cK</span></p>
+Verse {
+    content = [Blob];
+}
+
+attributes = ['\wj', '\+wj', '\add', '\+add', '\nd', '\+nd']

@@ -15,3 +15,7 @@ h1 {
     font-weight: bold; 
     //bac: red;
 }
+
+.ital {
+    font-style: italic;
+}
