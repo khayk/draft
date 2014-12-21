@@ -2,23 +2,61 @@
 
 
     // identify tags that can be ignored
-    function canIgnore(tag) {
-        var coreTags = /add|wj|nd/g;        
-        return (tag.match(coreTags) === null);
+    function supportedTag(tag) {
+        var coreTags = /add|wj|nd/g;
+        return (tag.match(coreTags) !== null);
+    }
+
+    function skipTag(re, str, skipTo) {
+        var arr = null;
+        while (true) {
+            arr = re.exec(str);
+            if (arr === null) {
+                throw 'not expected to encounter the end at this point';
+            }
+            if (arr[1] == skipTo)
+                return;
+        }
+    }
+
+    function findClosingTag(re, arr, str, what) {
+        while (true) {
+            arr = re.exec(str);
+            if (arr === null) {
+                throw 'not expected to encounter the end at this point';
+            }
+            if (arr[1] == what) {
+                console.log('pair found: ', arr[1]);
+                return arr;
+            }
+        }
+
     }
 
     var Verse = function(str) {
-        var re = /(\\\+?(\w+))\*?\s?/gm;
+        var re = /(\\\+?(\w+)\*?)\s?/gm;
         var arr = null;
+        var start = 0;
 
         while ((arr = re.exec(str)) !== null) {
-            if (canIgnore(arr[2])) {
-                continue;
+            if (arr.index > start) {
+                console.log('text found:', str.substring(start, arr.index));
             }
 
-            console.log(arr);
+            if (!supportedTag(arr[2])) {
+                /// skip to tag
+                //console.log('tag will be skipped : ', arr[1]);
+                arr = findClosingTag(re, arr, str, arr[1] + '*');
+                start = arr.index + arr[0].length;
+            }
+
+            start = arr.index + arr[0].length;
+
+            var sub = str.substring();
+            Verse()
         }
 
+        console.log('tailing text: ', str.substring(start, str.length));
         this.text = str;
         this.tags = [];
     };
@@ -37,7 +75,8 @@
         '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the' +
         'face\\zx \\zx* \\zw \\+zws H04325 \\+zws*\\zw*of the waters\\zx \\zx*.';
 
-    var v = new Verse(text);
+    var test = '\\zw \\zw*\\add hello to \\wj developer\\wj*\\add*some other text';
+    var v = new Verse(test);
     //console.log(tmp);
     //console.log(v.tex);
     //console.log(canIgnore('\\ww'));
