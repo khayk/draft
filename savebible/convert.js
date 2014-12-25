@@ -52,8 +52,8 @@
 
             start = arr.index + arr[0].length;
 
-            var sub = str.substring();
-            Verse()
+            // var sub = str.substring(start);
+            // this.Verse(sub);
         }
 
         console.log('tailing text: ', str.substring(start, str.length));
@@ -75,7 +75,7 @@
         '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the' +
         'face\\zx \\zx* \\zw \\+zws H04325 \\+zws*\\zw*of the waters\\zx \\zx*.';
 
-    var test = '\\zw \\zw*\\add hello to \\wj developer\\wj*\\add*some other text';
+    var test = '\\zw \\zw*\\add hello \\nd to \\wj developer\\wj*\\nd*\\add* some other text';
     var v = new Verse(test);
     //console.log(tmp);
     //console.log(v.tex);
