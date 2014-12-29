@@ -50,24 +50,19 @@
   ///                      NODE - THE BASE CLASS
   /// -----------------------------------------------------------------------
   var Node = function(parent) {
-    this.parent = parent;
-    this.nodes = [];
+    this.parent = parent | null;
   };
 
   Node.prototype.addChild = function(node) {
-    this.nodes.push(node);
+    throw 'addChild should be overriden in the derived class';
   };
 
   Node.prototype.toString = function() {
-    var res = '';
-    this.nodes.forEach(function(n) {
-      res += n.toString();
-    });
-    return res;
+    throw 'toString should be overriden in the derived class';
   };
 
   Node.prototype.render = function() {
-
+    throw 'render should be overriden in the derived class';
   };
 
   /// -----------------------------------------------------------------------
@@ -78,26 +73,32 @@
     this.text = text;
   };
   extend(TextNode, Node);
-  // TextNode.prototype = Object.create(Node.prototype);
-  // TextNode.prototype.constructor = TextNode;
-
   TextNode.prototype.toString = function() {
-    return this.text + Node.prototype.toString.call(this);
+    return this.text;
   };
 
   /// -----------------------------------------------------------------------
   ///                             TAG NODE
   /// -----------------------------------------------------------------------
-  var TagNode = function(tag, parent) {
+  var CompoundNode = function(tag, parent) {
     Node.call(this, parent);
     this.tag = tag;
+    this.nodes = [];
   };
-  extend(TagNode, Node);
-  // TagNode.prototype = Object.create(Node.prototype);
-  // TagNode.prototype.constructor = TagNode;
+  extend(CompoundNode, Node);
+  CompoundNode.prototype.toString = function() {
+    /// combin the result of child nodes
+    var res = '';
+    this.nodes.forEach(function(n) {
+      res += n.toString();
+    });
+    if (this.tag !== '')
+      return this.tag + ' ' + res + this.tag + '*';
+    return res;
+  };
 
-  TagNode.prototype.toString = function() {
-    return this.tag + ' ' + Node.prototype.toString.call(this) + this.tag + '*';
+  CompoundNode.prototype.addChild = function(node) {
+    this.nodes.push(node);
   };
 
 
@@ -125,11 +126,11 @@
 
       var tag = arr[1];
       if (openingTag(tag)) {
-        var tagNode = new TagNode(tag, node);
-        node.addChild(tagNode);
+        var compoundNode = new CompoundNode(tag, node);
+        node.addChild(compoundNode);
         ind = arr.index + arr[0].length;
         arr = re.exec(str);
-        USFM_VerseParser(str, ind, arr, re, tagNode);
+        USFM_VerseParser(str, ind, arr, re, compoundNode);
         return;
       } else {
         ind = arr.index + arr[1].length;
@@ -151,7 +152,7 @@
   /// -----------------------------------------------------------------------
   var Verse = function(str, number) {
     this.number = number;
-    this.node   = new Node(null);
+    this.node   = new CompoundNode('', null);
     USFM_VerseParser(str, 0, null, null, this.node);
   };
 
@@ -162,16 +163,16 @@
   //   };
   // }
 
-  var orig = '\\zw \\+zws H0776 \\+zws*\\zw*And the earth\\zx \\zx* \\zw \\+zws H01961 \\+zws*\\+zwm strongMorph:TH8804 \\+zwm*\\zw*was\\zx \\zx*' +
-    '\\zw \\+zws H08414 \\+zws*\\zw*without form\\zx \\zx*, \\zw \\+zws H0922 \\+zws*\\zw*and' +
-    'void\\zx \\zx*; \\zw \\+zws H02822 \\+zws*\\zw*and darkness\\zx \\zx* \\add was\\add*' +
-    '\\zw \\+zws H06440 \\+zws*\\zw*upon the face\\zx \\zx* \\zw \\+zws H08415 \\+zws*\\zw*of the' +
-    'deep\\zx \\zx*. \\zw \\+zws H07307 \\+zws*\\zw*And the Spirit\\zx \\zx* \\zw \\+zws H0430 \\+zws*\\zw*of' +
-    'God\\zx \\zx* \\zw \\+zws H07363 \\+zws*\\+zwm strongMorph:TH8764 \\+zwm*\\zw*moved\\zx \\zx*' +
-    '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the' +
-    'face\\zx \\zx* \\zw \\+zws H04325 \\+zws*\\zw*of the waters\\zx \\zx*.';
+  // var orig = '\\zw \\+zws H0776 \\+zws*\\zw*And the earth\\zx \\zx* \\zw \\+zws H01961 \\+zws*\\+zwm strongMorph:TH8804 \\+zwm*\\zw*was\\zx \\zx*' +
+  //   '\\zw \\+zws H08414 \\+zws*\\zw*without form\\zx \\zx*, \\zw \\+zws H0922 \\+zws*\\zw*and' +
+  //   'void\\zx \\zx*; \\zw \\+zws H02822 \\+zws*\\zw*and darkness\\zx \\zx* \\add was\\add*' +
+  //   '\\zw \\+zws H06440 \\+zws*\\zw*upon the face\\zx \\zx* \\zw \\+zws H08415 \\+zws*\\zw*of the' +
+  //   'deep\\zx \\zx*. \\zw \\+zws H07307 \\+zws*\\zw*And the Spirit\\zx \\zx* \\zw \\+zws H0430 \\+zws*\\zw*of' +
+  //   'God\\zx \\zx* \\zw \\+zws H07363 \\+zws*\\+zwm strongMorph:TH8764 \\+zwm*\\zw*moved\\zx \\zx*' +
+  //   '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the' +
+  //   'face\\zx \\zx* \\zw \\+zws H04325 \\+zws*\\zw*of the waters\\zx \\zx*.';
 
-  //var orig = '\\xy \\add 1\\nd 2\\wj 3\\wj*\\nd*\\add*4\\xy*';
+  var orig = '\\xy \\add 1\\nd 2\\wj 3\\wj*\\nd*\\add*4\\xy*';
   //var orig = '\\m 1 \\x 2 \\y 3 \\z 4 \\z* 5 \\y* 6 \\x* 7\\m*';
   var v = new Verse(orig);
   var restored = v.node.toString();
