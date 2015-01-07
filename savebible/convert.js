@@ -11,22 +11,29 @@
     '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the' +
     'face\\zx \\zx* \\zw \\+zws H04325 \\+zws*\\zw*of the waters\\zx \\zx*.';
 
-  var ROM_9_9 = '\\zw \\+zws G1063 \\+zws*\\+zwm robinson:CONJ 2 \\+zwm*\\zw*For\\zx \\zx*' +
-    '\\zw \\+zws G3778 \\+zws*\\+zwm robinson:D-NSM 5 \\+zwm*\\zw*this\\zx \\zx*' +
-    '\\add is\\add* \\zw \\+zws G3588 G3056 \\+zws*\\+zwm robinson:T-NSM robinson:N-NSM 3 4 \\+zwm*\\zw*the' +
-    'word\\zx \\zx* \\zw \\+zws G1860 \\+zws*\\+zwm robinson:N-GSF 1 \\+zwm*\\zw*of' +
-    'promise\\zx \\zx*, \\zw \\+zws G2596 \\+zws*\\+zwm robinson:PREP 6 \\+zwm*\\zw*At\\zx \\zx*' +
-    '\\zw \\+zws G5126 \\+zws*\\+zwm robinson:D-ASM 9 \\+zwm*\\zw*this\\zx \\zx*' +
-    '\\zw \\+zws G3588 G2540 \\+zws*\\+zwm robinson:T-ASM robinson:N-ASM 7 8 \\+zwm*\\zw*time\\zx \\zx*' +
-    '\\zw \\+zws G2064 \\+zws*\\+zwm robinson:V-FDI-1S 10 \\+zwm*\\zw*will I' +
-    'come\\zx \\zx*, \\zw \\+zws G2532 \\+zws*\\+zwm robinson:CONJ 11 \\+zwm*\\zw*and\\zx \\zx*' +
-    '\\zw \\+zws G3588 G4564 \\+zws*\\+zwm robinson:T-DSF robinson:N-DSF 13 14 \\+zwm*\\zw*Sara\\zx \\zx*' +
-    '\\zw \\+zws G2071 \\+zws*\\+zwm robinson:V-FXI-3S 12 \\+zwm*\\zw*shall' +
-    'have\\zx \\zx* \\zw \\+zws G5207 \\+zws*\\+zwm robinson:N-NSM 15 \\+zwm*\\zw*a' +
+  var ROM_9_9 = '\\zw \\+zws G1063 \\+zws*\\+zwm robinson:CONJ 2 \\+zwm*\\zw*For\\zx \\zx*\n' +
+    '\\zw \\+zws G3778 \\+zws*\\+zwm robinson:D-NSM 5 \\+zwm*\\zw*this\\zx \\zx*\n' +
+    '\\add is\\add* \\zw \\+zws G3588 G3056 \\+zws*\\+zwm robinson:T-NSM robinson:N-NSM 3 4 \\+zwm*\\zw*the\n' +
+    'word\\zx \\zx* \\zw \\+zws G1860 \\+zws*\\+zwm robinson:N-GSF 1 \\+zwm*\\zw*of\n' +
+    'promise\\zx \\zx*, \\zw \\+zws G2596 \\+zws*\\+zwm robinson:PREP 6 \\+zwm*\\zw*At\\zx \\zx*\n' +
+    '\\zw \\+zws G5126 \\+zws*\\+zwm robinson:D-ASM 9 \\+zwm*\\zw*this\\zx \\zx*\n' +
+    '\\zw \\+zws G3588 G2540 \\+zws*\\+zwm robinson:T-ASM robinson:N-ASM 7 8 \\+zwm*\\zw*time\\zx \\zx*\n' +
+    '\\zw \\+zws G2064 \\+zws*\\+zwm robinson:V-FDI-1S 10 \\+zwm*\\zw*will I\n' +
+    'come\\zx \\zx*, \\zw \\+zws G2532 \\+zws*\\+zwm robinson:CONJ 11 \\+zwm*\\zw*and\\zx \\zx*\n' +
+    '\\zw \\+zws G3588 G4564 \\+zws*\\+zwm robinson:T-DSF robinson:N-DSF 13 14 \\+zwm*\\zw*Sara\\zx \\zx*\n' +
+    '\\zw \\+zws G2071 \\+zws*\\+zwm robinson:V-FXI-3S 12 \\+zwm*\\zw*shall\n' +
+    'have\\zx \\zx* \\zw \\+zws G5207 \\+zws*\\+zwm robinson:N-NSM 15 \\+zwm*\\zw*a\n' +
     'son\\zx \\zx*.';
 
   var LUK_18_19 = 'And Jesus said unto him, \\wj  Why callest thou me good? none' +
     '\\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj* ';
+
+  // \qt  - Quoted text.
+  //        Old Testament quotations in the New Testament
+  // \add - Translator's addition.
+  // \wj  - Words of Jesus.
+  // \nd  - Name of God (name of Deity).
+  var CORE_TAGS = /add|wj|nd|qt/g;
 
   function extend(child, parent) {
     var fnObj = function() {};
@@ -38,8 +45,7 @@
 
   // identify tags that can be ignored
   function supportedTag(tag) {
-    var coreTags = /add|wj|nd/g;
-    return (tag.match(coreTags) !== null);
+    return (tag.match(CORE_TAGS) !== null);
   }
 
   function openingTag(str) {
@@ -48,14 +54,7 @@
 
   // HTML tag from USFM tag
   function htmlTag(tag) {
-
-    // \qt  - Quoted text.
-    //        Old Testament quotations in the New Testament, or other quotations.
-    // \add - Translator's addition.
-    // \wj  - Words of Jesus.
-    // \nd  - Name of God (name of Deity).
-    var coreTags = /add|wj|nd|qt/g;
-    var mt = tag.match(coreTags);
+    var mt = tag.match(CORE_TAGS);
     if (mt !== null)
       return mt;
     return 'unknown';
@@ -106,7 +105,7 @@
   /// -----------------------------------------------------------------------
   var TextNode = function(text, parent) {
     Node.call(this, parent, NODE_TYPE_TEXT);
-    this.text = text;//.trim();
+    this.text = text.trim();
   };
   extend(TextNode, Node);
   TextNode.prototype.toString = function() {
@@ -129,7 +128,10 @@
     /// combin the result of child nodes
     var res = '';
     this.nodes.forEach(function(n) {
-      res += n.toString();
+      var temp = n.toString();
+      if (res.length > 0 && temp.match(/\w+/g) !== null) /// TODO:fix \w+ to be general
+        res += ' ';
+      res += temp;
     });
     if (this.tag !== '')
       return this.tag + ' ' + res + this.tag + '*';
@@ -157,10 +159,16 @@
     return res;
   };
 
-  function buildTextNode(str, from, to, node) {
-    var text = str.substring(from, to);
-    return new TextNode(text, node);
+  function appendChildTextNode(node, str, from, to) {
+    var text = str.substring(from, to).trim();
+    if (text.length > 0)
+      node.addChild(new TextNode(text, node));
   }
+
+  // \a word\a*word2\b word3\b*
+  // var USFM_VerseParser = function() {
+
+  // };
 
   /// -----------------------------------------------------------------------
   ///                      PARSE VERSE IN USFM FORMAT
@@ -175,30 +183,42 @@
     if (arr !== null) {
 
       // collect the available text
-      if (ind < arr.index) {
-        node.addChild(buildTextNode(str, ind, arr.index, node));
+      if (ind < arr.index && node !== null) {
+        appendChildTextNode(node, str, ind, arr.index);
       }
 
       var tag = arr[1];
       if (openingTag(tag)) {
-        var compoundNode = new CompoundNode(tag, node);
-        node.addChild(compoundNode);
+        var compoundNode = null;
+        compoundNode = new CompoundNode(tag, node);
+
+        // collect supported tags
+        if (node !== null && supportedTag(tag)) {
+          if (node !== null)
+            node.addChild(compoundNode);
+        }
+
         ind = arr.index + arr[0].length;
         arr = re.exec(str);
-        USFM_VerseParser(str, ind, arr, re, compoundNode);
+
+        USFM_VerseParser(str,
+                         ind,
+                         arr,
+                         re,
+                         compoundNode);
         return;
       } else {
+        // closing tag
         ind = arr.index + arr[1].length;
         arr = re.exec(str);
-        USFM_VerseParser(str, ind, arr, re, node.parent);
+        USFM_VerseParser(str, ind, arr, re, node === null ? null : node.parent);
         return;
       }
-
     }
 
     // collect remaining text
-    if (ind < str.length) {
-      node.addChild(buildTextNode(str, ind, str.length, node));
+    if (ind < str.length && node !== null) {
+      appendChildTextNode(node, str, ind, str.length);
     }
   };
 
@@ -214,17 +234,16 @@
   //var original = '\\xy \\add 1\\nd 2\\wj 3\\wj*\\nd*\\add*4\\xy*';
   //var original = '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*';
   //var original = '\\m this is \\x a simple text.\\y keep going.\\z hello\\z*world\\y*\\x*BYE!\\m*';
-  var str = ROM_9_9;
+  var str = ROM_9_9.replace(/\n/g, ' ');
 
   //options.renderMode = RENDER_TEXT;
   var verse = new Verse(str);
   var rendered = verse.node.render(options);
+  var restored = verse.node.toString();
 
-  //console.log('original: %s\n', str);
-  //console.log('restored: %s\n', restored);
+  console.log('original: %s\n', str);
+  console.log('restored: %s\n', restored);
   //console.log('rendered: %s\n', rendered);
-
-
 
   /// -----------------------------------------------------------------------
   ///                         TESTING STUFF
@@ -232,10 +251,11 @@
   describe("Verse parsing", function() {
     it("valid USFM parsing", function() {
       var verses = [];
+      verses.push('\\add x\\add*');
       //verses.push('\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*');
-      verses.push(LUK_18_19);
-      verses.push(GEN_1_2);
-      verses.push(ROM_9_9);
+      // verses.push(LUK_18_19);
+      // verses.push(GEN_1_2);
+      // verses.push(ROM_9_9);
 
       verses.forEach(function(vstr) {
         var verse = new Verse(vstr);
