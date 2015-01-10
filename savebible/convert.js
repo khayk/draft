@@ -1,14 +1,12 @@
 (function() {
 
-  var DEV_STR = '';
-
-  var GEN_1_2 = '\\zw \\+zws H0776 \\+zws*\\zw*And the earth\\zx \\zx* \\zw \\+zws H01961 \\+zws*\\+zwm strongMorph:TH8804 \\+zwm*\\zw*was\\zx \\zx*' +
-    '\\zw \\+zws H08414 \\+zws*\\zw*without form\\zx \\zx*, \\zw \\+zws H0922 \\+zws*\\zw*and' +
-    'void\\zx \\zx*; \\zw \\+zws H02822 \\+zws*\\zw*and darkness\\zx \\zx* \\add was\\add*' +
-    '\\zw \\+zws H06440 \\+zws*\\zw*upon the face\\zx \\zx* \\zw \\+zws H08415 \\+zws*\\zw*of the' +
-    'deep\\zx \\zx*. \\zw \\+zws H07307 \\+zws*\\zw*And the Spirit\\zx \\zx* \\zw \\+zws H0430 \\+zws*\\zw*of' +
-    'God\\zx \\zx* \\zw \\+zws H07363 \\+zws*\\+zwm strongMorph:TH8764 \\+zwm*\\zw*moved\\zx \\zx*' +
-    '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the' +
+  var GEN_1_2 = '\\zw \\+zws H0776 \\+zws*\\zw*And the earth\\zx \\zx* \\zw \\+zws H01961 \\+zws*\\+zwm strongMorph:TH8804 \\+zwm*\\zw*was\\zx \\zx*\n' +
+    '\\zw \\+zws H08414 \\+zws*\\zw*without form\\zx \\zx*, \\zw \\+zws H0922 \\+zws*\\zw*and\n' +
+    'void\\zx \\zx*; \\zw \\+zws H02822 \\+zws*\\zw*and darkness\\zx \\zx* \\add was\\add*\n' +
+    '\\zw \\+zws H06440 \\+zws*\\zw*upon the face\\zx \\zx* \\zw \\+zws H08415 \\+zws*\\zw*of the\n' +
+    'deep\\zx \\zx*. \\zw \\+zws H07307 \\+zws*\\zw*And the Spirit\\zx \\zx* \\zw \\+zws H0430 \\+zws*\\zw*of\n' +
+    'God\\zx \\zx* \\zw \\+zws H07363 \\+zws*\\+zwm strongMorph:TH8764 \\+zwm*\\zw*moved\\zx \\zx*\n' +
+    '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the\n' +
     'face\\zx \\zx* \\zw \\+zws H04325 \\+zws*\\zw*of the waters\\zx \\zx*.';
 
   var ROM_9_9 = '\\zw \\+zws G1063 \\+zws*\\+zwm robinson:CONJ 2 \\+zwm*\\zw*For\\zx \\zx*\n' +
@@ -25,8 +23,10 @@
     'have\\zx \\zx* \\zw \\+zws G5207 \\+zws*\\+zwm robinson:N-NSM 15 \\+zwm*\\zw*a\n' +
     'son\\zx \\zx*.';
 
-  var LUK_18_19 = 'And Jesus said unto him, \\wj  Why callest thou me good? none' +
-    '\\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj* ';
+  var LUK_18_19_KJV = 'And Jesus said unto him, \\wj  Why callest thou me good? none' +
+    '\\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj*';
+
+  var LUK_18_19_ARM = 'Յիսուս նրան ասաց.\\wj «Ինչո՞ւ ինձ բարի ես կոչում. ոչ ոք բարի չէ,\\+add այլ\\+add* միայն՝ Աստուած։\\wj*';
 
   // \qt  - Quoted text.
   //        Old Testament quotations in the New Testament
@@ -53,7 +53,7 @@
   }
 
   // HTML tag from USFM tag
-  function htmlTag(tag) {
+  function getHtmlTag(tag) {
     var mt = tag.match(CORE_TAGS);
     if (mt !== null)
       return mt;
@@ -105,7 +105,7 @@
   /// -----------------------------------------------------------------------
   var TextNode = function(text, parent) {
     Node.call(this, parent, NODE_TYPE_TEXT);
-    this.text = text.trim();
+    this.text = text;
   };
   extend(TextNode, Node);
   TextNode.prototype.toString = function() {
@@ -127,12 +127,11 @@
   CompoundNode.prototype.toString = function() {
     /// combin the result of child nodes
     var res = '';
+    // combine nodes
     this.nodes.forEach(function(n) {
-      var temp = n.toString();
-      if (res.length > 0 && temp.match(/\w+/g) !== null) /// TODO:fix \w+ to be general
-        res += ' ';
-      res += temp;
+      res += n.toString();
     });
+
     if (this.tag !== '')
       return this.tag + ' ' + res + this.tag + '*';
     return res;
@@ -154,21 +153,16 @@
     else if (options.renderMode == RENDER_HTML) {
       if (this.tag === '')
         return res;
-      return '<span class="' + htmlTag(this.tag) + '">' + res + '</span>';
+      return '<span class="' + getHtmlTag(this.tag) + '">' + res + '</span>';
     }
     return res;
   };
 
   function appendChildTextNode(node, str, from, to) {
-    var text = str.substring(from, to).trim();
+    var text = str.substring(from, to);
     if (text.length > 0)
       node.addChild(new TextNode(text, node));
   }
-
-  // \a word\a*word2\b word3\b*
-  // var USFM_VerseParser = function() {
-
-  // };
 
   /// -----------------------------------------------------------------------
   ///                      PARSE VERSE IN USFM FORMAT
@@ -189,12 +183,10 @@
 
       var tag = arr[1];
       if (openingTag(tag)) {
-        var compoundNode = null;
-        compoundNode = new CompoundNode(tag, node);
+        var compoundNode = new CompoundNode(tag, node);
 
         // collect supported tags
-        if (node !== null && supportedTag(tag)) {
-          if (node !== null)
+        if (supportedTag(tag)) {
             node.addChild(compoundNode);
         }
 
@@ -211,7 +203,7 @@
         // closing tag
         ind = arr.index + arr[1].length;
         arr = re.exec(str);
-        USFM_VerseParser(str, ind, arr, re, node === null ? null : node.parent);
+        USFM_VerseParser(str, ind, arr, re, node.parent);
         return;
       }
     }
@@ -234,7 +226,8 @@
   //var original = '\\xy \\add 1\\nd 2\\wj 3\\wj*\\nd*\\add*4\\xy*';
   //var original = '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*';
   //var original = '\\m this is \\x a simple text.\\y keep going.\\z hello\\z*world\\y*\\x*BYE!\\m*';
-  var str = ROM_9_9.replace(/\n/g, ' ');
+  var DEV_STR = GEN_1_2;//'\\x \\wj should be ignored\\wj*\\x*';
+  var str = DEV_STR.replace(/\n/g, ' ');
 
   //options.renderMode = RENDER_TEXT;
   var verse = new Verse(str);
@@ -243,7 +236,6 @@
 
   console.log('original: %s\n', str);
   console.log('restored: %s\n', restored);
-  //console.log('rendered: %s\n', rendered);
 
   /// -----------------------------------------------------------------------
   ///                         TESTING STUFF
@@ -251,16 +243,21 @@
   describe("Verse parsing", function() {
     it("valid USFM parsing", function() {
       var verses = [];
-      verses.push('\\add x\\add*');
-      //verses.push('\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*');
-      // verses.push(LUK_18_19);
-      // verses.push(GEN_1_2);
-      // verses.push(ROM_9_9);
 
-      verses.forEach(function(vstr) {
-        var verse = new Verse(vstr);
+      verses.push({orig: '\\add x\\add*', parsed: '\\add x\\add*'});
+      verses.push({orig: '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*', parsed: ''});
+      verses.push({orig: LUK_18_19_ARM, parsed: 'Յիսուս նրան ասաց.\\wj «Ինչո՞ւ ինձ բարի ես կոչում. ոչ ոք բարի չէ,\\+add այլ\\+add* միայն՝ Աստուած։\\wj*'});
+      verses.push({orig: LUK_18_19_KJV, parsed: 'And Jesus said unto him, \\wj  Why callest thou me good? none\\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj*'});
+      verses.push({orig: GEN_1_2, parsed: 'And the earth was without form, and void; and darkness \\add was\\add* upon the face of the deep. And the Spirit of God moved upon the face of the waters.'});
+      verses.push({orig: ROM_9_9, parsed: 'For this \\add is\\add* the word of promise, At this time will I come, and Sara shall have a son.'});
+      verses.push({orig: 'text no tags', parsed: 'text no tags'});
+      //verses.push({orig: '', parsed: ''});
+
+      verses.forEach(function(o) {
+        var orig = o.orig.replace(/\n/g, ' ').trim();
+        var verse = new Verse(orig);
         var restored = verse.node.toString();
-        expect(vstr).toBe(restored);
+        expect(o.parsed).toBe(restored);
       });
     });
   });
