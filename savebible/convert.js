@@ -60,6 +60,27 @@
     return 'unknown';
   }
 
+  var Tags = function() {
+    //this.tags = [];
+  };
+
+  Tags.prototype = {
+    isSupported: function(tag) {
+      return true;
+    },
+
+    isOpening: function(tag) {
+
+    },
+
+    /// returns a name of the tag without special symbols (\wj -> wj, \+add -> add)
+    /// if the tag is not supported, the default value will be returned
+    name: function(tag, def) {
+      def = def || 'unknown';
+    }
+  };
+
+
   var NODE_TYPE_TEXT = 1;
   var NODE_TYPE_TAG  = 2;
 
