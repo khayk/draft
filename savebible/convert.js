@@ -78,7 +78,7 @@
     name: function(tag, def) {
       def = def || 'unknown';
     }
-  };
+  };  
 
 
   var NODE_TYPE_TEXT = 1;
@@ -381,3 +381,45 @@ var walk = function(dir, done) {
 
       }
   */
+
+
+
+/*
+Bible
+    Book
+    Chapter
+    Verse
+
+Ref
+    BookID ChapId:VerseNumber
+
+Renderer
+    renderBible
+    renderBook
+    renderChapter
+    renderVerse
+    renderRange(ref, offset)
+
+HTMLRenderer
+USFMRenderer
+TextRenderer
+
+
+var bible = new Bible();
+var renderer = new USFMRenderer();
+
+var bibleView = renderer.renderBible(bible);
+var bookView  = renderer.renderBook(book);
+var chapView  = renderer.renderChapter(chapter);
+var verseView = renderer.renderVerse(verse);
+
+
+ViewSettings = function() {
+    paragraphMode: false,
+    showTitles: true,
+    showNumbers: true,
+    boldQuotes: true,
+    highlightJesusWords: true,
+    translatorAddition:
+}
+*/
