@@ -171,6 +171,11 @@
 
     if (options.renderMode == RENDER_TEXT)
       return res;
+    else if (options.renderMode == RENDER_USFM) {
+      if (this.tag === '')
+        return res;
+      return this.tag + ' ' + res + this.tag + '*';
+    }
     else if (options.renderMode == RENDER_HTML) {
       if (this.tag === '')
         return res;
@@ -261,7 +266,7 @@
   /// -----------------------------------------------------------------------
   ///                         TESTING STUFF
   /// -----------------------------------------------------------------------
-  describe("Verse parsing", function() {
+  /*describe("Verse parsing", function() {
     it("valid USFM parsing", function() {
       var verses = [];
 
@@ -281,7 +286,7 @@
         expect(o.parsed).toBe(restored);
       });
     });
-  });
+  });*/
 
 
 }());
