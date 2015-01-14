@@ -28,6 +28,11 @@
 
   var LUK_18_19_ARM = 'Յիսուս նրան ասաց.\\wj «Ինչո՞ւ ինձ բարի ես կոչում. ոչ ոք բարի չէ,\\+add այլ\\+add* միայն՝ Աստուած։\\wj*';
 
+  //var original = '\\xy \\add 1\\nd 2\\wj 3\\wj*\\nd*\\add*4\\xy*';
+  //var original = '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*';
+  //var original = '\\m this is \\x a simple text.\\y keep going.\\z hello\\z*world\\y*\\x*BYE!\\m*';
+
+
   // \qt  - Quoted text.
   //        Old Testament quotations in the New Testament
   // \add - Translator's addition.
@@ -78,8 +83,7 @@
     name: function(tag, def) {
       def = def || 'unknown';
     }
-  };  
-
+  };
 
   var NODE_TYPE_TEXT = 1;
   var NODE_TYPE_TAG  = 2;
@@ -87,10 +91,11 @@
   // options.renderMode  valid values
   var RENDER_TEXT = 1;
   var RENDER_HTML = 2;
+  var RENDER_USFM = 3;
 
   // bible view options
   var ViewOptions = function() {
-    this.renderMode    = RENDER_HTML;
+    this.renderMode    = RENDER_USFM;
     this.font          = 'Trebuchet MS';
     this.paragraphMode = true;
   };
@@ -106,15 +111,11 @@
   };
 
   Node.prototype.addChild = function(node) {
-    throw 'addChild should be overriden in the derived class';
-  };
-
-  Node.prototype.toString = function() {
-    throw 'toString should be overriden in the derived class';
+    throw 'implement "addChild" in the derived class';
   };
 
   Node.prototype.render = function(options) {
-    throw 'render should be overriden in the derived class';
+    throw 'implement "render" in the derived class';
   };
 
   Node.prototype.type = function() {
@@ -129,10 +130,7 @@
     this.text = text;
   };
   extend(TextNode, Node);
-  TextNode.prototype.toString = function() {
-    return this.text;
-  };
-  TextNode.prototype.render = function(options) {
+  TextNode.prototype.render = function(renderer) {
     return this.text;
   };
 
@@ -145,43 +143,34 @@
     this.nodes = [];
   };
   extend(CompoundNode, Node);
-  CompoundNode.prototype.toString = function() {
-    /// combin the result of child nodes
-    var res = '';
-    // combine nodes
-    this.nodes.forEach(function(n) {
-      res += n.toString();
-    });
-
-    if (this.tag !== '')
-      return this.tag + ' ' + res + this.tag + '*';
-    return res;
-  };
 
   CompoundNode.prototype.addChild = function(node) {
     this.nodes.push(node);
   };
 
-  CompoundNode.prototype.render = function(options) {
+  CompoundNode.prototype.render = function(renderer) {
     /// combin the result of child nodes
     var res = '';
     this.nodes.forEach(function(n) {
-      res += n.render(options);
+      res += n.render(renderer);
     });
 
-    if (options.renderMode == RENDER_TEXT)
-      return res;
-    else if (options.renderMode == RENDER_USFM) {
-      if (this.tag === '')
-        return res;
-      return this.tag + ' ' + res + this.tag + '*';
-    }
-    else if (options.renderMode == RENDER_HTML) {
-      if (this.tag === '')
-        return res;
-      return '<span class="' + getHtmlTag(this.tag) + '">' + res + '</span>';
-    }
-    return res;
+    return renderer.renderNode(this, res);
+
+    // if (options.renderMode == RENDER_TEXT) {
+    //   return res;
+    // }
+    // else if (options.renderMode == RENDER_USFM) {
+    //   if (this.tag === '')
+    //     return res;
+    //   return this.tag + ' ' + res + this.tag + '*';
+    // }
+    // else if (options.renderMode == RENDER_HTML) {
+    //   if (this.tag === '')
+    //     return res;
+    //   return '<span class="' + getHtmlTag(this.tag) + '">' + res + '</span>';
+    // }
+    // return res;
   };
 
   function appendChildTextNode(node, str, from, to) {
@@ -249,24 +238,58 @@
     USFM_VerseParser(str, 0, null, null, this.node);
   };
 
-  //var original = '\\xy \\add 1\\nd 2\\wj 3\\wj*\\nd*\\add*4\\xy*';
-  //var original = '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*';
-  //var original = '\\m this is \\x a simple text.\\y keep going.\\z hello\\z*world\\y*\\x*BYE!\\m*';
-  var DEV_STR = GEN_1_2;//'\\x \\wj should be ignored\\wj*\\x*';
-  var str = DEV_STR.replace(/\n/g, ' ');
+  Verse.prototype.render = function(renderer) {
+    return renderer.renderVerse(this);
+  };
 
-  //options.renderMode = RENDER_TEXT;
-  var verse = new Verse(str);
-  var rendered = verse.node.render(options);
-  var restored = verse.node.toString();
+
+  /// -----------------------------------------------------------------------
+  ///                         RENDERER CLASS
+  /// -----------------------------------------------------------------------
+  var Renderer = function() {
+  };
+
+  Renderer.prototype.renderBible   = function(bible) { throw 'implement renderer'; };
+  Renderer.prototype.renderBook    = function(book) { throw 'implement renderer'; };
+  Renderer.prototype.renderChapter = function(chapter) { throw 'implement renderer'; };
+  Renderer.prototype.renderVerse   = function(verse) { throw 'implement renderer'; };
+  Renderer.prototype.renderNode    = function(node, res) { throw 'implement renderer'; };
+
+  // Renderer.prototype = {
+  //   renderBible: function(bible) { throw 'implement renderer'; },
+  //   renderBook: function(book) { throw 'implement renderer'; },
+  //   renderChapter: function(chapter) { throw 'implement renderer'; },
+  //   renderVerse: function(verse) { throw 'implement renderer'; },
+  //   renderNode: function(node) { throw 'implement renderer'; }
+  // };
+
+  var USFMRenderer = function() {
+  };
+  extend(USFMRenderer, Renderer);
+  USFMRenderer.prototype.renderVerse = function(verse) {
+    return verse.node.render(this);
+  };
+
+  USFMRenderer.prototype.renderNode = function(node, res) {
+    if (node.tag === '')
+      return res;
+    return node.tag + ' ' + res + node.tag + '*';
+  };
+
+  var DEV_STR  = GEN_1_2;//'\\x \\wj should be ignored\\wj*\\x*';
+  var str      = DEV_STR.replace(/\n/g, ' ');
+  var verse    = new Verse(str);
+
+  var renderer = new USFMRenderer();
+  var result   = verse.render(renderer);
 
   console.log('original: %s\n', str);
-  console.log('restored: %s\n', restored);
+  console.log('restored: %s\n', result);
 
   /// -----------------------------------------------------------------------
   ///                         TESTING STUFF
   /// -----------------------------------------------------------------------
-  /*describe("Verse parsing", function() {
+  describe("Verse parsing", function() {
     it("valid USFM parsing", function() {
       var verses = [];
 
@@ -279,14 +302,15 @@
       verses.push({orig: 'text no tags', parsed: 'text no tags'});
       //verses.push({orig: '', parsed: ''});
 
+      var renderer  = new USFMRenderer();
       verses.forEach(function(o) {
         var orig = o.orig.replace(/\n/g, ' ').trim();
         var verse = new Verse(orig);
-        var restored = verse.node.toString();
+        var restored = verse.render(renderer);
         expect(o.parsed).toBe(restored);
       });
     });
-  });*/
+  });
 
 
 }());
@@ -390,34 +414,9 @@ var walk = function(dir, done) {
 
 
 /*
-Bible
-    Book
-    Chapter
-    Verse
-
-Ref
-    BookID ChapId:VerseNumber
-
-Renderer
-    renderBible
-    renderBook
-    renderChapter
-    renderVerse
-    renderRange(ref, offset)
-
-HTMLRenderer
-USFMRenderer
-TextRenderer
-
 
 var bible = new Bible();
 var renderer = new USFMRenderer();
-
-var bibleView = renderer.renderBible(bible);
-var bookView  = renderer.renderBook(book);
-var chapView  = renderer.renderChapter(chapter);
-var verseView = renderer.renderVerse(verse);
-
 
 ViewSettings = function() {
     paragraphMode: false,
@@ -428,3 +427,4 @@ ViewSettings = function() {
     translatorAddition:
 }
 */
+
