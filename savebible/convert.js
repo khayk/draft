@@ -1,5 +1,7 @@
 (function() {
 
+  'use strict';
+
   var GEN_1_2 = '\\zw \\+zws H0776 \\+zws*\\zw*And the earth\\zx \\zx* \\zw \\+zws H01961 \\+zws*\\+zwm strongMorph:TH8804 \\+zwm*\\zw*was\\zx \\zx*\n' +
     '\\zw \\+zws H08414 \\+zws*\\zw*without form\\zx \\zx*, \\zw \\+zws H0922 \\+zws*\\zw*and\n' +
     'void\\zx \\zx*; \\zw \\+zws H02822 \\+zws*\\zw*and darkness\\zx \\zx* \\add was\\add*\n' +
@@ -23,10 +25,10 @@
     'have\\zx \\zx* \\zw \\+zws G5207 \\+zws*\\+zwm robinson:N-NSM 15 \\+zwm*\\zw*a\n' +
     'son\\zx \\zx*.';
 
-  var LUK_18_19_KJV = 'And Jesus said unto him, \\wj  Why callest thou me good? none' +
+  var LUK_18_19_KJV = 'And Jesus said unto him, \\wj  Why callest thou me good? none\n' +
     '\\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj*';
 
-  var LUK_18_19_ARM = 'Յիսուս նրան ասաց.\\wj «Ինչո՞ւ ինձ բարի ես կոչում. ոչ ոք բարի չէ,\\+add այլ\\+add* միայն՝ Աստուած։\\wj*';
+  var LUK_18_19_ARM = 'Յիսուս նրան ասաց. \\wj «Ինչո՞ւ ինձ բարի ես կոչում. ոչ ոք բարի չէ, \\+add այլ\\+add* միայն՝ Աստուած։\\wj*';
 
   //var original = '\\xy \\add 1\\nd 2\\wj 3\\wj*\\nd*\\add*4\\xy*';
   //var original = '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*';
@@ -41,9 +43,9 @@
   var CORE_TAGS = /add|wj|nd|qt/g;
 
   function extend(child, parent) {
-    var fnObj = function() {};
-    fnObj.prototype = parent.prototype;
-    child.prototype = new fnObj();
+    var FnObj = function() {};
+    FnObj.prototype = parent.prototype;
+    child.prototype = new FnObj();
     child.prototype.constructor = child;
     child.uber = parent.prototype;
   }
@@ -149,13 +151,7 @@
   };
 
   CompoundNode.prototype.render = function(renderer) {
-    /// combin the result of child nodes
-    var res = '';
-    this.nodes.forEach(function(n) {
-      res += n.render(renderer);
-    });
-
-    return renderer.renderNode(this, res);
+    return renderer.renderNode(this);
 
     // if (options.renderMode == RENDER_TEXT) {
     //   return res;
@@ -182,7 +178,7 @@
   /// -----------------------------------------------------------------------
   ///                      PARSE VERSE IN USFM FORMAT
   /// -----------------------------------------------------------------------
-  var USFM_VerseParser = function(str, ind, arr, re, node) {
+  function parseUSFMVerse(str, ind, arr, re, node) {
     if (re === null) {
       re = /(\\\+?(\w+)\*?)\s?/gm;
       arr = re.exec(str);
@@ -208,7 +204,7 @@
         ind = arr.index + arr[0].length;
         arr = re.exec(str);
 
-        USFM_VerseParser(str,
+        parseUSFMVerse(str,
                          ind,
                          arr,
                          re,
@@ -218,7 +214,7 @@
         // closing tag
         ind = arr.index + arr[1].length;
         arr = re.exec(str);
-        USFM_VerseParser(str, ind, arr, re, node.parent);
+        parseUSFMVerse(str, ind, arr, re, node.parent);
         return;
       }
     }
@@ -227,21 +223,34 @@
     if (ind < str.length && node !== null) {
       appendChildTextNode(node, str, ind, str.length);
     }
-  };
+  }
 
   /// -----------------------------------------------------------------------
   ///                         VERSE CLASS
   /// -----------------------------------------------------------------------
   var Verse = function(str, number) {
+    this.parent = null;
     this.number = number;
     this.node   = new CompoundNode('', null);
-    USFM_VerseParser(str, 0, null, null, this.node);
+    parseUSFMVerse(str, 0, null, null, this.node);
   };
 
   Verse.prototype.render = function(renderer) {
     return renderer.renderVerse(this);
   };
 
+
+  var Parser = function() {};
+  Parser.prototype.parseBible   = function(str) { throw 'implement parser'; };
+  Parser.prototype.parseBook    = function(str) { throw 'implement parser'; };
+  Parser.prototype.parseChapter = function(str) { throw 'implement parser'; };
+  Parser.prototype.parseVerse   = function(str) { throw 'implement parser'; };
+  var USFMParser = function() {
+  };
+  extend(USFMParser, Parser);
+  USFMParser.prototype.parseVerse = function(str) {
+    return new Verse(str, number);
+  };
 
   /// -----------------------------------------------------------------------
   ///                         RENDERER CLASS
@@ -253,16 +262,21 @@
   Renderer.prototype.renderBook    = function(book) { throw 'implement renderer'; };
   Renderer.prototype.renderChapter = function(chapter) { throw 'implement renderer'; };
   Renderer.prototype.renderVerse   = function(verse) { throw 'implement renderer'; };
-  Renderer.prototype.renderNode    = function(node, res) { throw 'implement renderer'; };
+  Renderer.prototype.renderNode    = function(node) { throw 'implement renderer'; };
 
-  // Renderer.prototype = {
-  //   renderBible: function(bible) { throw 'implement renderer'; },
-  //   renderBook: function(book) { throw 'implement renderer'; },
-  //   renderChapter: function(chapter) { throw 'implement renderer'; },
-  //   renderVerse: function(verse) { throw 'implement renderer'; },
-  //   renderNode: function(node) { throw 'implement renderer'; }
-  // };
+  function renderNodeCommon(renderer, node) {
+    var res = '';
 
+    /// combine the result of child nodes
+    node.nodes.forEach(function(n) {
+      res += n.render(renderer);
+    });
+    return res;
+  }
+
+  /// -----------------------------------------------------------------------
+  ///                           USFM RENDERER
+  /// -----------------------------------------------------------------------
   var USFMRenderer = function() {
   };
   extend(USFMRenderer, Renderer);
@@ -270,17 +284,34 @@
     return verse.node.render(this);
   };
 
-  USFMRenderer.prototype.renderNode = function(node, res) {
+  USFMRenderer.prototype.renderNode = function(node) {
+    var res = renderNodeCommon(this, node);
     if (node.tag === '')
       return res;
     return node.tag + ' ' + res + node.tag + '*';
   };
 
-  var DEV_STR  = GEN_1_2;//'\\x \\wj should be ignored\\wj*\\x*';
+
+  /// -----------------------------------------------------------------------
+  ///                           TEXT RENDERER
+  /// -----------------------------------------------------------------------
+  var TextRenderer = function() {};
+  extend(TextRenderer, Renderer);
+  TextRenderer.prototype.renderVerse = function(verse) {
+    return verse.node.render(this);
+  };
+
+  TextRenderer.prototype.renderNode = function(node) {
+    return renderNodeCommon(this, node);
+  };
+
+
+  var DEV_STR  = LUK_18_19_ARM;//GEN_1_2;
+
   var str      = DEV_STR.replace(/\n/g, ' ');
   var verse    = new Verse(str);
 
-  var renderer = new USFMRenderer();
+  var renderer = new TextRenderer();
   var result   = verse.render(renderer);
 
   console.log('original: %s\n', str);
@@ -290,13 +321,13 @@
   ///                         TESTING STUFF
   /// -----------------------------------------------------------------------
   describe("Verse parsing", function() {
-    it("valid USFM parsing", function() {
+    it("USFMRenderer verification", function() {
       var verses = [];
 
       verses.push({orig: '\\add x\\add*', parsed: '\\add x\\add*'});
       verses.push({orig: '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*', parsed: ''});
-      verses.push({orig: LUK_18_19_ARM, parsed: 'Յիսուս նրան ասաց.\\wj «Ինչո՞ւ ինձ բարի ես կոչում. ոչ ոք բարի չէ,\\+add այլ\\+add* միայն՝ Աստուած։\\wj*'});
-      verses.push({orig: LUK_18_19_KJV, parsed: 'And Jesus said unto him, \\wj  Why callest thou me good? none\\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj*'});
+      verses.push({orig: LUK_18_19_ARM, parsed: 'Յիսուս նրան ասաց. \\wj «Ինչո՞ւ ինձ բարի ես կոչում. ոչ ոք բարի չէ, \\+add այլ\\+add* միայն՝ Աստուած։\\wj*'});
+      verses.push({orig: LUK_18_19_KJV, parsed: 'And Jesus said unto him, \\wj  Why callest thou me good? none \\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj*'});
       verses.push({orig: GEN_1_2, parsed: 'And the earth was without form, and void; and darkness \\add was\\add* upon the face of the deep. And the Spirit of God moved upon the face of the waters.'});
       verses.push({orig: ROM_9_9, parsed: 'For this \\add is\\add* the word of promise, At this time will I come, and Sara shall have a son.'});
       verses.push({orig: 'text no tags', parsed: 'text no tags'});
@@ -310,6 +341,26 @@
         expect(o.parsed).toBe(restored);
       });
     });
+
+    it("TextRenderer verification", function() {
+      var verses = [];
+
+      verses.push({orig: '\\add x\\add*', parsed: 'x'});
+      verses.push({orig: '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*', parsed: ''});
+      verses.push({orig: LUK_18_19_ARM, parsed: 'Յիսուս նրան ասաց. «Ինչո՞ւ ինձ բարի ես կոչում. ոչ ոք բարի չէ, այլ միայն՝ Աստուած։'});
+      verses.push({orig: LUK_18_19_KJV, parsed: 'And Jesus said unto him,  Why callest thou me good? none is good, save one, that is, God.'});
+      verses.push({orig: GEN_1_2, parsed: 'And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.'});
+      verses.push({orig: ROM_9_9, parsed: 'For this is the word of promise, At this time will I come, and Sara shall have a son.'});
+      verses.push({orig: 'text no tags', parsed: 'text no tags'});
+      var renderer  = new TextRenderer();
+      verses.forEach(function(o) {
+        var orig = o.orig.replace(/\n/g, ' ').trim();
+        var verse = new Verse(orig);
+        var restored = verse.render(renderer);
+        expect(o.parsed).toBe(restored);
+      });
+    });
+
   });
 
 

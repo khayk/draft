@@ -1,5 +1,6 @@
 # Logs
 logs
+jasmine
 *.log
 
 # Runtime data
