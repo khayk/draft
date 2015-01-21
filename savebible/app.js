@@ -1,8 +1,8 @@
-var http = require('http');
-var fs = require('fs');
-var mkdirp = require('mkdirp');
+var http    = require('http');
+var fs      = require('fs');
+var mkdirp  = require('mkdirp');
 var winston = require('winston');
-var path = require('path');
+var path    = require('path');
 
 //var sleep = require('sleep');
 
@@ -301,11 +301,6 @@ bibles.forEach(function(item) {
     }
 
     callback(null, options);
-  }
-
-  // convert book name to id
-  function bookNameToID(name) {
-    return name;
   }
 
   var NM = (function() {

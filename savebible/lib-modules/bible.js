@@ -43,14 +43,14 @@ Tags.prototype = {
     return tag[tag.length - 1] !== '*';
   },
 
-  /// returns a name of the tag without special symbols (\wj -> wj, \+add -> add)
+  /// returns tag's name without special symbols (\wj -> wj, \+add -> add)
   /// if the tag is not supported, the default value will be returned
   name: function(tag, def) {
-    def = def || 'unknown';
+    var d = def || 'unknown';
     var mt = tag.match(this.coreTags);
     if (mt !== null)
       return mt;
-    return def;
+    return d;
   }
 };
 var globalTags = new Tags();
@@ -108,68 +108,12 @@ CompoundNode.prototype.render = function(renderer) {
   return renderer.renderNode(this);
 };
 
-function childTextNode(node, str, from, to) {
-  var text = str.substring(from, to);
-  if (text.length > 0)
-    node.addChild(new TextNode(text, node));
-}
-
-/// -----------------------------------------------------------------------
-///                      PARSE VERSE IN USFM FORMAT
-/// -----------------------------------------------------------------------
-function parseUSFMVerse(str, ind, arr, re, node) {
-  if (re === null) {
-    re = /(\\\+?(\w+)\*?)\s?/gm;
-    arr = re.exec(str);
-    ind = 0;
-  }
-
-  if (arr !== null) {
-
-    // collect the available text
-    if (ind < arr.index && node !== null) {
-      childTextNode(node, str, ind, arr.index);
-    }
-
-    var tag = arr[1];
-    if (globalTags.isOpening(tag)) {
-      var compoundNode = new CompoundNode(tag, node);
-
-      // collect supported tags
-      if (globalTags.isSupported(tag)) {
-          node.addChild(compoundNode);
-      }
-
-      ind = arr.index + arr[0].length;
-      arr = re.exec(str);
-
-      parseUSFMVerse(str,
-                       ind,
-                       arr,
-                       re,
-                       compoundNode);
-      return;
-    } else {
-      // closing tag
-      ind = arr.index + arr[1].length;
-      arr = re.exec(str);
-      parseUSFMVerse(str, ind, arr, re, node.parent);
-      return;
-    }
-  }
-
-  // collect remaining text
-  if (ind < str.length && node !== null) {
-    childTextNode(node, str, ind, str.length);
-  }
-}
-
 /// -----------------------------------------------------------------------
 ///                               VERSE
 /// -----------------------------------------------------------------------
-var Verse = function() {
-  this.parent = null;
-  this.number = 0;
+var Verse = function(chapter, number) {
+  this.parent = chapter || null;
+  this.number = number || 0;
   this.np     = false; // new paragraph
   this.node   = new CompoundNode('', null);
 };
@@ -191,7 +135,7 @@ Verse.prototype.id = function() {
 /// -----------------------------------------------------------------------
 var Chapter = function(book, number) {
  this.parent = book || null;
- this.number = number;
+ this.number = number || 0;
  this.verses = [];
 
  // the pair <verse index, heading>, where heading should be displayed
@@ -221,7 +165,7 @@ function Book() {
 ///                            PARSER BASE
 /// -----------------------------------------------------------------------
 var Parser = function() {};
-Parser.prototype.parseBible   = function(str) { throw 'implement parser'; };
+Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
 Parser.prototype.parseBook    = function(str) { throw 'implement parser'; };
 Parser.prototype.parseChapter = function(str) { throw 'implement parser'; };
 Parser.prototype.parseVerse   = function(str) { throw 'implement parser'; };
@@ -230,21 +174,81 @@ Parser.prototype.parseVerse   = function(str) { throw 'implement parser'; };
 ///                            USFM PATSER
 /// -----------------------------------------------------------------------
 var USFMParser = function() {
+
+  /// deal with child nodes
+  var childTextNode = function (node, str, from, to) {
+    var text = str.substring(from, to);
+    if (text.length > 0)
+      node.addChild(new TextNode(text, node));
+  };
+
+  /// parses str in USFM format and fill node object as an output
+  var parseVerseImpl = function (str, ind, arr, re, node) {
+    if (re === null) {
+      re = /(\\\+?(\w+)\*?)\s?/gm;
+      arr = re.exec(str);
+      ind = 0;
+    }
+
+    if (arr !== null) {
+
+      // collect the available text
+      if (ind < arr.index && node !== null) {
+        childTextNode(node, str, ind, arr.index);
+      }
+
+      var tag = arr[1];
+      if (globalTags.isOpening(tag)) {
+        var compoundNode = new CompoundNode(tag, node);
+
+        // collect supported tags
+        if (globalTags.isSupported(tag)) {
+          node.addChild(compoundNode);
+        }
+
+        ind = arr.index + arr[0].length;
+        arr = re.exec(str);
+        parseVerseImpl(str, ind, arr, re, compoundNode);
+      } else {
+        // closing tag
+        ind = arr.index + arr[1].length;
+        arr = re.exec(str);
+        parseVerseImpl(str, ind, arr, re, node.parent);
+      }
+    } else {
+      // collect remaining text
+      if (ind < str.length && node !== null) {
+        childTextNode(node, str, ind, str.length);
+      }
+    }
+  };
+
+  /// helps to perform verse parsing through private methods
+  this.parseVerseHelper = function(str, ind, arr, re, node) {
+    parseVerseImpl(str, ind, arr, re, node);
+  };
+
+  /// helps to perform chapter parsing through private methods
+  this.parseChapterHelper = function() {
+
+  };
 };
 extend(USFMParser, Parser);
+
 USFMParser.prototype.parseVerse = function(str) {
   var verse = new Verse();
-  parseUSFMVerse(str, 0, null, null, verse.node);
+  this.parseVerseHelper(str, 0, null, null, verse.node);
   return verse;
 };
 
 USFMParser.prototype.parseChapter = function(str) {
   var chap = new Chapter();
-
-  var verse = this.parseVerse(str);
-  verse.parent = chap;
-  verse.number = 1;
-  chap.verses[verse.number] = verse;
+  this.parseChapterHelper(str, chap);
+  // var verse = this.parseVerse(str);
+  // verse.parent = chap;
+  // verse.number = 1;
+  // chap.verses[verse.number] = verse;
+  return chap;
 };
 
 USFMParser.prototype.parseBook = function(str) {
@@ -252,6 +256,10 @@ USFMParser.prototype.parseBook = function(str) {
   // var c = this.parseChapter(str);
 };
 
+/// object is expected to be an array of strings, each array item
+/// represents a single book of Bible
+USFMParser.prototype.parseBible = function(arr) {
+};
 
 /// -----------------------------------------------------------------------
 ///                             RENDERER
