@@ -30,7 +30,7 @@ var Tags = function() {
   // \add - Translator's addition.
   // \wj  - Words of Jesus.
   // \nd  - Name of God (name of Deity).
-  this.coreTags = /add|wj|nd|qt/g;
+  this.coreTags = /add|wj|nd|qt|f|ft/g;
   this.tags = {};
 };
 
@@ -151,15 +151,18 @@ Chapter.prototype.render = function(renderer) {
 /// -----------------------------------------------------------------------
 ///                               BOOK
 /// -----------------------------------------------------------------------
-function Book() {
+var Book = function(bible, id) {
   this.parent   = null;
   this.id       = '';
   this.abbr     = '';
   this.name     = '';
   this.desc     = '';
   this.chapters = [];
-}
+};
 
+Book.prototype.render = function(renderer) {
+  return renderer.renderBook(this);
+};
 
 /// -----------------------------------------------------------------------
 ///                            PARSER BASE
@@ -213,7 +216,14 @@ var USFMParser = function() {
         // closing tag
         ind = arr.index + arr[1].length;
         arr = re.exec(str);
-        parseVerseImpl(str, ind, arr, re, node.parent);
+
+        /// search for the first matched openning tag
+        /// remove last character as the currunt tag ends with symbol *
+        tag = tag.slice(0, -1);
+        while (node !== null && node.tag !== tag) {
+          node = node.parent;
+        }
+        parseVerseImpl(str, ind, arr, re, node !== null ? node.parent : node);
       }
     } else {
       // collect remaining text
@@ -223,15 +233,29 @@ var USFMParser = function() {
     }
   };
 
+  var parseChapterImpl = function() {
+
+  };
+
+  var parseBookImpl = function() {
+
+  };
+
   /// helps to perform verse parsing through private methods
   this.parseVerseHelper = function(str, ind, arr, re, node) {
     parseVerseImpl(str, ind, arr, re, node);
   };
 
   /// helps to perform chapter parsing through private methods
-  this.parseChapterHelper = function() {
+  this.parseChapterHelper = function(str) {
 
   };
+
+  /// helps to perform book parsing through private methods
+  this.parseBookHelper = function(str) {
+
+  };
+
 };
 extend(USFMParser, Parser);
 
@@ -252,6 +276,7 @@ USFMParser.prototype.parseChapter = function(str) {
 };
 
 USFMParser.prototype.parseBook = function(str) {
+  throw 'implement USFMParser.prototype.parseBook';
   // var b = new Book();
   // var c = this.parseChapter(str);
 };
