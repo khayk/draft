@@ -10,25 +10,37 @@ var Renderer     = moduleBible.Renderer;
 var TextRenderer = moduleBible.TextRenderer;
 var USFMRenderer = moduleBible.USFMRenderer;
 
+var Foo = function() {
+  var privateStore = 1;
+};
 
-
+Foo.prototype.work = function() {
+  return privateStore;
+};
+  
 (function() {
   'use strict';
-  try {
-    var testBook = './data/01-GEN.usfm';
-    var str = fs.readFileSync(testBook, {
-      encoding: 'utf8'
-    });
-    //console.log(str);
 
-    var parser = new USFMParser();
-    var renderer = new USFMRenderer();
+  var f = new Foo();
+  console.log(f.work());
 
-    var book = parser.parseBook(str);
-    console.log(book.render(renderer));
-  } catch (e) {
-    console.error('ERROR:', e);
-  }
+  return;
+  // try {
+  //   var testBook = './data/01-GEN.usfm';
+  //   var str = fs.readFileSync(testBook, {
+  //     encoding: 'utf8'
+  //   });
+  //   //console.log(str);
+
+  //   var parser = new USFMParser();
+  //   var renderer = new USFMRenderer();
+
+  //   var book = parser.parseBook(str);
+  //   console.log(book.render(renderer));
+  // } catch (e) {
+  //   console.error('ERROR:', e);
+  // }
+
   //console.log(data);
 
   // Luke 18:19
