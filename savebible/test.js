@@ -1,21 +1,22 @@
 (function() {
 
-var str = '\\c 1\n' +
-          '\\p\n' +
-          '\\v 1  first\n' +
-          '\\c 2\n' +
-          '\\p\n' +
-          '\\v 1 second\n' +
-          '\\c 3  \n' +
-          '\\v 1 third\n' +
-          '\\p\n' +
-          '\\v 2 ccc\n';
+// var str = '\\c 1\n' +
+//           '\\p\n' +
+//           '\\v 1  first\n' +
+//           '\\c 2\n' +
+//           '\\p\n' +
+//           '\\v 1 second\n' +
+//           '\\c 3  \n' +
+//           '\\v 1 third\n' +
+//           '\\p\n' +
+//           '\\v 2 ccc\n';
 
-    var parser = new USFMParser();
-    var renderer = new USFMRenderer();
-    var book = parser.parseBook(str);
+//     var parser = new USFMParser();
+//     var renderer = new USFMRenderer();
+//     var book = parser.parseBook(str);
 
-    console.log(book.render(renderer));
+//     console.log(book.render(renderer));
+//     return;
 
   var GEN_1_2_KJV = '\\zw \\+zws H0776 \\+zws*\\zw*And the earth\\zx \\zx* \\zw \\+zws H01961 \\+zws*\\+zwm strongMorph:TH8804 \\+zwm*\\zw*was\\zx \\zx*\n' +
     '\\zw \\+zws H08414 \\+zws*\\zw*without form\\zx \\zx*, \\zw \\+zws H0922 \\+zws*\\zw*and\n' +
@@ -67,7 +68,7 @@ var str = '\\c 1\n' +
         var orig = o.orig.replace(/\n/g, ' ').trim();
         var verse = parser.parseVerse(orig);
         var restored = verse.render(renderer);
-        expect(o.parsed).toBe(restored);
+        expect('\\v 0 ' + o.parsed).toBe(restored);
       });
     });
 

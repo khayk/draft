@@ -1,4 +1,5 @@
 var fs           = require('fs');
+var path         = require('path');
 var moduleBible  = require('./lib-modules/bible.js');
 
 var Verse        = moduleBible.Verse;
@@ -13,18 +14,59 @@ var USFMRenderer = moduleBible.USFMRenderer;
 (function() {
   'use strict';
 
-  try {
-    var testBook = './data/01-GEN.usfm';
-    var str = fs.readFileSync(testBook, {
-      encoding: 'utf8'
+  function launchStressTest() {
+    var dataRoot = 'c:/Users/Hayk/Dropbox/Private/projects/bible project/data/real/';
+    var bible    = [];
+    var count    = 20;
+
+    fs.readdir(dataRoot, function(err, files) {
+      console.log("PARSING STARTED...");
+
+      files.forEach(function(p) {
+        if (path.extname(p) === '.usfm') {
+          var str  = fs.readFileSync(dataRoot + p, {encoding: 'utf8'});
+          var book = null;
+          for (var i = 0; i < count; ++i) {
+            book = parser.parseBook(str);
+          }
+          bible.push(book);
+        }
+      });
+
+      console.log("PARSING COMPLETED.");
+      launchRenderTest(bible);
     });
 
     var parser   = new USFMParser();
     var renderer = new USFMRenderer();
-    var book = parser.parseBook(str);
 
-    console.log('\n-----------------------------------------------------\n');
-    console.log(book.render(renderer));
+    function launchRenderTest(bible) {
+      console.log("RENDER STARTED...");
+      bible.forEach(function(b) {
+        for (var i = 0; i < count; ++i) {
+          var data = book.render(renderer);
+        }
+      });
+      console.log("RENDER COMPLETED.");
+    }
+  }
+
+  try {
+    launchStressTest();
+
+    var testBook = './data/70-MATeng-kjv.usfm';
+    var str = fs.readFileSync(testBook, {encoding: 'utf8'});
+
+    var parser   = new USFMParser();
+    var renderer = new USFMRenderer();
+    var book     = parser.parseBook(str);
+
+    //console.log('\n-----------------------------------------------------\n');
+    var data = book.render(renderer);
+    //console.log();
+
+    fs.writeFile('./data/output.usfm', data);
+
   } catch (e) {
     console.error('ERROR:', e);
   }

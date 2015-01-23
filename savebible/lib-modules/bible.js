@@ -240,41 +240,41 @@ var USFMParser = function() {
 
   /// helps to perform chapter parsing
   this.parseChapterHelper = function(str, chap) {
-    var re = /(\\[pv])(\s+)?(\d+)?/gm;
+    var re = /((\\p)[\s\S]+?)?(\\v)(\s+)(\d+)/gm;
     var arr = null;
-    var lastIndex = 0, vstr = '', vn = 0, np = false; // TODO:remove vn
+    var verseStart = 0, vstr = '', vn = 0;
+    var np = false;
 
     /// find verses
     while (true) {
       arr = re.exec(str);
-      if (arr !== null)
-        vstr = str.substring(lastIndex, arr.index);
-      else
-        vstr = str.substring(lastIndex);
+      if (arr === null) {
+        vstr = str.substring(verseStart);
+        vn = vn;
+      }
+      else {
+        vstr = str.substring(verseStart, arr.index);
+      }
 
-      //vstr = vstr.trim();
+      vstr = vstr.trim();
+      if (verseStart !== 0) {
+        var v    = this.parseVerse(vstr);
+        v.parent = chap;
+        v.number = vn;
+        v.np     = np;
+        chap.verses.push(v);
+      }
 
       if (arr !== null) {
-        console.log(vstr);
-
-        if (arr[1] === '\\p') {
+        np = false;
+        vn = arr[5];
+        if (arr[2] === '\\p') {
           np = true;
         }
-        else if (arr[1] === '\\v') {
-          vn = arr[3];
-          var v = this.parseVerse(vstr);
-          v.parent = chap;
-          v.number = vn - 1;
-          v.np     = np;
-          chap.verses.push(v);
-          np = false;
-        }
       }
-
-      lastIndex = re.lastIndex;
-      if (arr === null) {
+      verseStart = re.lastIndex;
+      if (arr === null)
         return;
-      }
     }
   };
 
@@ -298,7 +298,6 @@ var USFMParser = function() {
       else
         cstr = str.substring(lastIndex);
 
-      //console.log(cstr);
       var c = this.parseChapter(cstr);
       c.parent = book;
       c.number = cn;
@@ -383,9 +382,9 @@ USFMRenderer.prototype.renderNode = function(node) {
 
 USFMRenderer.prototype.renderVerse = function(verse) {
   var prefix = '';
-  if (verse.np)
+  if (verse.np === true)
     prefix = '\\p' + NL;
-  return prefix + '\\v ' + verse.number + verse.node.render(this);
+  return prefix + '\\v ' + verse.number + ' ' + verse.node.render(this);
 };
 
 USFMRenderer.prototype.renderChapter = function(chapter) {
