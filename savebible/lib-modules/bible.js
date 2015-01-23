@@ -30,7 +30,7 @@ var Tags = function() {
   // \add - Translator's addition.
   // \wj  - Words of Jesus.
   // \nd  - Name of God (name of Deity).
-  this.coreTags = /add|wj|nd|qt|f|ft/g;
+  this.coreTags = /add|wj|nd|qt/g;
   this.tags = {};
 };
 
@@ -60,6 +60,7 @@ var globalTags = new Tags();
 /// -----------------------------------------------------------------------
 var NODE_TYPE_TEXT = 1;
 var NODE_TYPE_TAG  = 2;
+var NL             = '\n';
 
 var Node = function(parent, type) {
   this.parent = parent;
@@ -168,10 +169,10 @@ Book.prototype.render = function(renderer) {
 ///                            PARSER BASE
 /// -----------------------------------------------------------------------
 var Parser = function() {};
-Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
-Parser.prototype.parseBook    = function(str) { throw 'implement parser'; };
-Parser.prototype.parseChapter = function(str) { throw 'implement parser'; };
 Parser.prototype.parseVerse   = function(str) { throw 'implement parser'; };
+Parser.prototype.parseChapter = function(str) { throw 'implement parser'; };
+Parser.prototype.parseBook    = function(str) { throw 'implement parser'; };
+Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
 
 /// -----------------------------------------------------------------------
 ///                            USFM PATSER
@@ -185,8 +186,12 @@ var USFMParser = function() {
       node.addChild(new TextNode(text, node));
   };
 
+  var extractHeader = function(header, book) {
+  };
+
+  /// helps to perform verse parsing
   /// parses str in USFM format and fill node object as an output
-  var parseVerseImpl = function (str, ind, arr, re, node) {
+  this.parseVerseHelper = function (str, ind, arr, re, node) {
     if (re === null) {
       re = /(\\\+?(\w+)\*?)\s?/gm;
       arr = re.exec(str);
@@ -211,7 +216,7 @@ var USFMParser = function() {
 
         ind = arr.index + arr[0].length;
         arr = re.exec(str);
-        parseVerseImpl(str, ind, arr, re, compoundNode);
+        this.parseVerseHelper(str, ind, arr, re, compoundNode);
       } else {
         // closing tag
         ind = arr.index + arr[1].length;
@@ -223,7 +228,7 @@ var USFMParser = function() {
         while (node !== null && node.tag !== tag) {
           node = node.parent;
         }
-        parseVerseImpl(str, ind, arr, re, node !== null ? node.parent : node);
+        this.parseVerseHelper(str, ind, arr, re, node !== null ? node.parent : node);
       }
     } else {
       // collect remaining text
@@ -233,27 +238,77 @@ var USFMParser = function() {
     }
   };
 
-  var parseChapterImpl = function() {
+  /// helps to perform chapter parsing
+  this.parseChapterHelper = function(str, chap) {
+    var re = /(\\[pv])(\s+)?(\d+)?/gm;
+    var arr = null;
+    var lastIndex = 0, vstr = '', vn = 0, np = false; // TODO:remove vn
 
+    /// find verses
+    while (true) {
+      arr = re.exec(str);
+      if (arr !== null)
+        vstr = str.substring(lastIndex, arr.index);
+      else
+        vstr = str.substring(lastIndex);
+
+      //vstr = vstr.trim();
+
+      if (arr !== null) {
+        console.log(vstr);
+
+        if (arr[1] === '\\p') {
+          np = true;
+        }
+        else if (arr[1] === '\\v') {
+          vn = arr[3];
+          var v = this.parseVerse(vstr);
+          v.parent = chap;
+          v.number = vn - 1;
+          v.np     = np;
+          chap.verses.push(v);
+          np = false;
+        }
+      }
+
+      lastIndex = re.lastIndex;
+      if (arr === null) {
+        return;
+      }
+    }
   };
 
-  var parseBookImpl = function() {
+  /// helps to perform book parsing
+  this.parseBookHelper = function(str, book) {
+    var re = /\\c\s+(\d+)/gm;
+    var arr = re.exec(str);
+    var lastIndex = 0, cstr = '', cn = 0;
+    if (arr !== null) {
+      var header = str.substring(0, arr.index);
+      extractHeader(header, book);
+      lastIndex = re.lastIndex;
+      cn = arr[1];
+    }
 
-  };
+    /// find chapters
+    while (true) {
+      arr = re.exec(str);
+      if (arr !== null)
+        cstr = str.substring(lastIndex, arr.index);
+      else
+        cstr = str.substring(lastIndex);
 
-  /// helps to perform verse parsing through private methods
-  this.parseVerseHelper = function(str, ind, arr, re, node) {
-    parseVerseImpl(str, ind, arr, re, node);
-  };
+      //console.log(cstr);
+      var c = this.parseChapter(cstr);
+      c.parent = book;
+      c.number = cn;
+      book.chapters.push(c);
 
-  /// helps to perform chapter parsing through private methods
-  this.parseChapterHelper = function(str) {
-
-  };
-
-  /// helps to perform book parsing through private methods
-  this.parseBookHelper = function(str) {
-
+      if (arr === null)
+        return;
+      lastIndex = re.lastIndex;
+      cn = arr[1];
+    }
   };
 
 };
@@ -268,17 +323,13 @@ USFMParser.prototype.parseVerse = function(str) {
 USFMParser.prototype.parseChapter = function(str) {
   var chap = new Chapter();
   this.parseChapterHelper(str, chap);
-  // var verse = this.parseVerse(str);
-  // verse.parent = chap;
-  // verse.number = 1;
-  // chap.verses[verse.number] = verse;
   return chap;
 };
 
 USFMParser.prototype.parseBook = function(str) {
-  throw 'implement USFMParser.prototype.parseBook';
-  // var b = new Book();
-  // var c = this.parseChapter(str);
+  var book = new Book();
+  this.parseBookHelper(str, book);
+  return book;
 };
 
 /// object is expected to be an array of strings, each array item
@@ -292,11 +343,11 @@ USFMParser.prototype.parseBible = function(arr) {
 var Renderer = function() {
 };
 
-Renderer.prototype.renderBible   = function(bible)   { throw 'implement renderer'; };
-Renderer.prototype.renderBook    = function(book)    { throw 'implement renderer'; };
-Renderer.prototype.renderChapter = function(chapter) { throw 'implement renderer'; };
-Renderer.prototype.renderVerse   = function(verse)   { throw 'implement renderer'; };
-Renderer.prototype.renderNode    = function(node)    { throw 'implement renderer'; };
+Renderer.prototype.renderNode    = function(node)    { throw 'implement node renderer'; };
+Renderer.prototype.renderVerse   = function(verse)   { throw 'implement verse renderer'; };
+Renderer.prototype.renderChapter = function(chapter) { throw 'implement chapter renderer'; };
+Renderer.prototype.renderBook    = function(book)    { throw 'implement book renderer'; };
+Renderer.prototype.renderBible   = function(bible)   { throw 'implement bible renderer'; };
 
 function renderNodeCommon(renderer, node) {
   var res = '';
@@ -322,9 +373,6 @@ function renderNodeCommon(renderer, node) {
 var USFMRenderer = function() {
 };
 extend(USFMRenderer, Renderer);
-USFMRenderer.prototype.renderVerse = function(verse) {
-  return verse.node.render(this);
-};
 
 USFMRenderer.prototype.renderNode = function(node) {
   var res = renderNodeCommon(this, node);
@@ -333,6 +381,36 @@ USFMRenderer.prototype.renderNode = function(node) {
   return node.tag + ' ' + res + node.tag + '*';
 };
 
+USFMRenderer.prototype.renderVerse = function(verse) {
+  var prefix = '';
+  if (verse.np)
+    prefix = '\\p' + NL;
+  return prefix + '\\v ' + verse.number + verse.node.render(this);
+};
+
+USFMRenderer.prototype.renderChapter = function(chapter) {
+  var res = '\\c ' + chapter.number;
+  var self = this;
+  chapter.verses.forEach(function(v) {
+    res += NL + v.render(self);
+  });
+  return res;
+};
+
+USFMRenderer.prototype.renderBook = function(book) {
+  var res = '';
+  res += '\\id ' + book.id + ' ' + book.name + NL;
+  res += '\\h '  + book.name + NL;
+  res += '\\toc1 ' + book.desc + NL;
+  res += '\\toc2 ' + book.name + NL;
+  res += '\\toc3 ' + book.abbr + NL;
+  res += '\\mt '   + book.desc;
+  var self = this;
+  book.chapters.forEach(function(c) {
+    res += NL + c.render(self);
+  });
+  return res;
+};
 
 /// -----------------------------------------------------------------------
 ///                           TEXT RENDERER
