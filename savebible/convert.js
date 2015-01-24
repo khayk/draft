@@ -12,12 +12,41 @@ var TextRenderer = moduleBible.TextRenderer;
 var USFMRenderer = moduleBible.USFMRenderer;
 
 (function() {
+
   'use strict';
 
+  var HiResTimer = function() {
+    var startTime = null;
+    var elapsed   = null;
+
+    this.start = function() {
+      startTime = process.hrtime();
+    };
+
+    this.stop = function() {
+      elapsed = process.hrtime(startTime);
+    };
+
+    this.report = function() {
+      if (elapsed[0] > 0)
+        console.log('Elapsed: %d s, %d ns', elapsed[0], elapsed[1] );
+      else
+        console.log('Elapsed: %d ns', elapsed[1]);
+    };
+
+    this.elapsed = function() {
+
+    };
+  };
+
+  var timer = new HiResTimer();
+
+
   function launchStressTest() {
-    var dataRoot = 'c:/Users/Hayk/Dropbox/Private/projects/bible project/data/real/';
+    var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+    var dataRoot = dropboxDir + 'Private/projects/bible project/data/real/';
     var bible    = [];
-    var count    = 20;
+    var count    = 1;
 
     fs.readdir(dataRoot, function(err, files) {
       console.log("PARSING STARTED...");
