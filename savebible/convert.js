@@ -1,6 +1,7 @@
 var fs           = require('fs');
 var path         = require('path');
 var moduleBible  = require('./lib-modules/bible.js');
+var moduleUtils  = require('./lib-modules/utils.js');
 
 var Verse        = moduleBible.Verse;
 var Chapter      = moduleBible.Chapter;
@@ -11,45 +12,27 @@ var Renderer     = moduleBible.Renderer;
 var TextRenderer = moduleBible.TextRenderer;
 var USFMRenderer = moduleBible.USFMRenderer;
 
+/// utils exports
+var HiResTimer   = moduleUtils.HiResTimer;
+
 (function() {
 
   'use strict';
 
-  var HiResTimer = function() {
-    var startTime = null;
-    var elapsed   = null;
-
-    this.start = function() {
-      startTime = process.hrtime();
-    };
-
-    this.stop = function() {
-      elapsed = process.hrtime(startTime);
-    };
-
-    this.report = function() {
-      if (elapsed[0] > 0)
-        console.log('Elapsed: %d s, %d ns', elapsed[0], elapsed[1] );
-      else
-        console.log('Elapsed: %d ns', elapsed[1]);
-    };
-
-    this.elapsed = function() {
-
-    };
-  };
-
   var timer = new HiResTimer();
 
-
   function launchStressTest() {
-    var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+    //var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+    var dropboxDir = 'c:/Users/Hayk/Dropbox/'; // LENOVO
     var dataRoot = dropboxDir + 'Private/projects/bible project/data/real/';
+
     var bible    = [];
     var count    = 1;
 
     fs.readdir(dataRoot, function(err, files) {
+      if (err) throw err;
       console.log("PARSING STARTED...");
+      timer.start();
 
       files.forEach(function(p) {
         if (path.extname(p) === '.usfm') {
@@ -62,8 +45,12 @@ var USFMRenderer = moduleBible.USFMRenderer;
         }
       });
 
+      timer.stop();
+      timer.report();
       console.log("PARSING COMPLETED.");
       launchRenderTest(bible);
+      //bible.pop();
+      //setTimeout(launchStressTest, 1000);
     });
 
     var parser   = new USFMParser();
@@ -71,11 +58,16 @@ var USFMRenderer = moduleBible.USFMRenderer;
 
     function launchRenderTest(bible) {
       console.log("RENDER STARTED...");
+      timer.start();
+
       bible.forEach(function(b) {
         for (var i = 0; i < count; ++i) {
-          var data = book.render(renderer);
+          var data = b.render(renderer);
         }
       });
+
+      timer.stop();
+      timer.report();
       console.log("RENDER COMPLETED.");
     }
   }
@@ -83,18 +75,18 @@ var USFMRenderer = moduleBible.USFMRenderer;
   try {
     launchStressTest();
 
-    var testBook = './data/70-MATeng-kjv.usfm';
-    var str = fs.readFileSync(testBook, {encoding: 'utf8'});
+    // var testBook = './data/01-GEN.usfm';
+    // var str = fs.readFileSync(testBook, {encoding: 'utf8'});
 
-    var parser   = new USFMParser();
-    var renderer = new USFMRenderer();
-    var book     = parser.parseBook(str);
+    // var parser   = new USFMParser();
+    // var renderer = new USFMRenderer();
+    // var book     = parser.parseBook(str);
 
-    //console.log('\n-----------------------------------------------------\n');
-    var data = book.render(renderer);
-    //console.log();
+    // //console.log('\n-----------------------------------------------------\n');
+    // var data = book.render(renderer);
+    // console.log(data);
 
-    fs.writeFile('./data/output.usfm', data);
+    // fs.writeFile('./data/output.usfm', data);
 
   } catch (e) {
     console.error('ERROR:', e);

@@ -1,6 +1,14 @@
 (function() {
 
-// var str = '\\c 1\n' +
+
+
+// var str = '\\id GEN  Genesis\n' +
+//           '\\h Genesis\n' +
+//           '\\toc1 The First Book of Moses, called Genesis\n' +
+//           '\\toc2 Genesis\n' +
+//           '\\toc3 Gen\n' +
+//           '\\mt The First Book of Moses, called Genesis\n' +
+//           '\\c 1\n' +
 //           '\\p\n' +
 //           '\\v 1  first\n' +
 //           '\\c 2\n' +

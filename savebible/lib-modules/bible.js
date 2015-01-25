@@ -36,7 +36,8 @@ var Tags = function() {
 
 Tags.prototype = {
   isSupported: function(tag) {
-    return (tag.match(this.coreTags) !== null);
+    return true;
+    //return (tag.match(this.coreTags) !== null);
   },
 
   isOpening: function(tag) {
@@ -187,6 +188,39 @@ var USFMParser = function() {
   };
 
   var extractHeader = function(header, book) {
+    /// extract book headers
+    var re = /(\\\w+)\s+(.*)/gm;
+    var arr = null;
+    while ((arr = re.exec(header)) !== null) {
+      var tag = arr[1];
+      var str = arr[2];
+      if (tag === '\\id') {
+        arr = /(\w+)\s+(.+)/gm.exec(str);
+        if (arr === null)
+          throw 'failed to identify book id';
+        book.id = arr[1];
+        book.name = arr[2];
+      }
+      else {
+        if (tag === '\\mt' || tag == '\\toc1')
+          book.desc = str;
+        else if (tag === '\\toc2' || tag === '\\h') {
+          book.name = str;
+        }
+        else if (tag === '\\toc3') {
+          book.abbr = str;
+        }
+        else if (tag === '\\ide') {
+          if (str !== 'UTF-8')
+            console.warn('unknown encoding %s in %s book.', str, book.id);
+        }
+        else {
+          console.warn('unknown tag \"%s\" in \"%s\" book.', tag, book.id);
+        }
+      }
+    }
+
+    //validateBookId(book.id);  TODO:HAYK
   };
 
   /// helps to perform verse parsing
@@ -405,9 +439,9 @@ USFMRenderer.prototype.renderBook = function(book) {
   res += '\\toc3 ' + book.abbr + NL;
   res += '\\mt '   + book.desc;
   var self = this;
-  book.chapters.forEach(function(c) {
-    res += NL + c.render(self);
-  });
+  // book.chapters.forEach(function(c) {
+  //   res += NL + c.render(self);
+  // });
   return res;
 };
 
