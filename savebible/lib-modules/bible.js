@@ -202,8 +202,9 @@ var USFMParser = function() {
         book.name = arr[2];
       }
       else {
-        if (tag === '\\mt' || tag == '\\toc1')
+        if (tag === '\\mt' || tag == '\\toc1') {
           book.desc = str;
+        }
         else if (tag === '\\toc2' || tag === '\\h') {
           book.name = str;
         }
@@ -215,7 +216,8 @@ var USFMParser = function() {
             console.warn('unknown encoding %s in %s book.', str, book.id);
         }
         else {
-          console.warn('unknown tag \"%s\" in \"%s\" book.', tag, book.id);
+          if (tag !== '\\is')
+            console.warn('unknown tag \"%s\" in \"%s\" book.', tag, book.id);
         }
       }
     }
@@ -274,6 +276,8 @@ var USFMParser = function() {
 
   /// helps to perform chapter parsing
   this.parseChapterHelper = function(str, chap) {
+    //str = str.replace(/\n/g, ' ').trim();
+
     var re = /((\\p)[\s\S]+?)?(\\v)(\s+)(\d+)/gm;
     var arr = null;
     var verseStart = 0, vstr = '', vn = 0;
@@ -439,9 +443,9 @@ USFMRenderer.prototype.renderBook = function(book) {
   res += '\\toc3 ' + book.abbr + NL;
   res += '\\mt '   + book.desc;
   var self = this;
-  // book.chapters.forEach(function(c) {
-  //   res += NL + c.render(self);
-  // });
+  book.chapters.forEach(function(c) {
+    res += NL + c.render(self);
+  });
   return res;
 };
 
