@@ -36,8 +36,8 @@ var Tags = function() {
 
 Tags.prototype = {
   isSupported: function(tag) {
-    return true;
-    //return (tag.match(this.coreTags) !== null);
+    //return true;
+    return (tag.match(this.coreTags) !== null);
   },
 
   isOpening: function(tag) {
@@ -183,6 +183,7 @@ var USFMParser = function() {
   /// deal with child nodes
   var childTextNode = function (node, str, from, to) {
     var text = str.substring(from, to);
+    text = text.replace(/\n/g, ' ').replace(/¶/g, '').trim();
     if (text.length > 0)
       node.addChild(new TextNode(text, node));
   };
@@ -396,13 +397,6 @@ function renderNodeCommon(renderer, node) {
   return res;
 }
 
-// else if (options.renderMode == RENDER_HTML) {
-//   if (this.tag === '')
-//     return res;
-//   return '<span class="' + getHtmlTag(this.tag) + '">' + res + '</span>';
-// }
-// return res;
-
 
 /// -----------------------------------------------------------------------
 ///                           USFM RENDERER
@@ -454,12 +448,65 @@ USFMRenderer.prototype.renderBook = function(book) {
 /// -----------------------------------------------------------------------
 var TextRenderer = function() {};
 extend(TextRenderer, Renderer);
-TextRenderer.prototype.renderVerse = function(verse) {
-  return verse.node.render(this);
+TextRenderer.prototype.renderNode = function(node) {
+
+  var res = ' ';
+  var self = this;
+
+  /// combine the result of child nodes
+  node.nodes.forEach(function(n) {
+    var out = n.render(self);
+    var prefix = ' ';
+    switch (out[0]) {
+      case '.':
+      case ',':
+      case ';':
+      case ':':
+      case '?':
+      case '!':
+        prefix = '';
+        break;
+    }
+    if (res[res.length - 1] === '(')
+        prefix = '';
+    res += prefix + out;
+  });
+
+  if (node.tag.match(/add/g) === null)
+    return res.trim();
+  return '[' + res.trim() + ']';
 };
 
-TextRenderer.prototype.renderNode = function(node) {
-  return renderNodeCommon(this, node);
+TextRenderer.prototype.renderVerse = function(verse) {
+  return (verse.node.render(this)).trim();
+  // var tmp = verse.node.render(this);
+  // tmp = tmp.replace(/¶ /g, ' ');
+  // tmp = tmp.replace(/\n/g, ' ');
+  // tmp = tmp.replace(/\s\s/g, ' ');
+  // tmp = tmp.trim();
+  // return tmp;
+};
+
+TextRenderer.prototype.renderChapter = function(chapter) {
+  var res = '';
+  var self = this;
+  chapter.verses.forEach(function(v) {
+    if (res.length !== 0)
+      res += NL;
+    res += v.render(self);
+  });
+  return res;
+};
+
+TextRenderer.prototype.renderBook = function(book) {
+  var res = '';
+  var self = this;
+  book.chapters.forEach(function(c) {
+    if (res.length !== 0)
+      res += NL;
+    res += c.render(self);
+  });
+  return res;
 };
 
 

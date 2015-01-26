@@ -88,13 +88,14 @@ var HiResTimer        = moduleUtils.HiResTimer;
 
   function main() {
     try {
-      var testBook = './data/70-MATeng-kjv.usfm';
+      var testBook = './data/70-MATeng-kjv-old.usfm';
       var str = fs.readFileSync(testBook, {
         encoding: 'utf8'
       });
 
       var parser = new USFMParser();
-      var renderer = new USFMRenderer();
+      //var renderer = new USFMRenderer();
+      var renderer = new TextRenderer();
       var book = parser.parseBook(str);
 
       var data = book.render(renderer);
