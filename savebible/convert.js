@@ -99,6 +99,7 @@ var HiResTimer        = moduleUtils.HiResTimer;
       var book = parser.parseBook(str);
 
       var data = book.render(renderer);
+      console.log(util.inspect(process.memoryUsage()));
       //console.log(data);
 
       fs.writeFile('./data/output.usfm', data);
@@ -109,7 +110,6 @@ var HiResTimer        = moduleUtils.HiResTimer;
   }
 
   main();
-  console.log(util.inspect(process.memoryUsage()));
 
   //console.log(data);
 

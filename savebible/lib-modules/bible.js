@@ -61,7 +61,7 @@ var globalTags = new Tags();
 /// -----------------------------------------------------------------------
 var NODE_TYPE_TEXT = 1;
 var NODE_TYPE_TAG  = 2;
-var NL             = '\n';
+var NL             = '\r\n';
 
 var Node = function(parent, type) {
   this.parent = parent;
@@ -183,7 +183,7 @@ var USFMParser = function() {
   /// deal with child nodes
   var childTextNode = function (node, str, from, to) {
     var text = str.substring(from, to);
-    text = text.replace(/\n/g, ' ').replace(/¶/g, '').trim();
+    text = text.replace(/\r\n|¶/gm, ' ').trim();
     if (text.length > 0)
       node.addChild(new TextNode(text, node));
   };
@@ -277,8 +277,7 @@ var USFMParser = function() {
 
   /// helps to perform chapter parsing
   this.parseChapterHelper = function(str, chap) {
-    //str = str.replace(/\n/g, ' ').trim();
-
+    //str = str.replace(/\n/gm, ' ').trim();
     var re = /((\\p)[\s\S]+?)?(\\v)(\s+)(\d+)/gm;
     var arr = null;
     var verseStart = 0, vstr = '', vn = 0;
@@ -479,12 +478,6 @@ TextRenderer.prototype.renderNode = function(node) {
 
 TextRenderer.prototype.renderVerse = function(verse) {
   return (verse.node.render(this)).trim();
-  // var tmp = verse.node.render(this);
-  // tmp = tmp.replace(/¶ /g, ' ');
-  // tmp = tmp.replace(/\n/g, ' ');
-  // tmp = tmp.replace(/\s\s/g, ' ');
-  // tmp = tmp.trim();
-  // return tmp;
 };
 
 TextRenderer.prototype.renderChapter = function(chapter) {
