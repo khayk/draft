@@ -86,24 +86,35 @@ var HiResTimer        = moduleUtils.HiResTimer;
     });
   }
 
+  // var Punctation = function() {
+
+  // };
+
   function main() {
     try {
       var testBook = './data/70-MATeng-kjv-old.usfm';
-      var str = fs.readFileSync(testBook, {
-        encoding: 'utf8'
-      });
+      var str = fs.readFileSync(testBook, 'utf8');
 
-      var parser = new USFMParser();
-      var renderer = new USFMRenderer();
-      //var renderer = new TextRenderer();
-      var book = parser.parseBook(str);
+      //var renderer   = new USFMRenderer();
+      var renderer = new TextRenderer();
 
-      var data = book.render(renderer);
-      console.log(util.inspect(process.memoryUsage()));
-      //console.log(data);
 
+      /// supported tags only
+      var parser = new USFMParser(true);
+      var book   = parser.parseBook(str);
+      var data   = book.render(renderer);
+
+      var verse  = book.getVerse(27, 47);
+      // fs.writeFile('./data/mt_27_47.txt', verse.render(renderer));
       fs.writeFile('./data/output.usfm', data);
 
+      /// all tags
+      // var parseAll = new USFMParser(false);
+      // var bookAll  = parseAll.parseBook(str);
+      // var dataAll  = bookAll.render(renderer);
+      // fs.writeFile('./data/outputAll.usfm', dataAll);
+
+      console.log(util.inspect(process.memoryUsage()));
     } catch (e) {
       console.error('ERROR:', e);
     }

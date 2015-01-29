@@ -30,25 +30,37 @@ var Tags = function() {
   // \add - Translator's addition.
   // \wj  - Words of Jesus.
   // \nd  - Name of God (name of Deity).
-  this.coreTags = /add|wj|nd|qt/g;
-  this.tags = {};
+  this.supported  = /add|wj|nd|qt/g;
+  this.tags       = {};
+  this.translator = /add/g;
+  this.jesusWord  = /wj/g;
 };
 
 Tags.prototype = {
   isSupported: function(tag) {
-    return true;
-    //return (tag.match(this.coreTags) !== null);
+    return /add|wj|nd|qt/g.test(tag) !== false;
+    //return tag.match(this.supported) !== null;
   },
 
   isOpening: function(tag) {
     return tag[tag.length - 1] !== '*';
   },
 
+  isTranslator: function(tag) {
+    return /add/g.test(tag) !== false;
+    //return tag.match(this.translator) !== null;
+  },
+
+  isJesusWord: function(tag) {
+    return /wj/g.test(tag) !== false;
+    //return tag.match(this.jesusWord) !== null;
+  },
+
   /// returns tag's name without special symbols (\wj -> wj, \+add -> add)
   /// if the tag is not supported, the default value will be returned
   name: function(tag, def) {
     var d = def || 'unknown';
-    var mt = tag.match(this.coreTags);
+    var mt = tag.match(this.supported);
     if (mt !== null)
       return mt;
     return d;
@@ -61,7 +73,8 @@ var globalTags = new Tags();
 /// -----------------------------------------------------------------------
 var NODE_TYPE_TEXT = 1;
 var NODE_TYPE_TAG  = 2;
-var NL             = '\r\n';
+var NODE_TYPE_NULL = 3;
+var NL             = '\n';
 
 var Node = function(parent, type) {
   this.parent = parent;
@@ -110,6 +123,29 @@ CompoundNode.prototype.render = function(renderer) {
   return renderer.renderNode(this);
 };
 
+CompoundNode.prototype.normalize = function() {
+  var current = null;
+  this.nodes.forEach(function(n) {
+    if (n.type === NODE_TYPE_TAG) {
+      current = null;
+      n.normalize();
+    }
+    else {
+      if (current === null)
+        current = n;
+      else {
+        current.text += n.text;
+        n.type = NODE_TYPE_NULL;
+      }
+    }
+  });
+
+  /// now remove all null nodes
+  this.nodes = this.nodes.filter(function(n) {
+    return n.type !== NODE_TYPE_NULL;
+  });
+};
+
 /// -----------------------------------------------------------------------
 ///                               VERSE
 /// -----------------------------------------------------------------------
@@ -149,6 +185,11 @@ Chapter.prototype.render = function(renderer) {
   return renderer.renderChapter(this);
 };
 
+Chapter.prototype.getVerse = function(vn) {
+  if (vn > this.verses.length)
+    throw 'invalid verse for chapter \"' + this.number + '\": ['  + vn + '/' + this.verses.length + ']';
+  return this.verses[vn - 1];
+};
 
 /// -----------------------------------------------------------------------
 ///                               BOOK
@@ -166,6 +207,12 @@ Book.prototype.render = function(renderer) {
   return renderer.renderBook(this);
 };
 
+Book.prototype.getVerse = function(cn, vn) {
+  if (cn > this.chapters.length)
+    throw 'invalid chapter for book \"' + this.id + '\": ['  + cn + '/' + this.chapters.length + ']';
+  return this.chapters[cn - 1].getVerse(vn);
+};
+
 /// -----------------------------------------------------------------------
 ///                            PARSER BASE
 /// -----------------------------------------------------------------------
@@ -178,12 +225,12 @@ Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
 /// -----------------------------------------------------------------------
 ///                            USFM PATSER
 /// -----------------------------------------------------------------------
-var USFMParser = function() {
+var USFMParser = function(supportedOnly) {
+  this.supportedOnly = supportedOnly;
 
   /// deal with child nodes
   var childTextNode = function (node, str, from, to) {
     var text = str.substring(from, to);
-    //text = text.replace(/\r\n|¶/gm, ' ').trim();
     if (text.length > 0)
       node.addChild(new TextNode(text, node));
   };
@@ -247,7 +294,9 @@ var USFMParser = function() {
         var compoundNode = new CompoundNode(tag, node);
 
         // collect supported tags
-        if (globalTags.isSupported(tag)) {
+        if (this.supportedOnly === false) {
+          node.addChild(compoundNode);
+        } else if (globalTags.isSupported(tag)) {
           node.addChild(compoundNode);
         }
 
@@ -277,7 +326,6 @@ var USFMParser = function() {
 
   /// helps to perform chapter parsing
   this.parseChapterHelper = function(str, chap) {
-    //str = str.replace(/\n/gm, ' ').trim();
     var re = /((\\p)[\s\S]+?)?(\\v)(\s+)(\d+)/gm;
     var arr = null;
     var verseStart = 0, vstr = '', vn = 0;
@@ -294,7 +342,6 @@ var USFMParser = function() {
         vstr = str.substring(verseStart, arr.index);
       }
 
-      //vstr = vstr.trim();
       if (verseStart !== 0) {
         var v    = this.parseVerse(vstr);
         v.parent = chap;
@@ -352,8 +399,11 @@ var USFMParser = function() {
 extend(USFMParser, Parser);
 
 USFMParser.prototype.parseVerse = function(str) {
+  str = str.replace(/\n|¶/gm, ' ').trim();
+
   var verse = new Verse();
   this.parseVerseHelper(str, 0, null, null, verse.node);
+  verse.node.normalize();
   return verse;
 };
 
@@ -364,6 +414,9 @@ USFMParser.prototype.parseChapter = function(str) {
 };
 
 USFMParser.prototype.parseBook = function(str) {
+  if (typeof str !== 'string')
+    throw 'parseBook expects a string argument';
+
   var book = new Book();
   this.parseBookHelper(str, book);
   return book;
@@ -422,8 +475,8 @@ USFMRenderer.prototype.renderChapter = function(chapter) {
   var res = '\\c ' + chapter.number + '  ' + NL;
   var self = this;
   chapter.verses.forEach(function(v) {
-    //res += NL + v.render(self);
-    res += v.render(self);
+    res += NL + v.render(self);
+    //res += v.render(self);
   });
   return res;
 };
@@ -450,10 +503,17 @@ USFMRenderer.prototype.renderBook = function(book) {
 var TextRenderer = function() {};
 extend(TextRenderer, Renderer);
 TextRenderer.prototype.renderNode = function(node) {
+
+  if (node.parent !== null &&
+      node.type === NODE_TYPE_TAG &&
+      !globalTags.isSupported(node.tag) ) {
+    return '';
+  }
+
   var res = renderNodeCommon(this, node);
-  if (node.tag.match(/add/g) === null)
-    return res;
-  return '[' + res + ']';
+  if (globalTags.isTranslator(node.tag))
+    return '[' + res + ']';
+  return res;
 
 /*  var res = ' ';
   var self = this;
@@ -483,7 +543,7 @@ TextRenderer.prototype.renderNode = function(node) {
 };
 
 TextRenderer.prototype.renderVerse = function(verse) {
-  return verse.node.render(this);
+  return verse.node.render(this).replace(/\s+/g, ' ').trim();
 };
 
 TextRenderer.prototype.renderChapter = function(chapter) {
