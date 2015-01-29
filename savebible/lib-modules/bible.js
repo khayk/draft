@@ -36,8 +36,8 @@ var Tags = function() {
 
 Tags.prototype = {
   isSupported: function(tag) {
-    //return true;
-    return (tag.match(this.coreTags) !== null);
+    return true;
+    //return (tag.match(this.coreTags) !== null);
   },
 
   isOpening: function(tag) {
@@ -183,7 +183,7 @@ var USFMParser = function() {
   /// deal with child nodes
   var childTextNode = function (node, str, from, to) {
     var text = str.substring(from, to);
-    text = text.replace(/\r\n|¶/gm, ' ').trim();
+    //text = text.replace(/\r\n|¶/gm, ' ').trim();
     if (text.length > 0)
       node.addChild(new TextNode(text, node));
   };
@@ -294,7 +294,7 @@ var USFMParser = function() {
         vstr = str.substring(verseStart, arr.index);
       }
 
-      vstr = vstr.trim();
+      //vstr = vstr.trim();
       if (verseStart !== 0) {
         var v    = this.parseVerse(vstr);
         v.parent = chap;
@@ -415,14 +415,15 @@ USFMRenderer.prototype.renderVerse = function(verse) {
   var prefix = '';
   if (verse.np === true)
     prefix = '\\p' + NL;
-  return prefix + '\\v ' + verse.number + ' ' + verse.node.render(this);
+  return prefix + '\\v ' + verse.number + verse.node.render(this);
 };
 
 USFMRenderer.prototype.renderChapter = function(chapter) {
-  var res = '\\c ' + chapter.number;
+  var res = '\\c ' + chapter.number + '  ' + NL;
   var self = this;
   chapter.verses.forEach(function(v) {
-    res += NL + v.render(self);
+    //res += NL + v.render(self);
+    res += v.render(self);
   });
   return res;
 };
@@ -430,14 +431,15 @@ USFMRenderer.prototype.renderChapter = function(chapter) {
 USFMRenderer.prototype.renderBook = function(book) {
   var res = '';
   res += '\\id ' + book.id + ' ' + book.name + NL;
-  res += '\\h '  + book.name + NL;
+  /*res += '\\h '  + book.name + NL;
   res += '\\toc1 ' + book.desc + NL;
   res += '\\toc2 ' + book.name + NL;
-  res += '\\toc3 ' + book.abbr + NL;
+  res += '\\toc3 ' + book.abbr + NL;*/
   res += '\\mt '   + book.desc;
   var self = this;
   book.chapters.forEach(function(c) {
-    res += NL + c.render(self);
+    res += c.render(self);
+    //res += NL + c.render(self);
   });
   return res;
 };
@@ -448,8 +450,12 @@ USFMRenderer.prototype.renderBook = function(book) {
 var TextRenderer = function() {};
 extend(TextRenderer, Renderer);
 TextRenderer.prototype.renderNode = function(node) {
+  var res = renderNodeCommon(this, node);
+  if (node.tag.match(/add/g) === null)
+    return res;
+  return '[' + res + ']';
 
-  var res = ' ';
+/*  var res = ' ';
   var self = this;
 
   /// combine the result of child nodes
@@ -473,11 +479,11 @@ TextRenderer.prototype.renderNode = function(node) {
 
   if (node.tag.match(/add/g) === null)
     return res.trim();
-  return '[' + res.trim() + ']';
+  return '[' + res.trim() + ']';*/
 };
 
 TextRenderer.prototype.renderVerse = function(verse) {
-  return (verse.node.render(this)).trim();
+  return verse.node.render(this);
 };
 
 TextRenderer.prototype.renderChapter = function(chapter) {

@@ -94,8 +94,8 @@ var HiResTimer        = moduleUtils.HiResTimer;
       });
 
       var parser = new USFMParser();
-      //var renderer = new USFMRenderer();
-      var renderer = new TextRenderer();
+      var renderer = new USFMRenderer();
+      //var renderer = new TextRenderer();
       var book = parser.parseBook(str);
 
       var data = book.render(renderer);
