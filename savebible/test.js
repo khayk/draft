@@ -86,7 +86,7 @@
       verses.push({orig: '\\add x\\add*', parsed: '[x]'});
       verses.push({orig: '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*', parsed: ''});
       verses.push({orig: LUK_18_19_ARM, parsed: 'Յիսուս նրան ասաց. «Ինչո՞ւ ինձ բարի ես կոչում. ոչ ոք բարի չէ, [այլ] միայն՝ Աստուած։'});
-      verses.push({orig: LUK_18_19_KJV, parsed: 'And Jesus said unto him,  Why callest thou me good? none [is] good, save one, [that is], God.'});
+      verses.push({orig: LUK_18_19_KJV, parsed: 'And Jesus said unto him, Why callest thou me good? none [is] good, save one, [that is], God.'});
       verses.push({orig: GEN_1_2_KJV, parsed: 'And the earth was without form, and void; and darkness [was] upon the face of the deep. And the Spirit of God moved upon the face of the waters.'});
       verses.push({orig: ROM_9_9_KJV, parsed: 'For this [is] the word of promise, At this time will I come, and Sara shall have a son.'});
       verses.push({orig: 'text no tags', parsed: 'text no tags'});
