@@ -30,16 +30,15 @@ var Tags = function() {
   // \add - Translator's addition.
   // \wj  - Words of Jesus.
   // \nd  - Name of God (name of Deity).
-  this.supported  = /add|wj|nd|qt/g;
+  this.supported  = /add|wj|nd|qt/;
   this.tags       = {};
-  this.translator = /add/g;
-  this.jesusWord  = /wj/g;
+  this.translator = /add/;
+  this.jesusWord  = /wj/;
 };
 
 Tags.prototype = {
   isSupported: function(tag) {
-    return /add|wj|nd|qt/g.test(tag) !== false;
-    //return tag.match(this.supported) !== null;
+    return this.supported.test(tag) !== false;
   },
 
   isOpening: function(tag) {
@@ -47,13 +46,11 @@ Tags.prototype = {
   },
 
   isTranslator: function(tag) {
-    return /add/g.test(tag) !== false;
-    //return tag.match(this.translator) !== null;
+    return this.translator.test(tag) !== false;
   },
 
   isJesusWord: function(tag) {
-    return /wj/g.test(tag) !== false;
-    //return tag.match(this.jesusWord) !== null;
+    return this.jesusWord.test(tag) !== false;
   },
 
   /// returns tag's name without special symbols (\wj -> wj, \+add -> add)
@@ -227,6 +224,7 @@ Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
 /// -----------------------------------------------------------------------
 var USFMParser = function(supportedOnly) {
   this.supportedOnly = supportedOnly;
+  this.vre =  /(\\\+?(\w+)\*?)\s?/gm; /// verse parsing regexp
 
   /// deal with child nodes
   var childTextNode = function (node, str, from, to) {
@@ -276,12 +274,6 @@ var USFMParser = function(supportedOnly) {
   /// helps to perform verse parsing
   /// parses str in USFM format and fill node object as an output
   this.parseVerseHelper = function (str, ind, arr, re, node) {
-    if (re === null) {
-      re = /(\\\+?(\w+)\*?)\s?/gm;
-      arr = re.exec(str);
-      ind = 0;
-    }
-
     if (arr !== null) {
 
       // collect the available text
@@ -399,10 +391,11 @@ var USFMParser = function(supportedOnly) {
 extend(USFMParser, Parser);
 
 USFMParser.prototype.parseVerse = function(str) {
-  str = str.replace(/\n|¶/gm, ' ').trim();
-
-  var verse = new Verse();
-  this.parseVerseHelper(str, 0, null, null, verse.node);
+  this.vre.lastIndex = 0;
+  str                = str.replace(/\n|¶/gm, ' ').trim();
+  var arr            = this.vre.exec(str);
+  var verse          = new Verse();
+  this.parseVerseHelper(str, 0, arr, this.vre, verse.node);
   verse.node.normalize();
   return verse;
 };
