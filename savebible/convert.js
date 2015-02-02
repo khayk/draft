@@ -50,7 +50,7 @@ var HiResTimer        = moduleUtils.HiResTimer;
       timer.report();
       console.log("RENDER COMPLETED.");
 
-      //fs.writeFile('./data/output.usfm', data);
+      //fs.writeFile('./data/raw/output.usfm', data);
     }
 
 
@@ -88,6 +88,11 @@ var HiResTimer        = moduleUtils.HiResTimer;
     });
   }
 
+  function removeComments(data) {
+    text.match();
+    return data.replace(/^(.*?)\/\/(.*?)\r?\n/gm, '');
+  }
+
   /// table of content of the single Bible
   var BibleTOC = function() {
 
@@ -98,6 +103,9 @@ var HiResTimer        = moduleUtils.HiResTimer;
   var BBM_TYPE_ADD = 3;
 
   var BBMEntry = function(id, index, abbr, type) {
+    if (!type || type < BBM_TYPE_OLD || type > BBM_TYPE_ADD)
+      throw 'invalid Bible book mapping entry type: ' + type;
+
     this.id    = id;
     this.index = index;
     this.abbr  = abbr;
@@ -105,35 +113,75 @@ var HiResTimer        = moduleUtils.HiResTimer;
   };
 
   /// bible books mapping
-  var BBM = function() {
-    this.entries = [];
-    this.byId = {};    /// sorted by id
-    this.byOn = {};    /// sorted by order number (i.e. by index)
-  };
+  var BBM = (function() {
+    var instance_; // instance stores a reference to the Singleton
 
-  BBM.prototype.load = function(file) {
-    var data = fs.readFileSync(file, 'utf8');
-    this.initialize(data);
-  };
+    function init() {
+      var entries = [];
+      var byId = {};    /// sorted by id
+      var byOn = {};    /// sorted by order number (i.e. by index)
 
-  BBM.prototype.initialize = function(data) {
-    var self = this;
-    var js = JSON.parse(data);
-    js.forEach(function(e) {
-      var obj = new BBMEntry(e.id, e.indee, e.abbr, e.type);
-      self.entries.push(obj);
-      self.byId[obj.id] = self.entries.length - 1;
-      self.byOn[obj.index] = self.entries.length - 1;
-    });
-  };
+      function internalSetup(data) {
+        var js = JSON.parse(data);
+        js.forEach(function(e) {
+          var obj = new BBMEntry(e.id, e.index, e.abbr, e.type);
+          entries.push(obj);
+          byId[obj.id] = entries.length - 1;
+          byOn[obj.index] = entries.length - 1;
+        });
+      }
 
-  BBM.prototype.entryById = function(id) {
-    return this.entries[this.byId[id]];
-  };
+      return {
+        load: function(file) {
+          var data = fs.readFileSync(file, 'utf8');
+          internalSetup(data);
+        },
 
-  BBM.prototype.entryByOn = function(on) {
-    return this.entries[this.byOn[on]];
-  };
+        entryById: function(id) {
+          return entries[byId[id]];
+        },
+
+        entryByOn: function(on) {
+          return entries[byOn[on]];
+        },
+
+        numEntries: function() {
+          return entries.length;
+        },
+
+        findId: function(id) {
+          _.isUndefined(byId[id]);
+        },
+
+        /// return entries sorted by order number
+        entries: function(sortMethod) {
+          sortMethod = sortMethod || 1;
+          entries.sort(function(a, b) {
+            if (a.id < b.id)
+              return -1;
+            if (a.id > b.id)
+              return 1;
+            return 0;
+            // if (sortMethod === 1)
+            //   return parseInt(a.id) < parseInt(b.id);
+            // else
+            //   return a.id < b.id;
+          });
+          return entries;
+        }
+      };
+    }
+
+    return {
+      instance: function() {
+        if (!instance_) {
+          instance_ = init();
+        }
+        return instance_;
+      }
+    };
+  })();
+
 
   // var Package = function() {
   //   this.format = '';
@@ -147,11 +195,13 @@ var HiResTimer        = moduleUtils.HiResTimer;
 
   // };
   function metadataTest() {
-
+    BBM.instance().load('./data/id-mapping.json');
+    console.log(BBM.instance().numEntries());
+    console.log(BBM.instance().entries());
   }
 
   function renderTest() {
-    var testBook = './data/70-MATeng-kjv-old.usfm';
+    var testBook = './data/raw/70-MATeng-kjv-old.usfm';
     var str = fs.readFileSync(testBook, 'utf8');
 
     //var renderer   = new USFMRenderer();
@@ -164,19 +214,20 @@ var HiResTimer        = moduleUtils.HiResTimer;
     var data   = book.render(renderer);
 
     var verse  = book.getVerse(27, 47);
-    // fs.writeFile('./data/mt_27_47.txt', verse.render(renderer));
-    fs.writeFile('./data/output.usfm', data);
+    // fs.writeFile('./data/raw/mt_27_47.txt', verse.render(renderer));
+    fs.writeFile('./data/raw/output.usfm', data);
 
     /// all tags
     // var parseAll = new USFMParser(false);
     // var bookAll  = parseAll.parseBook(str);
     // var dataAll  = bookAll.render(renderer);
-    // fs.writeFile('./data/outputAll.usfm', dataAll);
+    // fs.writeFile('./data/raw/outputAll.usfm', dataAll);
   }
 
   function main() {
     try {
       //renderTest();
+      metadataTest();
       console.log(util.inspect(process.memoryUsage()));
     } catch (e) {
       console.error('ERROR:', e);
