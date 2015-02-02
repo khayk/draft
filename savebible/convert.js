@@ -21,11 +21,13 @@ var HiResTimer        = moduleUtils.HiResTimer;
   'use strict';
 
   var timer = new HiResTimer();
-  var bible    = [];
+  var bible = [];
+
+  var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
+
 
   function launchStressTest() {
-    var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
-    //var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
     var dataRoot = dropboxDir + 'Private/projects/bible project/data/real/';
 
     var count    = 1;
@@ -86,34 +88,95 @@ var HiResTimer        = moduleUtils.HiResTimer;
     });
   }
 
-  // var Punctation = function() {
+  /// table of content of the single Bible
+  var BibleTOC = function() {
+
+  };
+
+  var BBM_TYPE_OLD = 1;
+  var BBM_TYPE_NEW = 2;
+  var BBM_TYPE_ADD = 3;
+
+  var BBMEntry = function(id, index, abbr, type) {
+    this.id    = id;
+    this.index = index;
+    this.abbr  = abbr;
+    this.type  = type;
+  };
+
+  /// bible books mapping
+  var BBM = function() {
+    this.entries = [];
+    this.byId = {};    /// sorted by id
+    this.byOn = {};    /// sorted by order number (i.e. by index)
+  };
+
+  BBM.prototype.load = function(file) {
+    var data = fs.readFileSync(file, 'utf8');
+    this.initialize(data);
+  };
+
+  BBM.prototype.initialize = function(data) {
+    var self = this;
+    var js = JSON.parse(data);
+    js.forEach(function(e) {
+      var obj = new BBMEntry(e.id, e.indee, e.abbr, e.type);
+      self.entries.push(obj);
+      self.byId[obj.id] = self.entries.length - 1;
+      self.byOn[obj.index] = self.entries.length - 1;
+    });
+  };
+
+  BBM.prototype.entryById = function(id) {
+    return this.entries[this.byId[id]];
+  };
+
+  BBM.prototype.entryByOn = function(on) {
+    return this.entries[this.byOn[on]];
+  };
+
+  // var Package = function() {
+  //   this.format = '';
+  //   this.revision = '';
+  //   this.year = '';
+  //   this.name = '';
+  //   this.lang = '';
+  // };
+
+  // Package.prototype.simple = function() {
 
   // };
+  function metadataTest() {
+
+  }
+
+  function renderTest() {
+    var testBook = './data/70-MATeng-kjv-old.usfm';
+    var str = fs.readFileSync(testBook, 'utf8');
+
+    //var renderer   = new USFMRenderer();
+    var renderer = new TextRenderer();
+
+
+    /// supported tags only
+    var parser = new USFMParser(true);
+    var book   = parser.parseBook(str);
+    var data   = book.render(renderer);
+
+    var verse  = book.getVerse(27, 47);
+    // fs.writeFile('./data/mt_27_47.txt', verse.render(renderer));
+    fs.writeFile('./data/output.usfm', data);
+
+    /// all tags
+    // var parseAll = new USFMParser(false);
+    // var bookAll  = parseAll.parseBook(str);
+    // var dataAll  = bookAll.render(renderer);
+    // fs.writeFile('./data/outputAll.usfm', dataAll);
+  }
 
   function main() {
     try {
-      var testBook = './data/70-MATeng-kjv-old.usfm';
-      var str = fs.readFileSync(testBook, 'utf8');
-
-      //var renderer   = new USFMRenderer();
-      var renderer = new TextRenderer();
-
-
-      /// supported tags only
-      var parser = new USFMParser(true);
-      var book   = parser.parseBook(str);
-      var data   = book.render(renderer);
-
-      var verse  = book.getVerse(27, 47);
-      // fs.writeFile('./data/mt_27_47.txt', verse.render(renderer));
-      fs.writeFile('./data/output.usfm', data);
-
-      /// all tags
-      // var parseAll = new USFMParser(false);
-      // var bookAll  = parseAll.parseBook(str);
-      // var dataAll  = bookAll.render(renderer);
-      // fs.writeFile('./data/outputAll.usfm', dataAll);
-
+      //renderTest();
       console.log(util.inspect(process.memoryUsage()));
     } catch (e) {
       console.error('ERROR:', e);
@@ -121,33 +184,6 @@ var HiResTimer        = moduleUtils.HiResTimer;
   }
 
   main();
-
-  //console.log(data);
-
-  // Luke 18:19
-  // var VERSE = 'And Jesus said unto him, \\wj Why callest thou me good? none\n' +
-  //   '\\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj*';
-
-  // var VERSE = 'And God saw the light, that \\add it was\\add* good: and God\n' +
-  // 'divided the light from the darkness.\\f +  \\ft the light from…: Heb. between the light and between the\n' +
-  // 'darkness\\f* ok ';
-
-  //var VERSE = '\\xy \\add 1\\nd 2\\wj 3\\wj*\\nd*\\add*4\\xy*';
-  //var VERSE = '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*';
-  //var VERSE = '\\m this is \\x a simple text.\\y keep going.\\z hello\\z* world\\y*\\x* BYE!\\m*';
-
-  // var parser   = new USFMParser();
-  // var renderer = new USFMRenderer();
-
-  // var tmp      = VERSE;
-  // var str      = tmp.replace(/\n/g, ' ');
-
-  // var verse    = parser.parseVerse(str);
-  // var result   = verse.render(renderer);
-
-  // console.log('src:  %s', str);
-  // console.log('out:  %s', result);
-
 }());
 
 
