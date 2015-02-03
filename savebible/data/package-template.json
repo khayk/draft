@@ -9,11 +9,13 @@
     // bible name
     "book":"{{BIBLE NAME}}",
 
+    // description of the book
+    "desc":"{{BOOK_DESC}}",
+
     // year of the book
     "year":"{{YEAR}}",
 
-    // valid values are "en", "am", "ru" and all those which
-    // are presented in the database as an valid languages
+    // language locale id
     "lang":"{{LANGUAGE}}",
 
     "toc":[

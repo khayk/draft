@@ -7,10 +7,13 @@
     "revision":"0.0.1",
 
     // bible name
-    "book":"KJV test",
+    "book":"TKJV",
+
+    // description of the book
+    "desc":"TEST King James Version",
 
     // year of the book
-    "year":"2014",
+    "year":"1611",
 
     // valid values are "en", "am", "ru" and all those which
     // are presented in the database as an valid languages
