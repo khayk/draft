@@ -16,7 +16,7 @@ getUtilsRequireObj = (function (utilsGlobal) {
 })(this);
 
 /// Hi resolution timer wrapper
-var HiResTimer = function() {
+getUtilsRequireObj().HiResTimer = function() {
   var startTime = null;
   var elapsed = null;
 
@@ -46,4 +46,13 @@ var HiResTimer = function() {
   };
 };
 
-getUtilsRequireObj().HiResTimer = HiResTimer;
+
+getUtilsRequireObj().removeComments = function(data) {
+  return data.replace(/^(.*?)\/\/(.*?)\r?\n/gm, '');
+};
+
+
+getUtilsRequireObj().isUndefined = function(obj) {
+  return typeof obj === 'undefined';
+};
+
