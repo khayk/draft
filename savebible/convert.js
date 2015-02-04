@@ -5,8 +5,9 @@ var dir          = require('node-dir');
 
 var theBible     = require('./lib-modules/bible.js');
 var myUtils      = require('./lib-modules/utils.js');
+var basic        = require('./lib-modules/basic.js');
 
-var BBM          = theBible.BBM;
+var BBM          = basic.BBM;
 
 var Verse        = theBible.Verse;
 var Chapter      = theBible.Chapter;
