@@ -28,9 +28,9 @@ function extend(child, parent) {
 }
 
 
-/// -----------------------------------------------------------------------
-///                             BBMEntry
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                             BBMEntry
+// -----------------------------------------------------------------------
 
 var BBM_TYPE_OLD = 1;
 var BBM_TYPE_NEW = 2;
@@ -46,32 +46,32 @@ var BBMEntry = function(id, index, abbr, type) {
   this.type = type;
 };
 
-/// -----------------------------------------------------------------------
-///                   BBM (bible books mapping)
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                   BBM (bible books mapping)
+// -----------------------------------------------------------------------
 var BBM = (function() {
   var instance_; // instance stores a reference to the Singleton
 
   function init() {
     var entries = [];
-    var byId = {}; /// sorted by id
-    var byOn = {}; /// sorted by order number (i.e. by index)
+    var byId = {}; // sorted by id
+    var byOn = {}; // sorted by order number (i.e. by index)
 
     return {
-      /// perform initialization from the file
+      // perform initialization from the file
       load: function(file) {
         var data = fs.readFileSync(file, 'utf8');
         this.initialize(data);
       },
 
-      /// perform initialization from the string of JSON format
+      // perform initialization from the string of JSON format
       initialize: function(str) {
-        /// cleanup previous call result
+        // cleanup previous call result
         entries = [];
         byId = {};
         byOn = {};
 
-        /// parse from the given JSON string
+        // parse from the given JSON string
         var js = JSON.parse(str);
         js.forEach(function(e) {
           var obj = new BBMEntry(e.id, e.index, e.abbr, e.type);
@@ -81,39 +81,39 @@ var BBM = (function() {
         });
       },
 
-      /// get an entry by given id
+      // get an entry by given id
       entryById: function(id) {
         return entries[byId[id]];
       },
 
-      /// get entries by order number (i.e. by index)
+      // get entries by order number (i.e. by index)
       entryByOn: function(on) {
         return entries[byOn[on]];
       },
 
-      /// entries count
+      // entries count
       numEntries: function() {
         return entries.length;
       },
 
-      /// check if entry with given id exists
+      // check if entry with given id exists
       existsId: function(id) {
         if (myUtils.isUndefined(byId[id]))
           return false;
         return true;
       },
 
-      /// return entries sorted by order number
+      // return entries sorted by order number
       entries: function() {
         return entries;
       },
 
-      /// return ids collection
+      // return ids collection
       ids: function() {
         return byId;
       },
 
-      /// return order numbers collection
+      // return order numbers collection
       ons: function() {
         return byOn;
       }
@@ -131,9 +131,9 @@ var BBM = (function() {
 })();
 
 
-/// -----------------------------------------------------------------------
-///                         TAG manipulation
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                         TAG manipulation
+// -----------------------------------------------------------------------
 var Tags = function() {
   // \qt  - Quoted text.
   //        Old Testament quotations in the New Testament
@@ -163,8 +163,8 @@ Tags.prototype = {
     return this.jesusWord.test(tag) !== false;
   },
 
-  /// returns tag's name without special symbols (\wj -> wj, \+add -> add)
-  /// if the tag is not supported, the default value will be returned
+  // returns tag's name without special symbols (\wj -> wj, \+add -> add)
+  // if the tag is not supported, the default value will be returned
   name: function(tag, def) {
     var d = def || 'unknown';
     var mt = tag.match(this.supported);
@@ -175,9 +175,9 @@ Tags.prototype = {
 };
 var globalTags = new Tags();
 
-/// -----------------------------------------------------------------------
-///                      NODE - THE BASE CLASS
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                      NODE - THE BASE CLASS
+// -----------------------------------------------------------------------
 var NODE_TYPE_TEXT = 1;
 var NODE_TYPE_TAG  = 2;
 var NODE_TYPE_NULL = 3;
@@ -200,9 +200,9 @@ Node.prototype.type = function() {
   return this.type;
 };
 
-/// -----------------------------------------------------------------------
-///                             TEXT NODE
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                             TEXT NODE
+// -----------------------------------------------------------------------
 var TextNode = function(text, parent) {
   Node.call(this, parent, NODE_TYPE_TEXT);
   this.text = text;
@@ -212,9 +212,9 @@ TextNode.prototype.render = function(renderer) {
   return this.text;
 };
 
-/// -----------------------------------------------------------------------
-///                             TAG NODE
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                             TAG NODE
+// -----------------------------------------------------------------------
 var CompoundNode = function(tag, parent) {
   Node.call(this, parent, NODE_TYPE_TAG);
   this.tag = tag;
@@ -247,15 +247,15 @@ CompoundNode.prototype.normalize = function() {
     }
   });
 
-  /// now remove all null nodes
+  // now remove all null nodes
   this.nodes = this.nodes.filter(function(n) {
     return n.type !== NODE_TYPE_NULL;
   });
 };
 
-/// -----------------------------------------------------------------------
-///                               VERSE
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                               VERSE
+// -----------------------------------------------------------------------
 var Verse = function(chapter, number) {
   this.parent = chapter || null;
   this.number = number || 0;
@@ -275,9 +275,9 @@ Verse.prototype.id = function() {
 };
 
 
-/// -----------------------------------------------------------------------
-///                               CHAPTER
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                               CHAPTER
+// -----------------------------------------------------------------------
 var Chapter = function(book, number) {
  this.parent = book || null;
  this.number = number || 0;
@@ -298,9 +298,9 @@ Chapter.prototype.getVerse = function(vn) {
   return this.verses[vn - 1];
 };
 
-/// -----------------------------------------------------------------------
-///                               BOOK
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                               BOOK
+// -----------------------------------------------------------------------
 var Book = function(bible, id) {
   this.parent   = null;
   this.id       = '';
@@ -320,23 +320,23 @@ Book.prototype.getVerse = function(cn, vn) {
   return this.chapters[cn - 1].getVerse(vn);
 };
 
-/// -----------------------------------------------------------------------
-///                            PARSER BASE
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                            PARSER BASE
+// -----------------------------------------------------------------------
 var Parser = function() {};
 Parser.prototype.parseVerse   = function(str) { throw 'implement parser'; };
 Parser.prototype.parseChapter = function(str) { throw 'implement parser'; };
 Parser.prototype.parseBook    = function(str) { throw 'implement parser'; };
 Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
 
-/// -----------------------------------------------------------------------
-///                            USFM PATSER
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                            USFM PATSER
+// -----------------------------------------------------------------------
 var USFMParser = function(supportedOnly) {
   this.supportedOnly = supportedOnly;
-  this.vre =  /(\\\+?(\w+)\*?)\s?/gm; /// verse parsing regexp
+  this.vre =  /(\\\+?(\w+)\*?)\s?/gm; // verse parsing regexp
 
-  /// deal with child nodes
+  // deal with child nodes
   var childTextNode = function (node, str, from, to) {
     var text = str.substring(from, to);
     if (text.length > 0)
@@ -344,7 +344,7 @@ var USFMParser = function(supportedOnly) {
   };
 
   var extractHeader = function(header, book) {
-    /// extract book headers
+    // extract book headers
     var re = /(\\\w+)\s+(.*)/gm;
     var arr = null;
     while ((arr = re.exec(header)) !== null) {
@@ -381,8 +381,8 @@ var USFMParser = function(supportedOnly) {
     //validateBookId(book.id);  TODO:HAYK
   };
 
-  /// helps to perform verse parsing
-  /// parses str in USFM format and fill node object as an output
+  // helps to perform verse parsing
+  // parses str in USFM format and fill node object as an output
   this.parseVerseHelper = function (str, ind, arr, re, node) {
     if (arr !== null) {
 
@@ -410,8 +410,8 @@ var USFMParser = function(supportedOnly) {
         ind = arr.index + arr[1].length;
         arr = re.exec(str);
 
-        /// search for the first matched openning tag
-        /// remove last character as the currunt tag ends with symbol *
+        // search for the first matched openning tag
+        // remove last character as the currunt tag ends with symbol *
         tag = tag.slice(0, -1);
         while (node !== null && node.tag !== tag) {
           node = node.parent;
@@ -426,14 +426,14 @@ var USFMParser = function(supportedOnly) {
     }
   };
 
-  /// helps to perform chapter parsing
+  // helps to perform chapter parsing
   this.parseChapterHelper = function(str, chap) {
     var re = /((\\p)[\s\S]+?)?(\\v)(\s+)(\d+)/gm;
     var arr = null;
     var verseStart = 0, vstr = '', vn = 0;
     var np = false;
 
-    /// find verses
+    // find verses
     while (true) {
       arr = re.exec(str);
       if (arr === null) {
@@ -465,7 +465,7 @@ var USFMParser = function(supportedOnly) {
     }
   };
 
-  /// helps to perform book parsing
+  // helps to perform book parsing
   this.parseBookHelper = function(str, book) {
     var re = /\\c\s+(\d+)/gm;
     var arr = re.exec(str);
@@ -477,7 +477,7 @@ var USFMParser = function(supportedOnly) {
       cn = arr[1];
     }
 
-    /// find chapters
+    // find chapters
     while (true) {
       arr = re.exec(str);
       if (arr !== null)
@@ -525,14 +525,14 @@ USFMParser.prototype.parseBook = function(str) {
   return book;
 };
 
-/// object is expected to be an array of strings, each array item
-/// represents a single book of Bible
+// object is expected to be an array of strings, each array item
+// represents a single book of Bible
 USFMParser.prototype.parseBible = function(arr) {
 };
 
-/// -----------------------------------------------------------------------
-///                             RENDERER
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                             RENDERER
+// -----------------------------------------------------------------------
 var Renderer = function() {
 };
 
@@ -545,7 +545,7 @@ Renderer.prototype.renderBible   = function(bible)   { throw 'implement bible re
 function renderNodeCommon(renderer, node) {
   var res = '';
 
-  /// combine the result of child nodes
+  // combine the result of child nodes
   node.nodes.forEach(function(n) {
     res += n.render(renderer);
   });
@@ -553,9 +553,9 @@ function renderNodeCommon(renderer, node) {
 }
 
 
-/// -----------------------------------------------------------------------
-///                           USFM RENDERER
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                           USFM RENDERER
+// -----------------------------------------------------------------------
 var USFMRenderer = function() {
 };
 extend(USFMRenderer, Renderer);
@@ -600,9 +600,9 @@ USFMRenderer.prototype.renderBook = function(book) {
   return res;
 };
 
-/// -----------------------------------------------------------------------
-///                           TEXT RENDERER
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                           TEXT RENDERER
+// -----------------------------------------------------------------------
 var TextRenderer = function() {};
 extend(TextRenderer, Renderer);
 TextRenderer.prototype.renderNode = function(node) {
@@ -621,7 +621,7 @@ TextRenderer.prototype.renderNode = function(node) {
 /*  var res = ' ';
   var self = this;
 
-  /// combine the result of child nodes
+  // combine the result of child nodes
   node.nodes.forEach(function(n) {
     var out = n.render(self);
     var prefix = ' ';
@@ -672,9 +672,9 @@ TextRenderer.prototype.renderBook = function(book) {
 };
 
 
-/// -----------------------------------------------------------------------
-///                           EXPORTING
-/// -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
+//                           EXPORTING
+// -----------------------------------------------------------------------
 getBibleRequireObj().BBM          = BBM;
 //getBibleRequireObj().Verse        = Verse;
 
