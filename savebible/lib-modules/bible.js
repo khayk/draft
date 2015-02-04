@@ -410,8 +410,8 @@ var USFMParser = function(supportedOnly) {
         ind = arr.index + arr[1].length;
         arr = re.exec(str);
 
-        /// search for the first matched openning tag
-        /// remove last character as the currunt tag ends with symbol *
+        /// search for the first matched opening tag
+        /// remove last character as the current tag ends with symbol *
         tag = tag.slice(0, -1);
         while (node !== null && node.tag !== tag) {
           node = node.parent;

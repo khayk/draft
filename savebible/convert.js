@@ -253,8 +253,7 @@ var HiResTimer   = myUtils.HiResTimer;
 
 
   function metadataTest() {
-    var obj = BBM.instance();
-    obj.load('./data/id-mapping.json');
+    BBM.instance().load('./data/id-mapping.json');
 
     var pfinder = new PackageFinder();
     pfinder.discover('./data/test/', function() {
@@ -290,7 +289,6 @@ var HiResTimer   = myUtils.HiResTimer;
   function main() {
     timer.start();
     try {
-      
 
       renderTest();
       metadataTest();
