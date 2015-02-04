@@ -17,7 +17,7 @@ var Renderer     = theBible.Renderer;
 var TextRenderer = theBible.TextRenderer;
 var USFMRenderer = theBible.USFMRenderer;
 
-/// utils exports
+// utils exports
 var HiResTimer   = myUtils.HiResTimer;
 
 (function() {
@@ -103,8 +103,8 @@ var HiResTimer   = myUtils.HiResTimer;
 
 
 
-  /// -------------------------------- TOC ------------------------------------
-  /// Table of content item ---------------------------------------------------
+  // -------------------------------- TOC ------------------------------------
+  // Table of content item ---------------------------------------------------
   var TOCItem = function(id, name, abbr, lname, desc) {
     if (!BBM.instance().existsId(id))
       throw 'Unknown book id: ' + id;
@@ -118,13 +118,13 @@ var HiResTimer   = myUtils.HiResTimer;
     if (myUtils.isUndefined(this.name))
       throw 'Book name is missing: ' + id;
 
-    /// if the abbreviation is missing override it the default value
+    // if the abbreviation is missing override it the default value
     if (myUtils.isUndefined(this.abbr))
       this.abbr = BBM.instance().entryById(this.id).abbr;
   };
 
 
-  /// table of content of the single Bible ------------------------------------
+  // table of content of the single Bible ------------------------------------
   var TOC = function(tocJson) {
     this.toc = [];
     var self = this;
@@ -142,11 +142,11 @@ var HiResTimer   = myUtils.HiResTimer;
   //   this.language
   // }
 
-  /// Languages singleton
+  // Languages singleton
   var Languages = (function() {
     var instance_; // instance stores a reference to the Singleton
 
-    /// languages key is locale id, value is a array of packages
+    // languages key is locale id, value is a array of packages
     var languages = {};
 
     function init() {
@@ -169,7 +169,7 @@ var HiResTimer   = myUtils.HiResTimer;
   };
 
   var Package = function() {
-    this.dir = null;   /// directory containing the package file
+    this.dir = null;   // directory containing the package file
     this.format = '';
     this.revision = '';
     this.book = '';
@@ -180,14 +180,14 @@ var HiResTimer   = myUtils.HiResTimer;
   };
 
   var PackageFinder = function() {
-    /// packages
+    // packages
     this.packages = [];
 
-    /// discover packages in the searchLocation
+    // discover packages in the searchLocation
     this.discover = function(searchLocation, done) {
       var self = this;
 
-      /// cleanup existing packages
+      // cleanup existing packages
       this.packages = [];
 
       dir.files(searchLocation, function(err, files) {
@@ -198,13 +198,13 @@ var HiResTimer   = myUtils.HiResTimer;
           return f.search(re) != -1;
         });
 
-        /// parse discovered packages
+        // parse discovered packages
         files.forEach(function(file) {
           var str = fs.readFileSync(file, 'utf8');
           str = myUtils.removeComments(str);
           var jo = JSON.parse(str);
 
-          /// create and initialize package
+          // create and initialize package
           var pkg      = new Package();
           pkg.dir      = path.dirname(file);
           pkg.format   = jo.format;
@@ -221,12 +221,12 @@ var HiResTimer   = myUtils.HiResTimer;
       });
     };
 
-    /// returns all available packages
+    // returns all available packages
     this.getAll = function() {
       return this.packages;
     };
 
-    /// returns an array of packages for specified language
+    // returns an array of packages for specified language
     this.getByLanguage = function(languageId) {
       var lang = languageId || null;
       return this.packages.filter(function(p) {
@@ -236,7 +236,7 @@ var HiResTimer   = myUtils.HiResTimer;
       });
     };
 
-    /// returns a single package by language id and bible name
+    // returns a single package by language id and bible name
     this.getPackage = function(languageId, book) {
       var langLC = languageId.toLowerCase();
       var bookLC = book.toLowerCase();
@@ -257,7 +257,7 @@ var HiResTimer   = myUtils.HiResTimer;
 
     var pfinder = new PackageFinder();
     pfinder.discover('./data/test/', function() {
-      /// get the first packages
+      // get the first packages
     });
   }
 
@@ -270,7 +270,7 @@ var HiResTimer   = myUtils.HiResTimer;
     var renderer = new TextRenderer();
 
 
-    /// supported tags only
+    // supported tags only
     var parser = new USFMParser(true);
     var book   = parser.parseBook(str);
     var data   = book.render(renderer);
@@ -279,7 +279,7 @@ var HiResTimer   = myUtils.HiResTimer;
     // fs.writeFile('./data/raw/mt_27_47.txt', verse.render(renderer));
     fs.writeFile('./data/raw/output.usfm', data);
 
-    /// all tags
+    // all tags
     // var parseAll = new USFMParser(false);
     // var bookAll  = parseAll.parseBook(str);
     // var dataAll  = bookAll.render(renderer);
