@@ -196,8 +196,8 @@ Chapter.prototype.getVerse = function(vn) {
 //                               BOOK
 // -----------------------------------------------------------------------
 var Book = function(bible, id) {
-  this.parent   = null;
-  this.id       = '';
+  this.parent   = bible || null;
+  this.id       = id || 0;
   this.abbr     = '';
   this.name     = '';
   this.desc     = '';
@@ -212,6 +212,11 @@ Book.prototype.getVerse = function(cn, vn) {
   if (cn > this.chapters.length)
     throw 'invalid chapter for book \"' + this.id + '\": ['  + cn + '/' + this.chapters.length + ']';
   return this.chapters[cn - 1].getVerse(vn);
+};
+
+
+var Bible = function() {
+  this.books = [];
 };
 
 // -----------------------------------------------------------------------
@@ -422,6 +427,15 @@ USFMParser.prototype.parseBook = function(str) {
 // object is expected to be an array of strings, each array item
 // represents a single book of Bible
 USFMParser.prototype.parseBible = function(arr) {
+  if (!(arr instanceof Array))
+    throw 'parseBible expects an array of strings';
+
+  var bible = new Bible();
+  var self = this;
+  arr.forEach(function(s) {
+    var book = self.parseBook(s);
+    bible.addBook(book);
+  });
 };
 
 // -----------------------------------------------------------------------

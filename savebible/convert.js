@@ -291,10 +291,13 @@ var HiResTimer   = myUtils.HiResTimer;
     timer.start();
     try {
 
-      renderTest();
-      metadataTest();
+      var a = {};
+      a.name = 'a';
+      console.log(a);
+      //renderTest();
+      //metadataTest();
 
-      console.log(util.inspect(process.memoryUsage()));
+      //console.log(util.inspect(process.memoryUsage()));
     } catch (e) {
       console.error('ERROR:', e);
     }
