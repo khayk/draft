@@ -252,13 +252,47 @@ var HiResTimer   = myUtils.HiResTimer;
     };
   };
 
+  var ParserFactory = (function() {
+    return {
+      createParser: function(format) {
+        if (format === 'txt')
+          return new USFMParser(true);
+        else if (format === 'usfm')
+          return new USFMParser(true);
+        else
+          throw 'unknown bible format: ' + format;
+      }
+    };
+  })();
+
+  function loadBible(p) {
+    if (!(p instanceof Package))
+      throw 'load bible expects Package object';
+
+    console.log(p);
+    var parser = ParserFactory.createParser(p.format);
+    var files = fs.readdirSync(p.dir);
+
+    /// we have all files in the given directory
+    // files.forEach(function(f) {
+
+    // });
+  }
 
   function metadataTest() {
     BBM.instance().load('./data/id-mapping.json');
 
-    var pfinder = new PackageFinder();
-    pfinder.discover('./data/test/', function() {
-      // get the first packages
+    var packs = new PackageFinder();
+    packs.discover('./data/test/', function() {
+      // all bibles
+      var bibles = [];
+
+      //var usfmParser = new USFMParser();
+      //var textParser = new TextParser();
+      packs.getAll().forEach(function(p) {
+        var bible = loadBible(p);
+        bibles.push(bible);
+      });
     });
   }
 
@@ -287,15 +321,16 @@ var HiResTimer   = myUtils.HiResTimer;
     // fs.writeFile('./data/raw/outputAll.usfm', dataAll);
   }
 
+  function testArguments(object, str) {
+    console.log(arguments);
+  }
+
   function main() {
     timer.start();
     try {
 
-      var a = {};
-      a.name = 'a';
-      console.log(a);
       //renderTest();
-      //metadataTest();
+      metadataTest();
 
       //console.log(util.inspect(process.memoryUsage()));
     } catch (e) {

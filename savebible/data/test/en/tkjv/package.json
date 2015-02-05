@@ -1,7 +1,7 @@
 {
     // describe bible books format
     // valid values are "usfm", "text"
-    "format":"text",
+    "format":"usfm",
 
     // every change should increase revision number
     "revision":"0.0.1",
