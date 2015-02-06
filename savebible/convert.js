@@ -12,6 +12,7 @@ var BBM          = basic.BBM;
 var Verse        = theBible.Verse;
 var Chapter      = theBible.Chapter;
 var Book         = theBible.Book;
+var Bible        = theBible.Bible;
 var Parser       = theBible.Parser;
 var USFMParser   = theBible.USFMParser;
 var Renderer     = theBible.Renderer;
@@ -170,14 +171,14 @@ var HiResTimer   = myUtils.HiResTimer;
   };
 
   var Package = function() {
-    this.dir = null;   // directory containing the package file
-    this.format = '';
-    this.revision = '';
-    this.book = '';
-    this.desc = '';
-    this.year = '';
-    this.lang = '';
-    this.toc = null;
+    this.dir       = null;   // directory containing the package file
+    this.format    = '';
+    this.revision  = '';
+    this.bibleName = '';
+    this.desc      = '';
+    this.year      = '';
+    this.lang      = '';
+    this.toc       = null;
   };
 
   var PackageFinder = function() {
@@ -206,15 +207,17 @@ var HiResTimer   = myUtils.HiResTimer;
           var jo = JSON.parse(str);
 
           // create and initialize package
-          var pkg      = new Package();
-          pkg.dir      = path.dirname(file);
-          pkg.format   = jo.format;
-          pkg.revision = jo.revision;
-          pkg.book     = jo.book;
-          pkg.year     = jo.year;
-          pkg.lang     = jo.lang;
-          pkg.toc      = new TOC(jo.toc);
+          var pkg       = new Package();
+          pkg.dir       = path.dirname(file);
+          pkg.format    = jo.format.trim();
+          pkg.revision  = jo.revision.trim();
+          pkg.bibleName = jo.bible_name.trim();
+          pkg.year      = jo.year;
+          pkg.lang      = jo.lang;
+          pkg.toc       = new TOC(jo.toc);
 
+          if ("" === pkg.bibleName)
+            throw 'missing Bible name in the package file: ' + file;
           self.packages.push(pkg);
         });
 
@@ -238,14 +241,14 @@ var HiResTimer   = myUtils.HiResTimer;
     };
 
     // returns a single package by language id and bible name
-    this.getPackage = function(languageId, book) {
+    this.getPackage = function(languageId, bibleName) {
       var langLC = languageId.toLowerCase();
-      var bookLC = book.toLowerCase();
+      var bibNameLC    = bibleName.toLowerCase();
 
       for (var i = 0; i < this.packages.length; ++i) {
         var pack = this.packages[i];
         if (pack.lang.toLowerCase() === langLC &&
-            pack.book.toLowerCase() === bookLC)
+            pack.bibleName.toLowerCase() === bibNameLC)
           return pack;
       }
       return null;
@@ -269,14 +272,32 @@ var HiResTimer   = myUtils.HiResTimer;
     if (!(p instanceof Package))
       throw 'load bible expects Package object';
 
-    console.log(p);
+    //console.log(p);
     var parser = ParserFactory.createParser(p.format);
     var files = fs.readdirSync(p.dir);
 
-    /// we have all files in the given directory
-    // files.forEach(function(f) {
+    // keep the format we are going to parse
+    files = files.filter(function(f) {
+      return ('.' + p.format) === path.extname(f);
+    });
 
-    // });
+    var bible = new Bible();
+
+    /// we have all files in the given directory
+    files.forEach(function(f) {
+      try {
+        // read file content
+        var cf = path.join(p.dir, f);
+        var str  = fs.readFileSync( cf, 'utf8');
+        var book = parser.parseBook(str);
+        bible.books.push(book);
+      }
+      catch (e) {
+        console.log('"%s" file processing failed. Error: %s', cf, e);
+      }
+    });
+
+    return bible;
   }
 
   function metadataTest() {
@@ -284,15 +305,16 @@ var HiResTimer   = myUtils.HiResTimer;
 
     var packs = new PackageFinder();
     packs.discover('./data/test/', function() {
-      // all bibles
-      var bibles = [];
+      // all packages are discovered at this point
+      var pack     = packs.getPackage('en', 'TKJV');
+      var bible    = loadBible(pack);
+      var renderer = new USFMRenderer();
 
-      //var usfmParser = new USFMParser();
-      //var textParser = new TextParser();
-      packs.getAll().forEach(function(p) {
-        var bible = loadBible(p);
-        bibles.push(bible);
-      });
+      console.log(bible.render(renderer));
+      //packs.getAll().forEach(function(p) {
+        //var bible = loadBible(p);
+        //bibles.push(bible);
+      //});
     });
   }
 

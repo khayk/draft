@@ -219,6 +219,10 @@ var Bible = function() {
   this.books = [];
 };
 
+Bible.prototype.render = function(renderer) {
+  return renderer.renderBible(this);
+};
+
 // -----------------------------------------------------------------------
 //                            PARSER BASE
 // -----------------------------------------------------------------------
@@ -375,6 +379,9 @@ var USFMParser = function(supportedOnly) {
       lastIndex = re.lastIndex;
       cn = arr[1];
     }
+    else {
+      throw 'Empty USFM book';
+    }
 
     // find chapters
     while (true) {
@@ -508,6 +515,18 @@ USFMRenderer.prototype.renderBook = function(book) {
   return res;
 };
 
+Renderer.prototype.renderBible = function(bible) {
+  var res = '';
+  var self = this;
+
+  bible.books.forEach(function(b) {
+    if (res !== '')
+      res += NL + NL;
+    res += b.render(self);
+  });
+  return res;
+};
+
 // -----------------------------------------------------------------------
 //                           TEXT RENDERER
 // -----------------------------------------------------------------------
@@ -588,6 +607,7 @@ TextRenderer.prototype.renderBook = function(book) {
 getBibleRequireObj().Verse        = Verse;
 getBibleRequireObj().Chapter      = Chapter;
 getBibleRequireObj().Book         = Book;
+getBibleRequireObj().Bible        = Bible;
 
 getBibleRequireObj().Parser       = Parser;
 getBibleRequireObj().USFMParser   = USFMParser;

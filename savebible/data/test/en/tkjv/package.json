@@ -1,13 +1,13 @@
 {
     // describe bible books format
-    // valid values are "usfm", "text"
+    // valid values are "usfm", "txt"
     "format":"usfm",
 
     // every change should increase revision number
     "revision":"0.0.1",
 
     // bible name
-    "book":"TKJV",
+    "bible_name":"TKJV",
 
     // description of the book
     "desc":"TEST King James Version",

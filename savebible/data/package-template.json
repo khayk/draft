@@ -7,7 +7,7 @@
     "revision":"{{VERSION}}",
 
     // bible name
-    "book":"{{BIBLE NAME}}",
+    "bible_name":"{{BIBLE NAME}}",
 
     // description of the book
     "desc":"{{BOOK_DESC}}",
