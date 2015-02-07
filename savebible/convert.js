@@ -13,7 +13,6 @@ var Verse        = theBible.Verse;
 var Chapter      = theBible.Chapter;
 var Book         = theBible.Book;
 var Bible        = theBible.Bible;
-var Parser       = theBible.Parser;
 var USFMParser   = theBible.USFMParser;
 var Renderer     = theBible.Renderer;
 var TextRenderer = theBible.TextRenderer;
@@ -106,7 +105,7 @@ var HiResTimer   = myUtils.HiResTimer;
 
 
   // -------------------------------- TOC ------------------------------------
-  // Table of content item ---------------------------------------------------
+  // Table of content item
   var TOCItem = function(id, name, abbr, lname, desc) {
     if (!BBM.instance().existsId(id))
       throw 'Unknown book id: ' + id;
@@ -126,7 +125,7 @@ var HiResTimer   = myUtils.HiResTimer;
   };
 
 
-  // table of content of the single Bible ------------------------------------
+  // table of content of the single Bible
   var TOC = function(tocJson) {
     this.toc = [];
     var self = this;
@@ -164,6 +163,30 @@ var HiResTimer   = myUtils.HiResTimer;
       }
     };
   })();
+
+  function renderTest() {
+    var testBook = './data/raw/70-MATeng-kjv-old.usfm';
+    var str = fs.readFileSync(testBook, 'utf8');
+
+    //var renderer   = new USFMRenderer();
+    var renderer = new TextRenderer();
+
+
+    // supported tags only
+    var parser = new USFMParser(true);
+    var book   = parser.parseBook(str);
+    var data   = book.render(renderer);
+
+    var verse  = book.getVerse(27, 47);
+    // fs.writeFile('./data/raw/mt_27_47.txt', verse.render(renderer));
+    fs.writeFile('./data/raw/output.usfm', data);
+
+    // all tags
+    // var parseAll = new USFMParser(false);
+    // var bookAll  = parseAll.parseBook(str);
+    // var dataAll  = bookAll.render(renderer);
+    // fs.writeFile('./data/raw/outputAll.usfm', dataAll);
+  }
 
   var PackageKey = function() {
     this.name = '';
@@ -306,45 +329,16 @@ var HiResTimer   = myUtils.HiResTimer;
     var packs = new PackageFinder();
     packs.discover('./data/test/', function() {
       // all packages are discovered at this point
-      var pack     = packs.getPackage('en', 'TKJV');
+      var pack     = packs.getPackage('en', 'tkjv');
       var bible    = loadBible(pack);
       var renderer = new USFMRenderer();
-
       console.log(bible.render(renderer));
-      //packs.getAll().forEach(function(p) {
-        //var bible = loadBible(p);
-        //bibles.push(bible);
-      //});
     });
   }
 
 
-  function renderTest() {
-    var testBook = './data/raw/70-MATeng-kjv-old.usfm';
-    var str = fs.readFileSync(testBook, 'utf8');
+  function interfaceTest() {
 
-    //var renderer   = new USFMRenderer();
-    var renderer = new TextRenderer();
-
-
-    // supported tags only
-    var parser = new USFMParser(true);
-    var book   = parser.parseBook(str);
-    var data   = book.render(renderer);
-
-    var verse  = book.getVerse(27, 47);
-    // fs.writeFile('./data/raw/mt_27_47.txt', verse.render(renderer));
-    fs.writeFile('./data/raw/output.usfm', data);
-
-    // all tags
-    // var parseAll = new USFMParser(false);
-    // var bookAll  = parseAll.parseBook(str);
-    // var dataAll  = bookAll.render(renderer);
-    // fs.writeFile('./data/raw/outputAll.usfm', dataAll);
-  }
-
-  function testArguments(object, str) {
-    console.log(arguments);
   }
 
   function main() {
@@ -352,7 +346,8 @@ var HiResTimer   = myUtils.HiResTimer;
     try {
 
       //renderTest();
-      metadataTest();
+      //metadataTest();
+      interfaceTest();
 
       //console.log(util.inspect(process.memoryUsage()));
     } catch (e) {
@@ -366,4 +361,46 @@ var HiResTimer   = myUtils.HiResTimer;
   main();
 }());
 
+
+/*
+
+Ref(str) {
+    this.bid,
+    this.cn,
+    this.vn,
+}
+
+Verse {
+    id()
+    next()
+    prev()
+}
+
+Chapter {
+    id()
+    next()
+    prev()
+    numVerses()
+    getVerse(number)
+}
+
+Book {
+    id()
+    next()
+    prev()
+    abbr()
+    name()
+    desc()
+    numChapters()
+    getChapter(number)
+}
+
+Bible {
+    numBooks()
+    addBook(book)
+    getBook(id)
+    search(query, opt)  // returns an array of references, opt contains
+}
+
+ */
 

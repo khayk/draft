@@ -25,9 +25,9 @@ function extend(child, parent) {
 }
 
 
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 //                         TAG manipulation
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var Tags = function() {
   // \qt  - Quoted text.
   //        Old Testament quotations in the New Testament
@@ -69,13 +69,15 @@ Tags.prototype = {
 };
 var globalTags = new Tags();
 
-// -----------------------------------------------------------------------
+
+// ------------------------------------------------------------------------
 //                      NODE - THE BASE CLASS
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var NODE_TYPE_TEXT = 1;
 var NODE_TYPE_TAG  = 2;
 var NODE_TYPE_NULL = 3;
-var NL             = '\n';
+var LF             = '\n'; // line feed
+var CR             = '\r'; // carriage return
 
 var Node = function(parent, type) {
   this.parent = parent;
@@ -94,9 +96,10 @@ Node.prototype.type = function() {
   return this.type;
 };
 
-// -----------------------------------------------------------------------
+
+// ------------------------------------------------------------------------
 //                             TEXT NODE
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var TextNode = function(text, parent) {
   Node.call(this, parent, NODE_TYPE_TEXT);
   this.text = text;
@@ -106,9 +109,10 @@ TextNode.prototype.render = function(renderer) {
   return this.text;
 };
 
-// -----------------------------------------------------------------------
+
+// ------------------------------------------------------------------------
 //                             TAG NODE
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var CompoundNode = function(tag, parent) {
   Node.call(this, parent, NODE_TYPE_TAG);
   this.tag = tag;
@@ -147,9 +151,10 @@ CompoundNode.prototype.normalize = function() {
   });
 };
 
-// -----------------------------------------------------------------------
+
+// ------------------------------------------------------------------------
 //                               VERSE
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var Verse = function(chapter, number) {
   this.parent = chapter || null;
   this.number = number || 0;
@@ -169,9 +174,9 @@ Verse.prototype.id = function() {
 };
 
 
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 //                               CHAPTER
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var Chapter = function(book, number) {
  this.parent = book || null;
  this.number = number || 0;
@@ -192,9 +197,10 @@ Chapter.prototype.getVerse = function(vn) {
   return this.verses[vn - 1];
 };
 
-// -----------------------------------------------------------------------
+
+// ------------------------------------------------------------------------
 //                               BOOK
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var Book = function(bible, id) {
   this.parent   = bible || null;
   this.id       = id || 0;
@@ -223,18 +229,20 @@ Bible.prototype.render = function(renderer) {
   return renderer.renderBible(this);
 };
 
-// -----------------------------------------------------------------------
+
+// ------------------------------------------------------------------------
 //                            PARSER BASE
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var Parser = function() {};
 Parser.prototype.parseVerse   = function(str) { throw 'implement parser'; };
 Parser.prototype.parseChapter = function(str) { throw 'implement parser'; };
 Parser.prototype.parseBook    = function(str) { throw 'implement parser'; };
 Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
 
-// -----------------------------------------------------------------------
+
+// ------------------------------------------------------------------------
 //                            USFM PATSER
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var USFMParser = function(supportedOnly) {
   this.supportedOnly = supportedOnly;
   this.vre =  /(\\\+?(\w+)\*?)\s?/gm; // verse parsing regexp
@@ -407,8 +415,11 @@ var USFMParser = function(supportedOnly) {
 extend(USFMParser, Parser);
 
 USFMParser.prototype.parseVerse = function(str) {
+  // get rid of CR (carriage return) character, and replace
+  // LF (line feed) characters with space
+  str = str.replace(/\r/gm, '').replace(/\n|¶/gm, ' ').trim();
+
   this.vre.lastIndex = 0;
-  str                = str.replace(/\n|¶/gm, ' ').trim();
   var arr            = this.vre.exec(str);
   var verse          = new Verse();
   this.parseVerseHelper(str, 0, arr, this.vre, verse.node);
@@ -445,9 +456,10 @@ USFMParser.prototype.parseBible = function(arr) {
   });
 };
 
-// -----------------------------------------------------------------------
+
+// ------------------------------------------------------------------------
 //                             RENDERER
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var Renderer = function() {
 };
 
@@ -468,9 +480,9 @@ function renderNodeCommon(renderer, node) {
 }
 
 
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 //                           USFM RENDERER
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var USFMRenderer = function() {
 };
 extend(USFMRenderer, Renderer);
@@ -485,32 +497,30 @@ USFMRenderer.prototype.renderNode = function(node) {
 USFMRenderer.prototype.renderVerse = function(verse) {
   var prefix = '';
   if (verse.np === true)
-    prefix = '\\p' + NL;
-  return prefix + '\\v ' + verse.number + verse.node.render(this);
+    prefix = '\\p' + LF;
+  return prefix + '\\v ' + verse.number + ' ' + verse.node.render(this);
 };
 
 USFMRenderer.prototype.renderChapter = function(chapter) {
-  var res = '\\c ' + chapter.number + '  ' + NL;
+  var res = '\\c ' + chapter.number;
   var self = this;
   chapter.verses.forEach(function(v) {
-    res += NL + v.render(self);
-    //res += v.render(self);
+    res += LF + v.render(self);
   });
   return res;
 };
 
 USFMRenderer.prototype.renderBook = function(book) {
   var res = '';
-  res += '\\id ' + book.id + ' ' + book.name + NL;
-  /*res += '\\h '  + book.name + NL;
-  res += '\\toc1 ' + book.desc + NL;
-  res += '\\toc2 ' + book.name + NL;
-  res += '\\toc3 ' + book.abbr + NL;*/
+  res += '\\id ' + book.id + ' ' + book.name + LF;
+  res += '\\h '  + book.name + LF;
+  res += '\\toc1 ' + book.desc + LF;
+  res += '\\toc2 ' + book.name + LF;
+  res += '\\toc3 ' + book.abbr + LF;
   res += '\\mt '   + book.desc;
   var self = this;
   book.chapters.forEach(function(c) {
-    res += c.render(self);
-    //res += NL + c.render(self);
+    res += LF + c.render(self);
   });
   return res;
 };
@@ -521,15 +531,15 @@ Renderer.prototype.renderBible = function(bible) {
 
   bible.books.forEach(function(b) {
     if (res !== '')
-      res += NL + NL;
+      res += LF + LF;
     res += b.render(self);
   });
   return res;
 };
 
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 //                           TEXT RENDERER
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 var TextRenderer = function() {};
 extend(TextRenderer, Renderer);
 TextRenderer.prototype.renderNode = function(node) {
@@ -581,7 +591,7 @@ TextRenderer.prototype.renderChapter = function(chapter) {
   var self = this;
   chapter.verses.forEach(function(v) {
     if (res.length !== 0)
-      res += NL;
+      res += LF;
     res += v.render(self);
   });
   return res;
@@ -592,16 +602,16 @@ TextRenderer.prototype.renderBook = function(book) {
   var self = this;
   book.chapters.forEach(function(c) {
     if (res.length !== 0)
-      res += NL;
+      res += LF;
     res += c.render(self);
   });
   return res;
 };
 
 
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 //                           EXPORTING
-// -----------------------------------------------------------------------
+// ------------------------------------------------------------------------
 //getBibleRequireObj().Verse        = Verse;
 
 getBibleRequireObj().Verse        = Verse;

@@ -13,10 +13,10 @@ var BBMEntry = function(id, index, abbr, type) {
   if (!type || type < BBM_TYPE_OLD || type > BBM_TYPE_ADD)
     throw 'invalid Bible book mapping entry type: ' + type;
 
-  this.id = id;
-  this.index = index;
-  this.abbr = abbr;
-  this.type = type;
+  this.id = id;        // book unique id
+  this.index = index;  // book order number
+  this.abbr = abbr;    // book abbreviation
+  this.type = type;    // 1 - old, 2 - new, 3 - additional
 };
 
 // -----------------------------------------------------------------------
