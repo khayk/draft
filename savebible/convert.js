@@ -188,10 +188,6 @@ var HiResTimer   = myUtils.HiResTimer;
     // fs.writeFile('./data/raw/outputAll.usfm', dataAll);
   }
 
-  var PackageKey = function() {
-    this.name = '';
-    this.lang = '';
-  };
 
   var Package = function() {
     this.dir       = null;   // directory containing the package file
@@ -203,6 +199,7 @@ var HiResTimer   = myUtils.HiResTimer;
     this.lang      = '';
     this.toc       = null;
   };
+
 
   var PackageFinder = function() {
     // packages
@@ -345,11 +342,11 @@ var HiResTimer   = myUtils.HiResTimer;
     timer.start();
     try {
 
-      //renderTest();
+      renderTest();
       //metadataTest();
-      interfaceTest();
+      //interfaceTest();
 
-      //console.log(util.inspect(process.memoryUsage()));
+      console.log(util.inspect(process.memoryUsage()));
     } catch (e) {
       console.error('ERROR:', e);
     }
@@ -365,7 +362,7 @@ var HiResTimer   = myUtils.HiResTimer;
 /*
 
 Ref(str) {
-    this.bid,
+    this.id,
     this.cn,
     this.vn,
 }
@@ -381,6 +378,7 @@ Chapter {
     next()
     prev()
     numVerses()
+    addVerse(verse)
     getVerse(number)
 }
 
@@ -388,17 +386,20 @@ Book {
     id()
     next()
     prev()
+    numChapters()
+    addChapter(chapter)
+    getChapter(number)
+
     abbr()
     name()
     desc()
-    numChapters()
-    getChapter(number)
 }
 
 Bible {
     numBooks()
     addBook(book)
     getBook(id)
+
     search(query, opt)  // returns an array of references, opt contains
 }
 
