@@ -342,6 +342,11 @@ var HiResTimer   = myUtils.HiResTimer;
     timer.start();
     try {
 
+      var ta = [];
+      // console.log(typeof ta.push(5));
+      // console.log(ta.push(5));
+      // console.log(ta.push(5));
+
       renderTest();
       //metadataTest();
       //interfaceTest();
@@ -377,6 +382,7 @@ Chapter {
     id()
     next()
     prev()
+
     numVerses()
     addVerse(verse)
     getVerse(number)
@@ -386,13 +392,13 @@ Book {
     id()
     next()
     prev()
-    numChapters()
-    addChapter(chapter)
-    getChapter(number)
-
     abbr()
     name()
     desc()
+
+    numChapters()
+    addChapter(chapter)
+    getChapter(number)
 }
 
 Bible {
@@ -401,6 +407,10 @@ Bible {
     getBook(id)
 
     search(query, opt)  // returns an array of references, opt contains
+}
+
+BBM {
+
 }
 
  */

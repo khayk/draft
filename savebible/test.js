@@ -76,7 +76,7 @@
         var orig = o.orig.replace(/\n/g, ' ').trim();
         var verse = parser.parseVerse(orig);
         var restored = verse.render(renderer);
-        expect('\\v 0' + o.parsed).toBe(restored);
+        expect('\\v 0 ' + o.parsed).toBe(restored);
       });
     });
 

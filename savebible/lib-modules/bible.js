@@ -162,17 +162,34 @@ var Verse = function(chapter, number) {
   this.node   = new CompoundNode('', null);
 };
 
-Verse.prototype.render = function(renderer) {
-  return renderer.renderVerse(this);
-};
-
-Verse.prototype.id = function() {
-  if (this.parent !== null) {
+Verse.prototype = {
+  // construct id that will uniquely identify verse in the scope of
+  // the whole bible
+  id: function() {
+    if (this.parent === null) {
+      return 'null 0: ' + this.number;
+    }
     return this.parent.id() + ':' + this.number;
-  }
-  return 'null:' + this.number;
-};
+  },
 
+  // return the next verse of the chapter containing current verse
+  next: function() {
+    if (parent === null)
+      return null;
+    return parent.getVerse(number + 1);
+  },
+
+  // return the previous verse of the chapter containing current verse
+  prev: function() {
+    if (parent === null)
+      return null;
+    return parent.getVerse(number - 1);
+  },
+
+  render: function(renderer) {
+    return renderer.renderVerse(this);
+  }
+};
 
 // ------------------------------------------------------------------------
 //                               CHAPTER
@@ -187,14 +204,62 @@ var Chapter = function(book, number) {
  this.heading = {};
 };
 
-Chapter.prototype.render = function(renderer) {
-  return renderer.renderChapter(this);
-};
+Chapter.prototype = {
+  id: function() {
+    if (this.parent === null) {
+      return 'null ' + this.number;
+    }
+    return this.parent.id() + ' ' + this.number;
+  },
 
-Chapter.prototype.getVerse = function(vn) {
-  if (vn > this.verses.length)
-    throw 'invalid verse for chapter \"' + this.number + '\": ['  + vn + '/' + this.verses.length + ']';
-  return this.verses[vn - 1];
+  // return the next verse of the chapter containing current verse
+  // return null there are no more
+  next: function() {
+    if (parent === null)
+      return null;
+    return parent.getChapter(number + 1);
+  },
+
+  // return the previous verse of the chapter containing current verse
+  // return null there are no more
+  prev: function() {
+    if (parent === null)
+      return null;
+    return parent.getChapter(number - 1);
+  },
+
+  numVerses: function() {
+    return this.verses.length;
+  },
+
+  // set verse into chapter into its final position
+  setVerse: function(verse) {
+    this.verses.splice(verse.number - 1, 1, verse);
+  },
+
+  // insert verse into chapter, throw exception if something went wrong
+  addVerse: function(verse) {
+    verse.parent = this;
+    if ( verse.number - this.numVerses() !== 1 ) {
+      throw 'detected verse gap while adding verse ' + verse.id();
+    }
+    //console.log(typeof verse.number);
+    if ( this.verses.push(verse) !== verse.number ) {
+      throw 'inconsistency detected while adding verse ' + verse.id();
+    }
+  },
+
+  getVerse: function(number) {
+    if (number > this.verses.length) {
+      console.error('invalid verse number %d for chapter %s', number, this.id());
+      return null;
+    }
+    return this.verses[number - 1];
+  },
+
+  render: function(renderer) {
+    return renderer.renderChapter(this);
+  }
 };
 
 
@@ -357,10 +422,9 @@ var USFMParser = function(supportedOnly) {
 
       if (verseStart !== 0) {
         var v    = this.parseVerse(vstr);
-        v.parent = chap;
-        v.number = vn;
+        v.number = parseInt(vn);
         v.np     = np;
-        chap.verses.push(v);
+        chap.addVerse(v);
       }
 
       if (arr !== null) {
