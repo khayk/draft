@@ -1,22 +1,29 @@
 {
     // describe bible books format
-    // valid values are "usfm", "text"
+    // valid values are "usfm", "txt"
     "format":"{{TYPE}}",
 
     // every change should increase revision number
     "revision":"{{VERSION}}",
 
-    // bible name
-    "bible_name":"{{BIBLE NAME}}",
+    "attributes": {
+        // bible abbreviation
+        "abbr": "{{BIBLE_ABBREVIATION}}",
 
-    // description of the book
-    "desc":"{{BOOK_DESC}}",
+        // bible name
+        "name": "{{BIBLE_NAME}}",
 
-    // year of the book
-    "year":"{{YEAR}}",
+        // description of the book
+        "desc": "{{BOOK_DESC}}",
 
-    // language locale id
-    "lang":"{{LANGUAGE}}",
+        // year of the book
+        "year": "{{YEAR}}",
+
+        // valid values are "en", "hy", "ru" and all those which
+        // are presented in the database as an valid languages
+        // language locale id
+        "lang": "{{LANGUAGE}}"
+    },
 
     "toc":[
         // old testament
@@ -89,7 +96,7 @@
         {"id":"JUD", "name":"", "abbr":"", "lname":"", "desc":""},
         {"id":"REV", "name":"", "abbr":"", "lname":"", "desc":""},
 
-        // additional books but NOT apocryphes
+        // additional books but NOT apocrypha
         {"id":"1ES", "name":"", "abbr":"", "lname":"", "desc":""},
         {"id":"JDT", "name":"", "abbr":"", "lname":"", "desc":""},
         {"id":"TOB", "name":"", "abbr":"", "lname":"", "desc":""},

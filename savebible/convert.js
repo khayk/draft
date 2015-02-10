@@ -413,5 +413,25 @@ BBM {
 
 }
 
+
+BibleAttribute {
+    abbr
+    name
+    desc
+    year
+    lang
+}
+
+BookAttribute {
+    id:
+    abbr:
+    name:
+    longName:
+    desc:
+}
+
+TableOfContnet {
+
+}
  */
 

@@ -250,7 +250,7 @@ Chapter.prototype = {
   },
 
   getVerse: function(number) {
-    if (number > this.verses.length) {
+    if (number > this.verses.length || number < 1) {
       console.error('invalid verse number %d for chapter %s', number, this.id());
       return null;
     }
@@ -275,15 +275,18 @@ var Book = function(bible, id) {
   this.chapters = [];
 };
 
-Book.prototype.render = function(renderer) {
-  return renderer.renderBook(this);
+Book.prototype = {
+  render: function(renderer) {
+    return renderer.renderBook(this);
+  },
+
+  getVerse: function(cn, vn) {
+    if (cn > this.chapters.length || cn < 1)
+      throw 'invalid chapter for book \"' + this.id + '\": [' + cn + '/' + this.chapters.length + ']';
+    return this.chapters[cn - 1].getVerse(vn);
+  }
 };
 
-Book.prototype.getVerse = function(cn, vn) {
-  if (cn > this.chapters.length)
-    throw 'invalid chapter for book \"' + this.id + '\": ['  + cn + '/' + this.chapters.length + ']';
-  return this.chapters[cn - 1].getVerse(vn);
-};
 
 
 var Bible = function() {

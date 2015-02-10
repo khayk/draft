@@ -1,26 +1,16 @@
 {
-    // describe bible books format
-    // valid values are "usfm", "txt"
     "format":"usfm",
-
-    // every change should increase revision number
     "revision":"0.0.1",
 
-    // bible name
-    "bible_name":"TKJV",
-
-    // description of the book
-    "desc":"TEST King James Version",
-
-    // year of the book
-    "year":"1611",
-
-    // valid values are "en", "am", "ru" and all those which
-    // are presented in the database as an valid languages
-    "lang":"en",
+    "attributes": {
+        "abbr":"KJV",
+        "name":"King James Version",
+        "desc":"Description of King James Version",
+        "year":"1611",
+        "lang":"en"
+    },
 
     "toc":[
-        // old testament
         {"id":"GEN", "name":"Genesis",   "desc":"1 Moses in some Bibles"},
         {"id":"EXO", "name":"Exodus",    "desc":"2 Moses in some Bibles"},
         {"id":"LEV", "name":"Leviticus", "desc":"3 Moses in some Bibles"},

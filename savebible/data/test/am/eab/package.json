@@ -1,23 +1,16 @@
 {
-    // describe bible books format
-    // valid values are "usfm", "txt"
     "format":"txt",
-
-    // every change should increase revision number
     "revision":"0.0.1",
 
-    // bible name
-    "bible_name":"EAB",
-
-    // year of the book
-    "year":"1994",
-
-    // valid values are "en", "am", "ru" and all those which
-    // are presented in the database as an valid languages
-    "lang":"am",
+    "attributes": {
+        "abbr":"EAB",
+        "name":"Eastern Armenian Bible",
+        "desc":"Description of Eastern Armenian Bible",
+        "year":"1994",
+        "lang":"am"
+    },
 
     "toc":[
-        // old testament
         {"id":"GEN", "name":"Ծննդոց",         "desc":"Մովսեսի 1 գիրքը որոշ Աստվածաշունչերում"},
         {"id":"EXO", "name":"Ելք",            "desc":"Մովսեսի 2 գիրքը որոշ Աստվածաշունչերում"},
         {"id":"LEV", "name":"Ղեւտական",       "desc":"Մովսեսի 3 գիրքը որոշ Աստվածաշունչերում"},
