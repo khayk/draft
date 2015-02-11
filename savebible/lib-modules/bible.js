@@ -16,6 +16,10 @@ getBibleRequireObj = (function (bibleGlobal) {
 })(this);
 
 
+var idsmap = require('./idsmap.js');
+var utils = require('./utils.js');
+
+
 function extend(child, parent) {
   var FnObj = function() {};
   FnObj.prototype = parent.prototype;
@@ -24,6 +28,92 @@ function extend(child, parent) {
   child.uber = parent.prototype;
 }
 
+
+// -----------------------------------------------------------------------
+//                             BBMEntry
+// -----------------------------------------------------------------------
+
+var BBM_TYPE_OLD = 1;
+var BBM_TYPE_NEW = 2;
+var BBM_TYPE_ADD = 3;
+
+var BBMEntry = function(id, index, abbr, type) {
+  if (!type || type < BBM_TYPE_OLD || type > BBM_TYPE_ADD)
+    throw 'invalid Bible book mapping entry type: ' + type;
+
+  this.id = id;        // book unique id
+  this.index = index;  // book order number
+  this.abbr = abbr;    // book abbreviation
+  this.type = type;    // 1 - old, 2 - new, 3 - additional
+};
+
+// -----------------------------------------------------------------------
+//                   BBM (bible books mapping)
+// -----------------------------------------------------------------------
+var BBM = (function() {
+  var instance_; // instance stores a reference to the Singleton
+
+  function init() {
+    var entries = [];
+    var byId = {}; // sorted by id
+    var byOn = {}; // sorted by order number (i.e. by index)
+
+    isdmap.forEach(function(e) {
+      var obj = new BBMEntry(e.id, e.index, e.abbr, e.type);
+      entries.push(obj);
+      byId[obj.id] = entries.length - 1;
+      byOn[obj.index] = entries.length - 1;
+    });
+
+    return {
+      // get an entry by given id
+      entryById: function(id) {
+        return entries[byId[id]];
+      },
+
+      // get entries by order number (i.e. by index)
+      entryByOn: function(on) {
+        return entries[byOn[on]];
+      },
+
+      // entries count
+      numEntries: function() {
+        return entries.length;
+      },
+
+      // check if entry with given id exists
+      existsId: function(id) {
+        if (utils.isUndefined(byId[id]))
+          return false;
+        return true;
+      },
+
+      // return entries sorted by order number
+      entries: function() {
+        return entries;
+      },
+
+      // return ids collection
+      ids: function() {
+        return byId;
+      },
+
+      // return order numbers collection
+      ons: function() {
+        return byOn;
+      }
+    };
+  }
+
+  return {
+    instance: function() {
+      if (!instance_) {
+        instance_ = init();
+      }
+      return instance_;
+    }
+  };
+})();
 
 // ------------------------------------------------------------------------
 //                         TAG manipulation
@@ -678,6 +768,8 @@ TextRenderer.prototype.renderBook = function(book) {
 // ------------------------------------------------------------------------
 //                           EXPORTING
 // ------------------------------------------------------------------------
+
+getBibleRequireObj().BBM          = BBM;
 //getBibleRequireObj().Verse        = Verse;
 
 getBibleRequireObj().Verse        = Verse;
@@ -691,3 +783,4 @@ getBibleRequireObj().USFMParser   = USFMParser;
 getBibleRequireObj().Renderer     = Renderer;
 getBibleRequireObj().TextRenderer = TextRenderer;
 getBibleRequireObj().USFMRenderer = USFMRenderer;
+

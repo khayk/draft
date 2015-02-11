@@ -46,7 +46,6 @@ getUtilsRequireObj().HiResTimer = function() {
   };
 };
 
-
 getUtilsRequireObj().removeComments = function(data) {
   return data.replace(/^(.*?)\/\/(.*?)\r?\n/gm, '');
 };
@@ -55,4 +54,3 @@ getUtilsRequireObj().removeComments = function(data) {
 getUtilsRequireObj().isUndefined = function(obj) {
   return typeof obj === 'undefined';
 };
-
