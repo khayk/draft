@@ -21,7 +21,6 @@
 
         // valid values are "en", "hy", "ru" and all those which
         // are presented in the database as an valid languages
-        // language locale id
         "lang": "{{LANGUAGE}}"
     },
 
