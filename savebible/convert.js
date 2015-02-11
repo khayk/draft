@@ -189,14 +189,55 @@ var HiResTimer   = myUtils.HiResTimer;
   }
 
 
+  var BibleAttribute = function(abbr, name, desc, year, lang) {
+    this.abbr = abbr.trim() || '';
+    this.name = name.trim() || '';
+    this.desc = desc.trim() || '';
+    this.year = year.trim() || '';
+    this.lang = lang.trim() || '';
+
+    this.verify = function() {
+      return true;
+    };
+  };
+
+
+  var BookAttribute = function(id, abbr, name, lname, desc) {
+    this.id    = id.trim() || '';
+    this.abbr  = abbr || '';
+    this.name  = name.trim() || '';
+    this.lname = lname || '';
+    this.desc  = desc.trim() || '';
+
+    // reuse default abbreviation of book with this.id
+    if (this.abbr === '')
+      this.abbr = 'TODO';
+  };
+
+
+  var TableOfContnet = function(bookAttribArray) {
+    this.content = {};
+    var self = this;
+    bookAttribArray.forEach(function(ba) {
+      var bookAttr = new BookAttribute(ba.id,
+                                       ba.abbr,
+                                       ba.name,
+                                       ba.lname,
+                                       ba.desc);
+      self.content[bookAttr.id] = bookAttr;
+    });
+  };
+
+  TableOfContnet.prototype = {
+
+  };
+
+
   var Package = function() {
     this.dir       = null;   // directory containing the package file
     this.format    = '';
     this.revision  = '';
-    this.bibleName = '';
-    this.desc      = '';
-    this.year      = '';
-    this.lang      = '';
+    this.attr      = null;
     this.toc       = null;
   };
 
@@ -224,20 +265,32 @@ var HiResTimer   = myUtils.HiResTimer;
         files.forEach(function(file) {
           var str = fs.readFileSync(file, 'utf8');
           str = myUtils.removeComments(str);
-          var jo = JSON.parse(str);
+          var jo = null;
+          try {
+            jo = JSON.parse(str);
+          }
+          catch (e) {
+            console.error('error %s, while parsing file %s', e, file);
+            throw e;
+          }
 
           // create and initialize package
           var pkg       = new Package();
           pkg.dir       = path.dirname(file);
           pkg.format    = jo.format.trim();
           pkg.revision  = jo.revision.trim();
-          pkg.bibleName = jo.bible_name.trim();
-          pkg.year      = jo.year;
-          pkg.lang      = jo.lang;
-          pkg.toc       = new TOC(jo.toc);
 
-          if ("" === pkg.bibleName)
-            throw 'missing Bible name in the package file: ' + file;
+          // ref attribute object for convenience
+          var attr      = jo.attributes;
+          pkg.attr      = new BibleAttribute(attr.abbr,
+                                            attr.name,
+                                            attr.desc,
+                                            attr.year,
+                                            attr.lang);
+          pkg.toc       = new TableOfContnet(jo.toc);
+
+          if (!pkg.attr.verify())
+            throw 'BibleAttribute verification failed for package: ' + file;
           self.packages.push(pkg);
         });
 
@@ -260,15 +313,15 @@ var HiResTimer   = myUtils.HiResTimer;
       });
     };
 
-    // returns a single package by language id and bible name
-    this.getPackage = function(languageId, bibleName) {
+    // returns a single package by language id and bible abbreviation
+    this.getPackage = function(languageId, abbr) {
       var langLC = languageId.toLowerCase();
-      var bibNameLC    = bibleName.toLowerCase();
+      var abbrLC = abbr.toLowerCase();
 
       for (var i = 0; i < this.packages.length; ++i) {
         var pack = this.packages[i];
-        if (pack.lang.toLowerCase() === langLC &&
-            pack.bibleName.toLowerCase() === bibNameLC)
+        if (pack.attr.lang.toLowerCase() === langLC &&
+            pack.attr.abbr.toLowerCase() === abbrLC)
           return pack;
       }
       return null;
@@ -326,7 +379,14 @@ var HiResTimer   = myUtils.HiResTimer;
     var packs = new PackageFinder();
     packs.discover('./data/test/', function() {
       // all packages are discovered at this point
-      var pack     = packs.getPackage('en', 'tkjv');
+      var lid  = 'ru';
+      var abbr = 'synod';
+      var pack = packs.getPackage(lid, abbr);
+      if (pack === null) {
+        console.warn('package [%s, %s] not found', lid, abbr);
+        return;
+      }
+
       var bible    = loadBible(pack);
       var renderer = new USFMRenderer();
       console.log(bible.render(renderer));
@@ -347,8 +407,8 @@ var HiResTimer   = myUtils.HiResTimer;
       // console.log(ta.push(5));
       // console.log(ta.push(5));
 
-      renderTest();
-      //metadataTest();
+      //renderTest();
+      metadataTest();
       //interfaceTest();
 
       console.log(util.inspect(process.memoryUsage()));
@@ -420,14 +480,6 @@ BibleAttribute {
     desc
     year
     lang
-}
-
-BookAttribute {
-    id:
-    abbr:
-    name:
-    longName:
-    desc:
 }
 
 TableOfContnet {

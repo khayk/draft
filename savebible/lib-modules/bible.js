@@ -243,7 +243,6 @@ Chapter.prototype = {
     if ( verse.number - this.numVerses() !== 1 ) {
       throw 'detected verse gap while adding verse ' + verse.id();
     }
-    //console.log(typeof verse.number);
     if ( this.verses.push(verse) !== verse.number ) {
       throw 'inconsistency detected while adding verse ' + verse.id();
     }
