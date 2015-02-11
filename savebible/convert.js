@@ -5,9 +5,9 @@ var dir          = require('node-dir');
 
 var theBible     = require('./lib-modules/bible.js');
 var myUtils      = require('./lib-modules/utils.js');
-var basic        = require('./lib-modules/basic.js');
+//var basic        = require('./lib-modules/basic.js');
 
-var BBM          = basic.BBM;
+//var BBM          = basic.BBM;
 
 var Verse        = theBible.Verse;
 var Chapter      = theBible.Chapter;
@@ -407,10 +407,10 @@ var HiResTimer   = myUtils.HiResTimer;
       // console.log(ta.push(5));
       // console.log(ta.push(5));
 
-      //renderTest();
-      metadataTest();
+      renderTest();
+      //metadataTest();
       //interfaceTest();
-
+      //console.log(idsmap);
       console.log(util.inspect(process.memoryUsage()));
     } catch (e) {
       console.error('ERROR:', e);
@@ -468,11 +468,6 @@ Bible {
 
     search(query, opt)  // returns an array of references, opt contains
 }
-
-BBM {
-
-}
-
 
 BibleAttribute {
     abbr
