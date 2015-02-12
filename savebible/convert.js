@@ -5,10 +5,8 @@ var dir          = require('node-dir');
 
 var theBible     = require('./lib-modules/bible.js');
 var myUtils      = require('./lib-modules/utils.js');
-//var basic        = require('./lib-modules/basic.js');
 
-//var BBM          = basic.BBM;
-
+var BBM          = theBible.BBM;
 var Verse        = theBible.Verse;
 var Chapter      = theBible.Chapter;
 var Book         = theBible.Book;
@@ -202,16 +200,21 @@ var HiResTimer   = myUtils.HiResTimer;
   };
 
 
+
   var BookAttribute = function(id, abbr, name, lname, desc) {
     this.id    = id.trim() || '';
     this.abbr  = abbr || '';
     this.name  = name.trim() || '';
     this.lname = lname || '';
-    this.desc  = desc.trim() || '';
+    this.desc  = desc || '';
 
     // reuse default abbreviation of book with this.id
     if (this.abbr === '')
-      this.abbr = 'TODO';
+      this.abbr = BBM.instance().byId(this.id).abbr;
+    if (this.lname)
+      this.lname = this.lname.trim();
+    if (this.desc)
+      this.desc = this.desc.trim();
   };
 
 
@@ -374,8 +377,6 @@ var HiResTimer   = myUtils.HiResTimer;
   }
 
   function metadataTest() {
-    BBM.instance().load('./data/id-mapping.json');
-
     var packs = new PackageFinder();
     packs.discover('./data/test/', function() {
       // all packages are discovered at this point

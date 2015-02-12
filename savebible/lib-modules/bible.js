@@ -58,7 +58,7 @@ var BBM = (function() {
     var byId = {}; // sorted by id
     var byOn = {}; // sorted by order number (i.e. by index)
 
-    isdmap.forEach(function(e) {
+    idsmap.idsmap.forEach(function(e) {
       var obj = new BBMEntry(e.id, e.index, e.abbr, e.type);
       entries.push(obj);
       byId[obj.id] = entries.length - 1;
@@ -130,33 +130,32 @@ var Tags = function() {
   this.jesusWord  = /wj/;
 };
 
-Tags.prototype = {
-  isSupported: function(tag) {
-    return this.supported.test(tag) !== false;
-  },
-
-  isOpening: function(tag) {
-    return tag[tag.length - 1] !== '*';
-  },
-
-  isTranslator: function(tag) {
-    return this.translator.test(tag) !== false;
-  },
-
-  isJesusWord: function(tag) {
-    return this.jesusWord.test(tag) !== false;
-  },
-
-  // returns tag's name without special symbols (\wj -> wj, \+add -> add)
-  // if the tag is not supported, the default value will be returned
-  name: function(tag, def) {
-    var d = def || 'unknown';
-    var mt = tag.match(this.supported);
-    if (mt !== null)
-      return mt;
-    return d;
-  }
+Tags.prototype.isSupported = function(tag) {
+  return this.supported.test(tag) !== false;
 };
+
+Tags.prototype.isOpening = function(tag) {
+  return tag[tag.length - 1] !== '*';
+};
+
+Tags.prototype.isTranslator = function(tag) {
+  return this.translator.test(tag) !== false;
+};
+
+Tags.prototype.isJesusWord = function(tag) {
+  return this.jesusWord.test(tag) !== false;
+};
+
+// returns tag's name without special symbols (\wj -> wj, \+add -> add)
+// if the tag is not supported, the default value will be returned
+Tags.prototype.name = function(tag, def) {
+  var d = def || 'unknown';
+  var mt = tag.match(this.supported);
+  if (mt !== null)
+    return mt;
+  return d;
+};
+
 var globalTags = new Tags();
 
 
@@ -357,9 +356,10 @@ Chapter.prototype = {
 // ------------------------------------------------------------------------
 var Book = function(bible, id) {
   this.parent   = bible || null;
-  this.id       = id || 0;
+  this.id       = id || '';
   this.abbr     = '';
   this.name     = '';
+  this.lname    = '';
   this.desc     = '';
   this.chapters = [];
 };
@@ -377,15 +377,20 @@ Book.prototype = {
 };
 
 
-
 var Bible = function() {
   this.books = [];
+  this.toc   = null;
 };
 
 Bible.prototype.render = function(renderer) {
   return renderer.renderBible(this);
 };
 
+Bible.prototype.sort = function() {
+  this.books.sort(function(x, y) {
+    return BBM.instance().byId(x.id).index - BBM.instance().byId(y.id).index;
+  });
+};
 
 // ------------------------------------------------------------------------
 //                            PARSER BASE
@@ -446,7 +451,8 @@ var USFMParser = function(supportedOnly) {
       }
     }
 
-    //validateBookId(book.id);  TODO:HAYK
+    if (!BBM.instance().existsId(book.id))
+      throw 'Invalid book id: ' + book.id;
   };
 
   // helps to perform verse parsing

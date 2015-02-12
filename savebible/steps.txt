@@ -1,7 +1,11 @@
 Book
 Bible
+    toc   = new TableOfContent
+    books = [];
+
 Package
     TableOfContent
+
 
 1. detect packages
 2. load bible books based on package configuration
