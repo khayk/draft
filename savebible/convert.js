@@ -116,10 +116,6 @@ var HiResTimer   = myUtils.HiResTimer;
 
     if (myUtils.isUndefined(this.name))
       throw 'Book name is missing: ' + id;
-
-    // if the abbreviation is missing override it the default value
-    if (myUtils.isUndefined(this.abbr))
-      this.abbr = BBM.instance().entryById(this.id).abbr;
   };
 
 
@@ -132,35 +128,6 @@ var HiResTimer   = myUtils.HiResTimer;
     });
   };
 
-
-
-  // function BooLanguageEntry() {
-  //   this.name = '';
-  //   this.description = '';
-  //   this.locale = null;
-  //   this.language
-  // }
-
-  // Languages singleton
-  var Languages = (function() {
-    var instance_; // instance stores a reference to the Singleton
-
-    // languages key is locale id, value is a array of packages
-    var languages = {};
-
-    function init() {
-
-    }
-
-    return {
-      instance: function() {
-        if (!instance_) {
-          instance_ = init();
-        }
-        return instance_;
-      }
-    };
-  })();
 
   function renderTest() {
     var testBook = './data/raw/70-MATeng-kjv-old.usfm';
@@ -199,41 +166,6 @@ var HiResTimer   = myUtils.HiResTimer;
     };
   };
 
-
-
-  var BookAttribute = function(id, abbr, name, lname, desc) {
-    this.id    = id.trim() || '';
-    this.abbr  = abbr || '';
-    this.name  = name.trim() || '';
-    this.lname = lname || '';
-    this.desc  = desc || '';
-
-    // reuse default abbreviation of book with this.id
-    if (this.abbr === '')
-      this.abbr = BBM.instance().byId(this.id).abbr;
-    if (this.lname)
-      this.lname = this.lname.trim();
-    if (this.desc)
-      this.desc = this.desc.trim();
-  };
-
-
-  var TableOfContnet = function(bookAttribArray) {
-    this.content = {};
-    var self = this;
-    bookAttribArray.forEach(function(ba) {
-      var bookAttr = new BookAttribute(ba.id,
-                                       ba.abbr,
-                                       ba.name,
-                                       ba.lname,
-                                       ba.desc);
-      self.content[bookAttr.id] = bookAttr;
-    });
-  };
-
-  TableOfContnet.prototype = {
-
-  };
 
 
   var Package = function() {
@@ -332,54 +264,60 @@ var HiResTimer   = myUtils.HiResTimer;
   };
 
   var ParserFactory = (function() {
+    var usfmParser = null;
+    var txtParser  = null;
+
     return {
       createParser: function(format) {
-        if (format === 'txt')
-          return new USFMParser(true);
-        else if (format === 'usfm')
-          return new USFMParser(true);
+        if (format === 'txt') {
+          if (txtParser === null)
+            txtParser = new TextParser(true);
+          return txtParser;
+        }
+        else if (format === 'usfm') {
+          if (usfmParser === null)
+            usfmParser = new USFMParser(true);
+          return usfmParser;
+        }
         else
-          throw 'unknown bible format: ' + format;
+          throw 'unknown format: ' + format;
       }
     };
   })();
 
-  function loadBible(p) {
-    if (!(p instanceof Package))
+
+  // load bible from package file
+  function loadBible(pack) {
+    if (!(pack instanceof Package))
       throw 'load bible expects Package object';
 
-    //console.log(p);
-    var parser = ParserFactory.createParser(p.format);
-    var files = fs.readdirSync(p.dir);
+    var parser = ParserFactory.createParser(pack.format);
+    var files = fs.readdirSync(pack.dir);
 
-    // keep the format we are going to parse
+    // select files with extension that is to be parsed
     files = files.filter(function(f) {
-      return ('.' + p.format) === path.extname(f);
+      return ('.' + pack.format) === path.extname(f);
     });
 
-    var bible = new Bible();
-
+    var obj = [];
     /// we have all files in the given directory
     files.forEach(function(f) {
-      try {
-        // read file content
-        var cf = path.join(p.dir, f);
-        var str  = fs.readFileSync( cf, 'utf8');
-        var book = parser.parseBook(str);
-        bible.books.push(book);
-      }
-      catch (e) {
-        console.log('"%s" file processing failed. Error: %s', cf, e);
-      }
+      // read file content
+      var cf = path.join(pack.dir, f);
+      var content  = fs.readFileSync( cf, 'utf8');
+      obj.push({'name': cf, 'content': content});
     });
-
-    return bible;
+    return parser.parseBible(obj);
   }
 
-  function metadataTest() {
+
+  function discoverBibles(ready) {
     var packs = new PackageFinder();
     packs.discover('./data/test/', function() {
       // all packages are discovered at this point
+
+      console.log("Found %d packages", packs.packages.length);
+
       var lid  = 'ru';
       var abbr = 'synod';
       var pack = packs.getPackage(lid, abbr);
@@ -391,28 +329,21 @@ var HiResTimer   = myUtils.HiResTimer;
       var bible    = loadBible(pack);
       var renderer = new USFMRenderer();
       console.log(bible.render(renderer));
+
+      ready(null, bible);
     });
   }
 
-
-  function interfaceTest() {
-
+  function onDiscovered(err, packs) {
+    console.log(util.inspect(process.memoryUsage()));
   }
 
   function main() {
     timer.start();
     try {
+      // renderTest();
+      discoverBibles(onDiscovered);
 
-      var ta = [];
-      // console.log(typeof ta.push(5));
-      // console.log(ta.push(5));
-      // console.log(ta.push(5));
-
-      renderTest();
-      //metadataTest();
-      //interfaceTest();
-      //console.log(idsmap);
-      console.log(util.inspect(process.memoryUsage()));
     } catch (e) {
       console.error('ERROR:', e);
     }
@@ -466,6 +397,8 @@ Bible {
     numBooks()
     addBook(book)
     getBook(id)
+    setTOC(toc)
+    getTOC()
 
     search(query, opt)  // returns an array of references, opt contains
 }
@@ -479,7 +412,10 @@ BibleAttribute {
 }
 
 TableOfContnet {
+  this.raw;
 
+  getAll()
+  getOne(id) // {}
 }
  */
 

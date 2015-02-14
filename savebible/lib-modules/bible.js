@@ -115,6 +115,43 @@ var BBM = (function() {
   };
 })();
 
+
+// ------------------------------------------------------------------------
+//                              TOC item
+// ------------------------------------------------------------------------
+var TocItem = function(id, abbr, name, lname, desc) {
+  this.id    = id.trim() || '';
+  this.abbr  = abbr || '';
+  this.name  = name.trim() || '';
+  this.lname = lname || '';
+  this.desc  = desc || '';
+
+  // reuse default abbreviation of book for missing items
+  if (this.abbr === '')
+    this.abbr = BBM.instance().entryById(this.id).abbr;
+  if (this.lname)
+    this.lname = this.lname.trim();
+  if (this.desc)
+    this.desc = this.desc.trim();
+};
+
+// ------------------------------------------------------------------------
+//                      Table of content for Bible
+// ------------------------------------------------------------------------
+var TableOfContnet = function(arrToc) {
+  this.content = {};
+  var self = this;
+  arrToc.forEach(function(ta) {
+    var itm = new TocItem(ta.id,
+                          ta.abbr,
+                          ta.name,
+                          ta.lname,
+                          ta.desc);
+    self.content[itm.id] = itm;
+  });
+};
+
+
 // ------------------------------------------------------------------------
 //                         TAG manipulation
 // ------------------------------------------------------------------------
@@ -604,18 +641,27 @@ USFMParser.prototype.parseBook = function(str) {
   return book;
 };
 
-// object is expected to be an array of strings, each array item
-// represents a single book of Bible
+// input argument is expected to be an array of objects of type
+// {name: filename, content: strings}
+// each array item holds information about single book of Bible
 USFMParser.prototype.parseBible = function(arr) {
   if (!(arr instanceof Array))
     throw 'parseBible expects an array of strings';
 
   var bible = new Bible();
   var self = this;
-  arr.forEach(function(s) {
-    var book = self.parseBook(s);
-    bible.addBook(book);
+  arr.forEach(function(obj) {
+    try {
+      // parse each book separately
+      var book = self.parseBook(obj.content);
+      bible.addBook(book);
+    }
+    catch (e) {
+      console.log('"%s" file processing failed. Error: %s', obj.name, e);
+    }
   });
+
+  return bible;
 };
 
 
