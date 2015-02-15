@@ -34,11 +34,12 @@ getUtilsRequireObj().HiResTimer = function() {
       this.stop();
     }
 
-    var mls = elapsed[1] / 1000000;
+    var ms = elapsed[1] / 1000000;
+    ms = Math.round(ms);
     if (elapsed[0] > 0)
-      console.log('%d s, %d mls', elapsed[0], mls);
+      console.log('%ds, %dms', elapsed[0], ms);
     else
-      console.log('%d mls', mls);
+      console.log('%dms', ms);
   };
 
   this.elapsed = function() {

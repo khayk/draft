@@ -4,7 +4,7 @@ var util         = require('util');
 var dir          = require('node-dir');
 
 var theBible     = require('./lib-modules/bible.js');
-var myUtils      = require('./lib-modules/utils.js');
+var helpers      = require('./lib-modules/utils.js');
 
 var BBM          = theBible.BBM;
 var Verse        = theBible.Verse;
@@ -17,7 +17,7 @@ var TextRenderer = theBible.TextRenderer;
 var USFMRenderer = theBible.USFMRenderer;
 
 // utils exports
-var HiResTimer   = myUtils.HiResTimer;
+var HiResTimer   = helpers.HiResTimer;
 
 (function() {
 
@@ -122,73 +122,80 @@ var HiResTimer   = myUtils.HiResTimer;
   };
 
 
-  var PackageFinder = function() {
-    // packages
-    this.packages = [];
-    var self = this;
+  var packMgr = (function() {
+    var packages = [];
 
-    // discover packages in the searchLocation
-    this.discover = function(loc, callback) {
-      // cleanup existing packages
-      self.packages = [];
-      dir.files(loc, function(err, files) {
-        if (err) throw err;
-
-        var re = /package\.json/gi;
-        files = files.filter(function(f) {
-          return f.search(re) != -1;
+    return {
+      display: function() {
+        console.log('found %d packages', packages.length);
+        packages.forEach(function (p) {
+          console.log(p.dir);
         });
+      },
 
-        // parse discovered packages
-        files.forEach(function(file) {
-          var str = fs.readFileSync(file, 'utf8');
-          str = myUtils.removeComments(str);
-          var jo = null;
-          try {
-            jo = JSON.parse(str);
-          }
-          catch (e) {
-            console.error('error %s, while parsing file %s', e, file);
-            throw e;
-          }
+      // discover packages in the searchLocation
+      discover: function(loc, callback) {
+        // cleanup existing packages
+        packages = [];
+        dir.files(loc, function(err, files) {
+          if (err) throw err;
 
-          // create and initialize package
-          var pkg = new Package();
-          pkg.dir = path.dirname(file);
-          pkg.ctx = jo;
-          self.packages.push(pkg);
+          var re = /package\.json/gi;
+          files = files.filter(function(f) {
+            return f.search(re) != -1;
+          });
+
+          // parse discovered packages
+          files.forEach(function(file) {
+            var str = fs.readFileSync(file, 'utf8');
+            str = helpers.removeComments(str);
+            var jo = null;
+            try {
+              jo = JSON.parse(str);
+            } catch (e) {
+              console.error('error %s, while parsing file %s', e, file);
+              throw e;
+            }
+
+            // create and initialize package
+            var pkg = new Package();
+            pkg.dir = path.dirname(file);
+            pkg.ctx = jo;
+            packages.push(pkg);
+          });
+
+          callback(null, packages);
         });
+      },
 
-        callback(null, self.packages);
-      });
-    };
+      // returns all available packages
+      getAll: function() {
+        return packages;
+      },
 
-    // returns all available packages
-    this.getAll = function() {
-      return this.packages;
-    };
+      // returns an array of packages for specified language
+      getByLanguage: function(languageId) {
+        return packages.filter(function(p) {
+          return p.ctx.lang === languageId;
+        });
+      },
 
-    // returns an array of packages for specified language
-    this.getByLanguage = function(languageId) {
-      return this.packages.filter(function(p) {
-        return p.ctx.lang === languageId;
-      });
-    };
+      // returns a single package by language id and bible abbreviation
+      getPackage: function(languageId, abbr) {
+        var langLC = languageId.toLowerCase();
+        var abbrLC = abbr.toLowerCase();
 
-    // returns a single package by language id and bible abbreviation
-    this.getPackage = function(languageId, abbr) {
-      var langLC = languageId.toLowerCase();
-      var abbrLC = abbr.toLowerCase();
-
-      for (var i = 0; i < this.packages.length; ++i) {
-        var pack = this.packages[i];
-        if (pack.ctx.lang.toLowerCase() === langLC &&
+        for (var i = 0; i < packages.length; ++i) {
+          var pack = packages[i];
+          if (pack.ctx.lang.toLowerCase() === langLC &&
             pack.ctx.abbr.toLowerCase() === abbrLC)
-          return pack;
+            return pack;
+        }
+        return null;
       }
-      return null;
     };
-  };
+  })();
+
 
   var ParserFactory = (function() {
     var usfmParser = null;
@@ -196,6 +203,9 @@ var HiResTimer   = myUtils.HiResTimer;
 
     return {
       createParser: function(format) {
+        if (helpers.isUndefined(format))
+          throw 'format is undefined';
+
         if (format === 'txt') {
           if (txtParser === null)
             txtParser = new TextParser(true);
@@ -218,12 +228,12 @@ var HiResTimer   = myUtils.HiResTimer;
     if (!(pack instanceof Package))
       throw 'load bible expects Package object';
 
-    var parser = ParserFactory.createParser(pack.format);
+    var parser = ParserFactory.createParser(pack.ctx.format);
     var files = fs.readdirSync(pack.dir);
 
     // select files with extension that is to be parsed
     files = files.filter(function(f) {
-      return ('.' + pack.format) === path.extname(f);
+      return ('.' + pack.ctx.format) === path.extname(f);
     });
 
     var obj = [];
@@ -231,46 +241,36 @@ var HiResTimer   = myUtils.HiResTimer;
     files.forEach(function(f) {
       // read file content
       var cf = path.join(pack.dir, f);
-      var content  = fs.readFileSync( cf, 'utf8');
-      obj.push({'name': cf, 'content': content});
+      var data  = fs.readFileSync( cf, 'utf8');
+      obj.push({'name': cf, 'data': data});
     });
-    return parser.parseBible(obj);
-  }
-
-
-  function discoverBibles(ready) {
-    var packs = new PackageFinder();
-    packs.discover('./data/test/', function() {
-      // all packages are discovered at this point
-
-      console.log("Found %d packages", packs.packages.length);
-
-      var lid  = 'ru';
-      var abbr = 'synod';
-      var pack = packs.getPackage(lid, abbr);
-      if (pack === null) {
-        console.warn('package [%s, %s] not found', lid, abbr);
-        return;
-      }
-
-      var bible    = loadBible(pack);
-      var renderer = new USFMRenderer();
-      console.log(bible.render(renderer));
-
-      ready(null, bible);
-    });
+    return parser.parseBible(obj, pack.ctx);
   }
 
   function onDiscovered(err, packs) {
-    console.log(util.inspect(process.memoryUsage()));
+    // all packages are discovered at this point
+
+    packMgr.display();
+
+    var lid = 'ru';
+    var abbr = 'synod';
+    var pack = packMgr.getPackage(lid, abbr);
+    if (pack === null) {
+      console.warn('package [%s, %s] not found', lid, abbr);
+      return;
+    }
+
+    var bible = loadBible(pack);
+    var renderer = new USFMRenderer();
+    console.log(bible.render(renderer));
+    //console.log(util.inspect(process.memoryUsage()));
   }
 
   function main() {
     timer.start();
     try {
       // renderTest();
-      discoverBibles(onDiscovered);
-
+      packMgr.discover('./data/test/', onDiscovered);
     } catch (e) {
       console.error('ERROR:', e);
     }

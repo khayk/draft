@@ -661,7 +661,7 @@ USFMParser.prototype.parseBible = function(arr, details) {
   arr.forEach(function(obj) {
     try {
       // parse each book separately
-      var book = self.parseBook(obj.content);
+      var book = self.parseBook(obj.data);
       bible.addBook(book);
     }
     catch (e) {
@@ -670,7 +670,7 @@ USFMParser.prototype.parseBible = function(arr, details) {
   });
 
   // append attributes
-  if (details !== null) {
+  if (details !== null && details !== undefined) {
     bible.format = details.format;
     bible.abbr   = details.abbr;
     bible.name   = details.name;
