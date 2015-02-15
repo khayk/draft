@@ -91,44 +91,6 @@ var HiResTimer   = myUtils.HiResTimer;
     });
   }
 
-  var LocaleEntry = function() {
-    this.locale = null;
-    this.name   = '';
-  };
-
-  var Localization = function() {
-    this.locs = {};
-  };
-
-
-
-  // -------------------------------- TOC ------------------------------------
-  // Table of content item
-  var TOCItem = function(id, name, abbr, lname, desc) {
-    if (!BBM.instance().existsId(id))
-      throw 'Unknown book id: ' + id;
-
-    this.id    = id;
-    this.name  = name;
-    this.abbr  = abbr;
-    this.lname = lname;
-    this.desc  = desc;
-
-    if (myUtils.isUndefined(this.name))
-      throw 'Book name is missing: ' + id;
-  };
-
-
-  // table of content of the single Bible
-  var TOC = function(tocJson) {
-    this.toc = [];
-    var self = this;
-    tocJson.forEach(function(i) {
-      self.toc.push(new TOCItem(i.id, i.name, i.abbr, i.lname, i.desc));
-    });
-  };
-
-
   function renderTest() {
     var testBook = './data/raw/70-MATeng-kjv-old.usfm';
     var str = fs.readFileSync(testBook, 'utf8');
@@ -154,41 +116,22 @@ var HiResTimer   = myUtils.HiResTimer;
   }
 
 
-  var BibleAttribute = function(abbr, name, desc, year, lang) {
-    this.abbr = abbr.trim() || '';
-    this.name = name.trim() || '';
-    this.desc = desc.trim() || '';
-    this.year = year.trim() || '';
-    this.lang = lang.trim() || '';
-
-    this.verify = function() {
-      return true;
-    };
-  };
-
-
-
   var Package = function() {
-    this.dir       = null;   // directory containing the package file
-    this.format    = '';
-    this.revision  = '';
-    this.attr      = null;
-    this.toc       = null;
+    this.dir   = null;   // directory containing the package file
+    this.ctx   = null;
   };
 
 
   var PackageFinder = function() {
     // packages
     this.packages = [];
+    var self = this;
 
     // discover packages in the searchLocation
-    this.discover = function(searchLocation, done) {
-      var self = this;
-
+    this.discover = function(loc, callback) {
       // cleanup existing packages
-      this.packages = [];
-
-      dir.files(searchLocation, function(err, files) {
+      self.packages = [];
+      dir.files(loc, function(err, files) {
         if (err) throw err;
 
         var re = /package\.json/gi;
@@ -210,26 +153,13 @@ var HiResTimer   = myUtils.HiResTimer;
           }
 
           // create and initialize package
-          var pkg       = new Package();
-          pkg.dir       = path.dirname(file);
-          pkg.format    = jo.format.trim();
-          pkg.revision  = jo.revision.trim();
-
-          // ref attribute object for convenience
-          var attr      = jo.attributes;
-          pkg.attr      = new BibleAttribute(attr.abbr,
-                                            attr.name,
-                                            attr.desc,
-                                            attr.year,
-                                            attr.lang);
-          pkg.toc       = new TableOfContnet(jo.toc);
-
-          if (!pkg.attr.verify())
-            throw 'BibleAttribute verification failed for package: ' + file;
+          var pkg = new Package();
+          pkg.dir = path.dirname(file);
+          pkg.ctx = jo;
           self.packages.push(pkg);
         });
 
-        done();
+        callback(null, self.packages);
       });
     };
 
@@ -240,11 +170,8 @@ var HiResTimer   = myUtils.HiResTimer;
 
     // returns an array of packages for specified language
     this.getByLanguage = function(languageId) {
-      var lang = languageId || null;
       return this.packages.filter(function(p) {
-        if (lang === null)
-          return true;
-        return p.lang === lang;
+        return p.ctx.lang === languageId;
       });
     };
 
@@ -255,8 +182,8 @@ var HiResTimer   = myUtils.HiResTimer;
 
       for (var i = 0; i < this.packages.length; ++i) {
         var pack = this.packages[i];
-        if (pack.attr.lang.toLowerCase() === langLC &&
-            pack.attr.abbr.toLowerCase() === abbrLC)
+        if (pack.ctx.lang.toLowerCase() === langLC &&
+            pack.ctx.abbr.toLowerCase() === abbrLC)
           return pack;
       }
       return null;

@@ -6,23 +6,21 @@
     // every change should increase revision number
     "revision":"{{VERSION}}",
 
-    "attributes": {
-        // bible abbreviation
-        "abbr": "{{BIBLE_ABBREVIATION}}",
+    // bible abbreviation
+    "abbr": "{{BIBLE_ABBREVIATION}}",
 
-        // bible name
-        "name": "{{BIBLE_NAME}}",
+    // bible name
+    "name": "{{BIBLE_NAME}}",
 
-        // description of the book
-        "desc": "{{BOOK_DESC}}",
+    // description of the book
+    "desc": "{{BOOK_DESC}}",
 
-        // year of the book
-        "year": "{{YEAR}}",
+    // year of the book
+    "year": "{{YEAR}}",
 
-        // valid values are "en", "hy", "ru" and all those which
-        // are presented in the database as an valid languages
-        "lang": "{{LANGUAGE}}"
-    },
+    // valid values are "en", "hy", "ru" and all those which
+    // are presented in the database as an valid languages
+    "lang": "{{LANGUAGE}}",
 
     "toc":[
         // old testament

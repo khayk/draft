@@ -1,15 +1,11 @@
 {
     "format":"txt",
     "revision":"0.0.1",
-
-    "attributes": {
-        "abbr":"EAB",
-        "name":"Eastern Armenian Bible",
-        "desc":"Description of Eastern Armenian Bible",
-        "year":"1994",
-        "lang":"hy"
-    },
-
+    "abbr":"EAB",
+    "name":"Eastern Armenian Bible",
+    "desc":"Description of Eastern Armenian Bible",
+    "year":"1994",
+    "lang":"hy",
     "toc":[
         {"id":"GEN", "name":"Ծննդոց",         "desc":"Մովսեսի 1 գիրքը որոշ Աստվածաշունչերում"},
         {"id":"EXO", "name":"Ելք",            "desc":"Մովսեսի 2 գիրքը որոշ Աստվածաշունչերում"},

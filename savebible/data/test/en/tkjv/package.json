@@ -1,15 +1,11 @@
 {
     "format":"usfm",
     "revision":"0.0.1",
-
-    "attributes": {
-        "abbr":"KJV",
-        "name":"King James Version",
-        "desc":"Description of King James Version",
-        "year":"1611",
-        "lang":"en"
-    },
-
+    "abbr":"KJV",
+    "name":"King James Version",
+    "desc":"Description of King James Version",
+    "year":"1611",
+    "lang":"en",
     "toc":[
         {"id":"GEN", "name":"Genesis",   "desc":"1 Moses in some Bibles"},
         {"id":"EXO", "name":"Exodus",    "desc":"2 Moses in some Bibles"},

@@ -68,11 +68,13 @@ var BBM = (function() {
     return {
       // get an entry by given id
       entryById: function(id) {
+        // TODO - verification, do not add if absent
         return entries[byId[id]];
       },
 
       // get entries by order number (i.e. by index)
       entryByOn: function(on) {
+        // TODO - verify range
         return entries[byOn[on]];
       },
 
@@ -120,6 +122,7 @@ var BBM = (function() {
 //                              TOC item
 // ------------------------------------------------------------------------
 var TocItem = function(id, abbr, name, lname, desc) {
+  // TODO - verify name presence
   this.id    = id.trim() || '';
   this.abbr  = abbr || '';
   this.name  = name.trim() || '';
@@ -415,8 +418,13 @@ Book.prototype = {
 
 
 var Bible = function() {
-  this.books = [];
-  this.toc   = null;
+  this.books   = [];
+  this.abbr    = '';
+  this.name    = '';
+  this.desc    = '';
+  this.year    = '';
+  this.lang    = '';
+  this.toc     = null;
 };
 
 Bible.prototype.render = function(renderer) {
@@ -641,10 +649,10 @@ USFMParser.prototype.parseBook = function(str) {
   return book;
 };
 
-// input argument is expected to be an array of objects of type
-// {name: filename, content: strings}
-// each array item holds information about single book of Bible
-USFMParser.prototype.parseBible = function(arr) {
+// @param  arr     each array item holds information about single book of Bible
+//                 array of objects of type {name: filename, content: strings}
+// @param  details [optional] - contain book details
+USFMParser.prototype.parseBible = function(arr, details) {
   if (!(arr instanceof Array))
     throw 'parseBible expects an array of strings';
 
@@ -660,6 +668,21 @@ USFMParser.prototype.parseBible = function(arr) {
       console.log('"%s" file processing failed. Error: %s', obj.name, e);
     }
   });
+
+  // append attributes
+  if (details !== null) {
+    bible.format = details.format;
+    bible.abbr   = details.abbr;
+    bible.name   = details.name;
+    bible.desc   = details.desc;
+    bible.year   = details.year;
+    bible.lang   = details.lang;
+    bible.toc    = new TableOfContnet(details.toc);
+  }
+
+  if (bible.toc === null) {
+    bible.toc = new TableOfContnet([]);
+  }
 
   return bible;
 };
