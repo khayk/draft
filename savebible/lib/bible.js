@@ -17,7 +17,7 @@ getBibleRequireObj = (function (bibleGlobal) {
 
 
 var idsmap = require('./idsmap.js');
-var utils = require('./utils.js');
+var helper = require('./helper.js');
 
 
 function extend(child, parent) {
@@ -85,7 +85,7 @@ var BBM = (function() {
 
       // check if entry with given id exists
       existsId: function(id) {
-        if (utils.isUndefined(byId[id]))
+        if (helper.isUndefined(byId[id]))
           return false;
         return true;
       },
