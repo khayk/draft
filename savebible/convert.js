@@ -3,8 +3,8 @@ var path         = require('path');
 var util         = require('util');
 var dir          = require('node-dir');
 
-var theBible     = require('./lib-modules/bible.js');
-var helpers      = require('./lib-modules/utils.js');
+var theBible     = require('./lib/bible.js');
+var helper       = require('./lib/helper.js');
 
 var BBM          = theBible.BBM;
 var Verse        = theBible.Verse;
@@ -17,7 +17,7 @@ var TextRenderer = theBible.TextRenderer;
 var USFMRenderer = theBible.USFMRenderer;
 
 // utils exports
-var HiResTimer   = helpers.HiResTimer;
+var HiResTimer   = helper.HiResTimer;
 
 (function() {
 
@@ -148,7 +148,7 @@ var HiResTimer   = helpers.HiResTimer;
           // parse discovered packages
           files.forEach(function(file) {
             var str = fs.readFileSync(file, 'utf8');
-            str = helpers.removeComments(str);
+            str = helper.removeComments(str);
             var jo = null;
             try {
               jo = JSON.parse(str);
@@ -203,7 +203,7 @@ var HiResTimer   = helpers.HiResTimer;
 
     return {
       createParser: function(format) {
-        if (helpers.isUndefined(format))
+        if (helper.isUndefined(format))
           throw 'format is undefined';
 
         if (format === 'txt') {
