@@ -197,38 +197,12 @@ var HiResTimer   = helper.HiResTimer;
   })();
 
 
-  var ParserFactory = (function() {
-    var usfmParser = null;
-    var txtParser  = null;
-
-    return {
-      createParser: function(format) {
-        if (helper.isUndefined(format))
-          throw 'format is undefined';
-
-        if (format === 'txt') {
-          if (txtParser === null)
-            txtParser = new TextParser(true);
-          return txtParser;
-        }
-        else if (format === 'usfm') {
-          if (usfmParser === null)
-            usfmParser = new USFMParser(true);
-          return usfmParser;
-        }
-        else
-          throw 'unknown format: ' + format;
-      }
-    };
-  })();
-
-
   // load bible from package file
   function loadBible(pack) {
     if (!(pack instanceof Package))
       throw 'load bible expects Package object';
 
-    var parser = ParserFactory.createParser(pack.ctx.format);
+    var parser = theBible.ParserFactory.createParser(pack.ctx.format);
     var files = fs.readdirSync(pack.dir);
 
     // select files with extension that is to be parsed
@@ -338,7 +312,7 @@ BibleAttribute {
     lang
 }
 
-TableOfContnet {
+TableOfContent {
   this.raw;
 
   getAll()

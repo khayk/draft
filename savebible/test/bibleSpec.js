@@ -1,13 +1,18 @@
-var expect = require('chai').expect;
-var bible  = require('../lib/bible.js');
-var bbm    = bible.BBM;
+var expect       = require('chai').expect;
+var bible        = require('../lib/bible.js');
+var _            = require('underscore');
+
+var BBM          = bible.BBM;
+var Tags         = bible.Tags;
+var USFMParser   = bible.USFMParser;
+var USFMRenderer = bible.USFMRenderer;
 
 describe('stress BBM module', function() {
-  var o = bbm.instance();
+  var o = BBM.instance();
   var initialCount = o.numEntries();
 
   it('interface', function() {
-    expect(bbm.instance()).to.have.all.keys('entryById',
+    expect(BBM.instance()).to.have.all.keys('entryById',
                                             'entryByOn',
                                             'numEntries',
                                             'existsId',
@@ -31,6 +36,15 @@ describe('stress BBM module', function() {
     expect(o.existsId('1TH')).to.equal(true);
 
     expect(o.numEntries()).to.equal(initialCount);
+
+    // elements located in a ascending order
+    var prev = null;
+    _.each(o.ids(), function(key, val) {
+      if (prev !== null)
+        expect(prev).to.be.below(key);
+      else
+        prev = key;
+    });
   });
 
   it('immutability', function() {
@@ -39,7 +53,56 @@ describe('stress BBM module', function() {
     expect(o.existsId('NONE')).to.equal(false);
     expect(o.numEntries()).to.equal(initialCount);
   });
+});
 
-  it('some pending test 2');
- });
 
+describe('TAGs module', function() {
+  it('supported tags', function() {
+    var arrSupported = ['add', '+add*', 'add*', 'nd', '\\qt', '\\+wj'];
+
+    arrSupported.forEach(function(a) {
+      expect(Tags.isSupported(a)).to.equal(true);
+    });
+
+    expect(Tags.isTranslator('add')).to.equal(true);
+    expect(Tags.isJesusWord('wj')).to.equal(true);
+    expect(Tags.isOpening('wj*')).to.equal(false);
+    expect(Tags.isOpening('wj')).to.equal(true);
+  });
+
+  it('unsupported tags', function() {
+    var arrUnsupported = ['\\www', '\\+a'];
+    arrUnsupported.forEach(function(a) {
+      expect(Tags.isSupported(a)).to.equal(false);
+    });
+  });
+
+  it('name of tag', function() {
+    expect(Tags.name('\\+add*')).to.equal('add');
+    expect(Tags.name('\\+what*')).to.equal('unknown');
+    expect(Tags.name('\\+what*', 'provided')).to.equal('provided');
+  });
+});
+
+
+describe('Core modules', function() {
+  var parser   = null;
+  var renderer = null;
+  var bible    = null;
+
+  describe('USFM format', function() {
+    it('loading test data from disc', function() {
+
+    });
+
+    it('parsing', function() {
+      parser   = new USFMParser(true);
+      renderer = new USFMRenderer();
+      //bible    = parser.parseBible();
+    });
+
+    it('construction by parser', function() {});
+
+    it('manual construction', function() {});
+  });
+});

@@ -141,7 +141,7 @@ var TocItem = function(id, abbr, name, lname, desc) {
 // ------------------------------------------------------------------------
 //                      Table of content for Bible
 // ------------------------------------------------------------------------
-var TableOfContnet = function(arrToc) {
+var TableOfContent = function(arrToc) {
   this.content = {};
   var self = this;
   arrToc.forEach(function(ta) {
@@ -158,45 +158,45 @@ var TableOfContnet = function(arrToc) {
 // ------------------------------------------------------------------------
 //                         TAG manipulation
 // ------------------------------------------------------------------------
-var Tags = function() {
+var Tags = (function() {
   // \qt  - Quoted text.
   //        Old Testament quotations in the New Testament
   // \add - Translator's addition.
   // \wj  - Words of Jesus.
   // \nd  - Name of God (name of Deity).
-  this.supported  = /add|wj|nd|qt/;
-  this.tags       = {};
-  this.translator = /add/;
-  this.jesusWord  = /wj/;
-};
+  supported  = /add|wj|nd|qt/;
+  tags       = {};
+  translator = /add/;
+  jesusWord  = /wj/;
 
-Tags.prototype.isSupported = function(tag) {
-  return this.supported.test(tag) !== false;
-};
+  return {
+    isSupported: function(tag) {
+      return supported.test(tag) !== false;
+    },
 
-Tags.prototype.isOpening = function(tag) {
-  return tag[tag.length - 1] !== '*';
-};
+    isOpening: function(tag) {
+      return tag[tag.length - 1] !== '*';
+    },
 
-Tags.prototype.isTranslator = function(tag) {
-  return this.translator.test(tag) !== false;
-};
+    isTranslator: function(tag) {
+      return translator.test(tag) !== false;
+    },
 
-Tags.prototype.isJesusWord = function(tag) {
-  return this.jesusWord.test(tag) !== false;
-};
+    isJesusWord: function(tag) {
+      return jesusWord.test(tag) !== false;
+    },
 
-// returns tag's name without special symbols (\wj -> wj, \+add -> add)
-// if the tag is not supported, the default value will be returned
-Tags.prototype.name = function(tag, def) {
-  var d = def || 'unknown';
-  var mt = tag.match(this.supported);
-  if (mt !== null)
-    return mt;
-  return d;
-};
-
-var globalTags = new Tags();
+    // returns tag's name without special symbols (\wj -> wj, \+add -> add)
+    // if the tag is not supported, the default value will be returned
+    name: function(tag, def) {
+      var d = def || 'unknown';
+      var mt = tag.match(supported);
+      if (mt !== null)
+        return mt[0];
+      return d;
+    }
+  };
+})();
 
 
 // ------------------------------------------------------------------------
@@ -448,7 +448,7 @@ Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
 
 
 // ------------------------------------------------------------------------
-//                            USFM PATSER
+//                            USFM PARSER
 // ------------------------------------------------------------------------
 var USFMParser = function(supportedOnly) {
   this.supportedOnly = supportedOnly;
@@ -511,13 +511,13 @@ var USFMParser = function(supportedOnly) {
       }
 
       var tag = arr[1];
-      if (globalTags.isOpening(tag)) {
+      if (Tags.isOpening(tag)) {
         var compoundNode = new CompoundNode(tag, node);
 
         // collect supported tags
         if (this.supportedOnly === false) {
           node.addChild(compoundNode);
-        } else if (globalTags.isSupported(tag)) {
+        } else if (Tags.isSupported(tag)) {
           node.addChild(compoundNode);
         }
 
@@ -677,7 +677,7 @@ USFMParser.prototype.parseBible = function(arr, details) {
     bible.desc   = details.desc;
     bible.year   = details.year;
     bible.lang   = details.lang;
-    bible.toc    = new TableOfContnet(details.toc);
+    bible.toc    = new TableOfContent(details.toc);
   }
 
   if (bible.toc === null) {
@@ -686,6 +686,46 @@ USFMParser.prototype.parseBible = function(arr, details) {
 
   return bible;
 };
+
+
+// ------------------------------------------------------------------------
+//                            TEXT PARSER
+// ------------------------------------------------------------------------
+var TextParser = function() {
+
+};
+extend(TextParser, Parser);
+TextParser.prototype.parseVerse   = function(str) { throw 'implement parseVerse'; };
+TextParser.prototype.parseChapter = function(str) { throw 'implement parseChapter'; };
+TextParser.prototype.parseBook    = function(str) { throw 'implement parseBook'; };
+TextParser.prototype.parseBible   = function(arr) { throw 'implement parseBible'; };
+
+
+// ------------------------------------------------------------------------
+//                             PARSER FACTORY
+// ------------------------------------------------------------------------
+var ParserFactory = (function() {
+  var usfmParser = null;
+  var txtParser = null;
+
+  return {
+    createParser: function(format) {
+      if (helper.isUndefined(format))
+        throw 'format is undefined';
+
+      if (format === 'txt') {
+        if (txtParser === null)
+          txtParser = new TextParser(true);
+        return txtParser;
+      } else if (format === 'usfm') {
+        if (usfmParser === null)
+          usfmParser = new USFMParser(true);
+        return usfmParser;
+      } else
+        throw 'unknown format: ' + format;
+    }
+  };
+})();
 
 
 // ------------------------------------------------------------------------
@@ -777,12 +817,12 @@ TextRenderer.prototype.renderNode = function(node) {
 
   if (node.parent !== null &&
       node.type === NODE_TYPE_TAG &&
-      !globalTags.isSupported(node.tag) ) {
+      !Tags.isSupported(node.tag) ) {
     return '';
   }
 
   var res = renderNodeCommon(this, node);
-  if (globalTags.isTranslator(node.tag))
+  if (Tags.isTranslator(node.tag))
     return '[' + res + ']';
   return res;
 
@@ -844,18 +884,22 @@ TextRenderer.prototype.renderBook = function(book) {
 //                           EXPORTING
 // ------------------------------------------------------------------------
 
-getBibleRequireObj().BBM          = BBM;
+getBibleRequireObj().BBM           = BBM;
+getBibleRequireObj().Tags          = Tags;
+
 //getBibleRequireObj().Verse        = Verse;
 
-getBibleRequireObj().Verse        = Verse;
-getBibleRequireObj().Chapter      = Chapter;
-getBibleRequireObj().Book         = Book;
-getBibleRequireObj().Bible        = Bible;
+getBibleRequireObj().Verse         = Verse;
+getBibleRequireObj().Chapter       = Chapter;
+getBibleRequireObj().Book          = Book;
+getBibleRequireObj().Bible         = Bible;
 
-getBibleRequireObj().Parser       = Parser;
-getBibleRequireObj().USFMParser   = USFMParser;
+getBibleRequireObj().Parser        = Parser;
+getBibleRequireObj().USFMParser    = USFMParser;
+getBibleRequireObj().ParserFactory = ParserFactory;
 
-getBibleRequireObj().Renderer     = Renderer;
-getBibleRequireObj().TextRenderer = TextRenderer;
-getBibleRequireObj().USFMRenderer = USFMRenderer;
+
+getBibleRequireObj().Renderer      = Renderer;
+getBibleRequireObj().TextRenderer  = TextRenderer;
+getBibleRequireObj().USFMRenderer  = USFMRenderer;
 
