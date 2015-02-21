@@ -1,22 +1,22 @@
-getUtilsRequireObj = (function (utilsGlobal) {
-  var utilsRequire;
+helperRequire = (function (helperGlobal) {
+  var helperRequire;
 
   if (typeof module !== 'undefined' && module.exports) {
-    utilsGlobal  = global;
-    utilsRequire = exports;
+    helperGlobal  = global;
+    helperRequire = exports;
   } else {
-    utilsRequire = utilsGlobal.utilsRequire = utilsGlobal.utilsRequire || {};
+    helperRequire = helperGlobal.helperRequire = helperGlobal.helperRequire || {};
   }
 
-  function getUtilsRequire() {
-    return utilsRequire;
+  function getHelperRequire() {
+    return helperRequire;
   }
 
-  return getUtilsRequire;
+  return getHelperRequire;
 })(this);
 
 /// Hi resolution timer wrapper
-getUtilsRequireObj().HiResTimer = function() {
+var HiResTimer = function() {
   var startTime = null;
   var elapsed = null;
 
@@ -47,11 +47,16 @@ getUtilsRequireObj().HiResTimer = function() {
   };
 };
 
-getUtilsRequireObj().removeComments = function(data) {
+var removeComments = function(data) {
   return data.replace(/^(.*?)\/\/(.*?)\r?\n/gm, '');
 };
 
 
-getUtilsRequireObj().isUndefined = function(obj) {
+var isUndefined = function(obj) {
   return typeof obj === 'undefined';
 };
+
+
+helperRequire().HiResTimer     = HiResTimer;
+helperRequire().removeComments = removeComments;
+helperRequire().isUndefined    = isUndefined;

@@ -117,5 +117,3 @@ ViewSettings = function() {
     translatorAddition:
 }
 */
-
-console.log('hello world');

@@ -1,5 +1,7 @@
 var expect       = require('chai').expect;
 var bible        = require('../lib/bible.js');
+var helper       = require('../lib/helper.js');
+var core         = require('../core.js');
 var _            = require('underscore');
 
 var BBM          = bible.BBM;
@@ -90,9 +92,19 @@ describe('Core modules', function() {
   var renderer = null;
   var bible    = null;
 
-  describe('USFM format', function() {
-    it('loading test data from disc', function() {
+  var stub = function(cb) {
+    var completionCb = cb;
+    return {
+      onScanned: function(err, packeges) {
+        core.Loader.loadBook('');
+        completionCb();
+      }
+    };
+  };
 
+  describe('USFM format', function() {
+    it('loading test data from disc', function(done) {
+      core.PackManager.scan('./data/test/', true, stub(done).onScanned);
     });
 
     it('parsing', function() {
