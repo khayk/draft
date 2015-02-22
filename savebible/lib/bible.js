@@ -681,7 +681,7 @@ USFMParser.prototype.parseBible = function(arr, details) {
   }
 
   if (bible.toc === null) {
-    bible.toc = new TableOfContnet([]);
+    bible.toc = new TableOfContent([]);
   }
 
   return bible;
@@ -884,22 +884,23 @@ TextRenderer.prototype.renderBook = function(book) {
 //                           EXPORTING
 // ------------------------------------------------------------------------
 
-getBibleRequireObj().BBM           = BBM;
-getBibleRequireObj().Tags          = Tags;
+getBibleRequireObj().BBM            = BBM;
+getBibleRequireObj().Tags           = Tags;
+getBibleRequireObj().TableOfContent = TableOfContent;
 
 //getBibleRequireObj().Verse        = Verse;
 
-getBibleRequireObj().Verse         = Verse;
-getBibleRequireObj().Chapter       = Chapter;
-getBibleRequireObj().Book          = Book;
-getBibleRequireObj().Bible         = Bible;
+getBibleRequireObj().Verse          = Verse;
+getBibleRequireObj().Chapter        = Chapter;
+getBibleRequireObj().Book           = Book;
+getBibleRequireObj().Bible          = Bible;
 
-getBibleRequireObj().Parser        = Parser;
-getBibleRequireObj().USFMParser    = USFMParser;
-getBibleRequireObj().ParserFactory = ParserFactory;
+getBibleRequireObj().Parser         = Parser;
+getBibleRequireObj().USFMParser     = USFMParser;
+getBibleRequireObj().ParserFactory  = ParserFactory;
 
 
-getBibleRequireObj().Renderer      = Renderer;
-getBibleRequireObj().TextRenderer  = TextRenderer;
-getBibleRequireObj().USFMRenderer  = USFMRenderer;
+getBibleRequireObj().Renderer       = Renderer;
+getBibleRequireObj().TextRenderer   = TextRenderer;
+getBibleRequireObj().USFMRenderer   = USFMRenderer;
 

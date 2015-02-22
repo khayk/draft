@@ -93,7 +93,9 @@ var PackManager = (function() {
 var Loader = (function() {
   return {
     loadBook: function(file) {
-
+      var data = fs.readFileSync(file, 'utf8');
+      var parser = bibl.ParserFactory.createParser(path.extname(file));
+      return parser.parseBook(parser);
     },
 
     // load bible from package file
