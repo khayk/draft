@@ -28,10 +28,7 @@ describe('stress BBM module', function() {
   it('content', function() {
     expect(initialCount).to.equal(75);
     var gen = o.entryById('GEN');
-    expect(gen).to.have.all.keys('id',
-      'index',
-      'abbr',
-      'type');
+    expect(gen).to.have.all.keys('id', 'index', 'abbr', 'type');
     expect(gen.abbr).to.equal('Ge');
     expect(gen.index).to.equal(1);
     expect(gen.type).to.equal(1);
@@ -41,13 +38,21 @@ describe('stress BBM module', function() {
 
     expect(o.numEntries()).to.equal(initialCount);
 
-    // elements located in a ascending order
+    var indices = [];
+    _.each(o.ons(), function(val, key) {
+      indices.push(val);
+    });
+
+    // expect to meet elements in an ascending order by member index
     var prev = null;
-    _.each(o.ids(), function(key, val) {
-      if (prev !== null)
-        expect(prev).to.be.below(key);
+    indices.forEach(function(ind) {
+      if (prev !== null) {
+        var bbme = o.entries()[ind];
+        expect(prev).to.be.below(bbme.index);
+        expect(o.ids()[bbme.id]).to.equal(ind);
+      }
       else
-        prev = key;
+        prev = ind;
     });
   });
 
@@ -98,8 +103,8 @@ describe('Core modules', function() {
       onScanned: function(err, packages) {
         expect(core.PackManager.getAll()).be.equal(packages);
 
-        var lid = 'ru';
-        var abbr = 'synod';
+        var lid = 'en';
+        var abbr = 'kjv';
         var pack = core.PackManager.getPackage(lid, abbr);
 
         expect(pack).to.not.equal(null);
@@ -112,6 +117,8 @@ describe('Core modules', function() {
         expect(bible.year).to.equal(pack.ctx.year);
         expect(bible.lang).to.equal(pack.ctx.lang);
         expect(bible.toc).to.be.an.instanceof(bibleModule.TableOfContent);
+
+        expect(bible.toc.numItems()).to.equal(bible.books.length);
 
         completionCb();
       }

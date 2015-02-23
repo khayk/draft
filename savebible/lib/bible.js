@@ -18,6 +18,7 @@ getBibleRequireObj = (function (bibleGlobal) {
 
 var idsmap = require('./idsmap.js');
 var helper = require('./helper.js');
+var _ = require('underscore');
 
 
 function extend(child, parent) {
@@ -138,10 +139,15 @@ var TocItem = function(id, abbr, name, lname, desc) {
     this.desc = this.desc.trim();
 };
 
+TocItem.prototype.borrow = function(itm) {
+  //throw 'implement TocItem.prototype.borrow';
+};
+
 // ------------------------------------------------------------------------
 //                      Table of content for Bible
 // ------------------------------------------------------------------------
 var TableOfContent = function(arrToc) {
+  arrToc = arrToc || [];
   this.content = {};
   var self = this;
   arrToc.forEach(function(ta) {
@@ -154,6 +160,33 @@ var TableOfContent = function(arrToc) {
   });
 };
 
+TableOfContent.prototype.numItems = function() {
+  return Object.keys(this.content).length;
+};
+
+TableOfContent.prototype.addItem = function(itm) {
+  this.content[itm.id] = itm;
+};
+
+TableOfContent.prototype.getItem = function(id) {
+  var itm = this.content[id];
+  if (helper.isUndefined(itm))
+    return null;
+  return itm;
+};
+
+TableOfContent.prototype.haveItem = function(id) {
+  return !helper.isUndefined(this.content[id]);
+};
+
+// fill empty keys from input object
+TableOfContent.prototype.borrow = function(toc) {
+  _.each(this.content, function(val, key) {
+    var ti = toc.getItem(key);
+    if (ti !== null)
+      val.borrow(ti);
+  });
+};
 
 // ------------------------------------------------------------------------
 //                         TAG manipulation
@@ -437,6 +470,19 @@ Bible.prototype.sort = function() {
   });
 };
 
+// add book into bible if it is not added already. duplicate book insertion
+// will raise an exception
+Bible.prototype.addBook = function(book) {
+  book.parent = this;
+  // make sure that the new book is not exist in the instance of bible
+  this.books.forEach(function(b) {
+    if (b.id === book.id)
+      throw 'book ' + id + ' is already exist in the bible';
+  });
+  this.books.push(book);
+};
+
+
 // ------------------------------------------------------------------------
 //                            PARSER BASE
 // ------------------------------------------------------------------------
@@ -658,11 +704,19 @@ USFMParser.prototype.parseBible = function(arr, details) {
 
   var bible = new Bible();
   var self = this;
+
+  bible.toc = new TableOfContent();
+
   arr.forEach(function(obj) {
     try {
       // parse each book separately
       var book = self.parseBook(obj.data);
       bible.addBook(book);
+      bible.toc.addItem(new TocItem(book.id,
+                                    book.abbr,
+                                    book.name,
+                                    book.lname,
+                                    book.desc));
     }
     catch (e) {
       console.log('"%s" file processing failed. Error: %s', obj.name, e);
@@ -677,11 +731,7 @@ USFMParser.prototype.parseBible = function(arr, details) {
     bible.desc   = details.desc;
     bible.year   = details.year;
     bible.lang   = details.lang;
-    bible.toc    = new TableOfContent(details.toc);
-  }
-
-  if (bible.toc === null) {
-    bible.toc = new TableOfContent([]);
+    bible.toc.borrow(new TableOfContent(details.toc));
   }
 
   return bible;
