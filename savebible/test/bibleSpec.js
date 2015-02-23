@@ -113,9 +113,6 @@ describe('Core modules', function() {
         expect(bible.lang).to.equal(pack.ctx.lang);
         expect(bible.toc).to.be.an.instanceof(bibleModule.TableOfContent);
 
-
-        //console.log(packages);
-        //core.Loader.loadBook('');
         completionCb();
       }
     };

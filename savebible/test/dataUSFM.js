@@ -71,6 +71,53 @@
     }
   },
   {
+    name: 'mat_17_26_kjv',
+    data: {
+      orig: '\\zw \\+zws G3588 G4074 \\+zws*\\+zwm robinson:T-NSM robinson:N-NSM 3 4 \\+zwm*\\zw*Peter\\zx \\zx*\n' +
+        '\\zw \\+zws G3004 \\+zws*\\+zwm robinson:V-PAI-3S 1 \\+zwm*\\zw*saith\\zx \\zx*\n' +
+        '\\zw \\+zws G846 \\+zws*\\+zwm robinson:P-DSM 2 \\+zwm*\\zw*unto him\\zx \\zx*,\n' +
+        '\\zw \\+zws G575 \\+zws*\\+zwm robinson:PREP 5 \\+zwm*\\zw*Of\\zx \\zx* \\zw \\+zws G245 \\+zws*\\+zwm robinson:A-GPM 7 \\+zwm*\\zw*strangers\n' +
+        '\\zx \\zx*. \\zw \\+zws G3588 G2424 \\+zws*\\+zwm robinson:T-NSM robinson:N-NSM 10 11 \\+zwm*\\zw*Jesus\\zx \\zx*\n' +
+        '\\zw \\+zws G5346 \\+zws*\\+zwm robinson:V-IXI-3S 8 \\+zwm*\\zw*saith\\zx \\zx*\n' +
+        '\\zw \\+zws G846 \\+zws*\\+zwm robinson:P-DSM 9 \\+zwm*\\zw*unto him\\zx \\zx*,\n' +
+        '\\wj  \\+zw \\+zws G686 \\+zws*\\+zwm robinson:PRT 12 \\+zwm*\\+zw*Then\\+zx \\+zx*\n' +
+        '\\+zw \\+zws G1526 \\+zws*\\+zwm robinson:V-PXI-3P 14 \\+zwm*\\+zw*are\\+zx \\+zx*\n' +
+        '\\+zw \\+zws G3588 G5207 \\+zws*\\+zwm robinson:T-NPM robinson:N-NPM 15 16 \\+zwm*\\+zw*the\n' +
+        'children\\+zx \\+zx* \\+zw \\+zws G1658 \\+zws*\\+zwm robinson:A-NPM 13 \\+zwm*\\+zw*free\\+zx \\+zx*.\\wj*',
+      parsed: 'Peter saith unto him, Of strangers . Jesus saith unto him, \\wj  Then are the children free.\\wj*',
+      text: 'Peter saith unto him, Of strangers . Jesus saith unto him, Then are the children free.'
+    }
+  },
+  {
+    name: 'mat_3_15_kjv',
+    data: {
+      orig: '\\zw \\+zws G1161 \\+zws*\\+zwm robinson:CONJ 2 \\+zwm*\\zw*And\\zx \\zx*\n' +
+        '\\zw \\+zws G3588 G2424 \\+zws*\\+zwm robinson:T-NSM robinson:N-NSM 3 4 \\+zwm*\\zw*Jesus\\zx \\zx*\n' +
+        '\\zw \\+zws G611 \\+zws*\\+zwm robinson:V-AOP-NSM 1 \\+zwm*\\zw*answering\\zx \\zx*\n' +
+        '\\zw \\+zws G2036 \\+zws*\\+zwm robinson:V-2AAI-3S 5 \\+zwm*\\zw*said\\zx \\zx*\n' +
+        '\\zw \\+zws G4314 \\+zws*\\+zwm robinson:PREP 6 \\+zwm*\\zw*unto\\zx \\zx*\n' +
+        '\\zw \\+zws G846 \\+zws*\\+zwm robinson:P-ASM 7 \\+zwm*\\zw*him\\zx \\zx*,\n' +
+        '\\wj  \\+zw \\+zws G863 \\+zws*\\+zwm robinson:V-2AAM-2S 8 \\+zwm*\\+zw*Suffer\\+zx \\+zx*\n' +
+        '\\+add  \\+zw \\+zws G2076 \\+zws*\\+zwm robinson:V-PXI-3S 13 \\+zwm*\\+zw*it to be\n' +
+        'so\\+zx \\+zx*\\+add* \\+zw \\+zws G737 \\+zws*\\+zwm robinson:ADV 9 \\+zwm*\\+zw*now\\+zx \\+zx*:\n' +
+        '\\+zw \\+zws G1063 \\+zws*\\+zwm robinson:CONJ 11 \\+zwm*\\+zw*for\\+zx \\+zx*\n' +
+        '\\+zw \\+zws G3779 \\+zws*\\+zwm robinson:ADV 10 \\+zwm*\\+zw*thus\\+zx \\+zx*\n' +
+        '\\+zw \\+zws G4241 \\+zws*\\+zwm robinson:V-PQP-NSN 12 \\+zwm*\\+zw*it\n' +
+        'becometh\\+zx \\+zx* \\+zw \\+zws G2254 \\+zws*\\+zwm robinson:P-1DP 14 \\+zwm*\\+zw*us\\+zx \\+zx*\n' +
+        '\\+zw \\+zws G4137 \\+zws*\\+zwm robinson:V-AAN 15 \\+zwm*\\+zw*to fulfil\\+zx \\+zx*\n' +
+        '\\+zw \\+zws G3956 \\+zws*\\+zwm robinson:A-ASF 16 \\+zwm*\\+zw*all\\+zx \\+zx*\n' +
+        '\\+zw \\+zws G1343 \\+zws*\\+zwm robinson:N-ASF 17 \\+zwm*\\+zw*righteousness\\+zx \\+zx*.\\wj*\n' +
+        '\\zw \\+zws G5119 \\+zws*\\+zwm robinson:ADV 18 \\+zwm*\\zw*Then\\zx \\zx*\n' +
+        '\\zw \\+zws G863 \\+zws*\\+zwm robinson:V-PAI-3S 19 \\+zwm*\\zw*he suffered\\zx \\zx*\n' +
+        '\\zw \\+zws G846 \\+zws*\\+zwm robinson:P-ASM 20 \\+zwm*\\zw*him\\zx \\zx*.\n',
+      parsed: 'And Jesus answering said unto him, \\wj  Suffer \\+add ' +
+        ' it to be so\\+add* now: for thus it becometh us to fulfil all ' +
+        'righteousness.\\wj* Then he suffered him.',
+      text: 'And Jesus answering said unto him, Suffer [ it to be so] now: ' +
+        'for thus it becometh us to fulfil all righteousness. Then he suffered him.'
+    }
+  },
+  {
     name: 'empty',
     data: {
       orig: '',
@@ -95,6 +142,7 @@
     }
   }
   ];
+
 
 
   // sample book

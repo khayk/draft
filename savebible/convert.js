@@ -114,8 +114,6 @@ var HiResTimer   = helper.HiResTimer;
     // fs.writeFile('./data/raw/outputAll.usfm', dataAll);
   }
 
-
-
   function onDiscovered(err, packs) {
     // all packages are discovered at this point
 
@@ -135,11 +133,12 @@ var HiResTimer   = helper.HiResTimer;
     //console.log(util.inspect(process.memoryUsage()));
   }
 
+
   function main() {
     timer.start();
     try {
-      // renderTest();
-      packMgr.discover('./data/test/', onDiscovered);
+      renderTest();
+      //packMgr.discover('./data/test/', onDiscovered);
     } catch (e) {
       console.error('ERROR:', e);
     }
