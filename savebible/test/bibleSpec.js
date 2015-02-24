@@ -1,15 +1,17 @@
-var expect = require('chai').expect;
-var bibleModule = require('../lib/bible.js');
-var helper = require('../lib/helper.js');
-var core = require('../core.js');
-var _ = require('underscore');
-var dataUSFM = require('./dataUSFM.js');
+var _              = require('underscore');
+var expect         = require('chai').expect;
+var bibleModule    = require('../lib/bible.js');
+var helper         = require('../lib/helper.js');
+var core           = require('../core.js');
+var dataUSFM       = require('./dataUSFM.js');
 
-var BBM = bibleModule.BBM;
-var Tags = bibleModule.Tags;
-var USFMParser = bibleModule.USFMParser;
-var USFMRenderer = bibleModule.USFMRenderer;
-var TextRenderer = bibleModule.TextRenderer;
+var BBM            = bibleModule.BBM;
+var Tags           = bibleModule.Tags;
+var USFMParser     = bibleModule.USFMParser;
+var USFMRenderer   = bibleModule.USFMRenderer;
+var TextRenderer   = bibleModule.TextRenderer;
+var TableOfContent = bibleModule.TableOfContent;
+var TocItem        = bibleModule.TocItem;
 
 describe('stress BBM module', function() {
   var o = BBM.instance();
@@ -61,6 +63,50 @@ describe('stress BBM module', function() {
     expect(o.entryById('NOT FOUND')).to.equal(undefined);
     expect(o.existsId('NONE')).to.equal(false);
     expect(o.numEntries()).to.equal(initialCount);
+  });
+});
+
+
+describe('TableOfContent module', function() {
+
+  it('functionality', function() {
+    var toc = new TableOfContent([]);
+    toc.addItem(new TocItem('GEN', undefined, 'name1', 'lname1', 'desc1'));
+    expect(toc.numItems()).to.equal(1);
+    expect(toc.haveItem('GEN')).to.equal(true);
+
+    var itm = toc.getItem('GEN');
+    expect(itm.abbr).to.equal('Ge');
+    expect(itm.name).to.equal('name1');
+    expect(itm.lname).to.equal('lname1');
+    expect(itm.desc).to.equal('desc1');
+
+    expect(toc.addItem.bind(toc,
+           new TocItem('GEN', undefined, '', '', ''))).to.throw();
+    expect(toc.addItem(new TocItem('EXO', '', 'name2', 'lname2', 'desc2')));
+    expect(toc.numItems()).to.equal(2);
+
+    var toc2 = new TableOfContent([]);
+    toc2.addItem(new TocItem('GEN', undefined, 'name3', 'lname3', 'desc3'));
+    toc2.addItem(new TocItem('EXO', undefined, '', '', ''));
+
+    // after borrow only missing fields should be copied
+    toc2.borrow(toc);
+
+    // nothing should be changed in this item
+    itm = toc2.getItem('GEN');
+    expect(itm.name).to.equal('name3');
+    expect(itm.lname).to.equal('lname3');
+    expect(itm.desc).to.equal('desc3');
+
+    // expect to see borrowed values from first table of content
+    itm = toc2.getItem('EXO');
+    expect(itm.name).to.equal('name2');
+    expect(itm.lname).to.equal('lname2');
+    expect(itm.desc).to.equal('desc2');
+
+    expect(toc.verify.bind()).not.throw();
+    expect(toc2.verify.bind()).not.throw();
   });
 });
 

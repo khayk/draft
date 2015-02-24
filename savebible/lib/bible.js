@@ -140,7 +140,26 @@ var TocItem = function(id, abbr, name, lname, desc) {
 };
 
 TocItem.prototype.borrow = function(itm) {
-  //throw 'implement TocItem.prototype.borrow';
+  if (this.id !== itm.id)
+    throw 'unable to borrow attributes from the source of different id';
+
+  if (this.name === '')
+    this.name = itm.name;
+  if (this.lname === '')
+    this.lname = itm.lname;
+  if (this.desc === '')
+    this.desc = itm.desc;
+};
+
+TocItem.prototype.verify = function() {
+  if (this.id === '')
+    throw 'missing id';
+  if (this.abbr === '')
+    throw 'missing abbr';
+  if (this.name === '')
+    throw 'missing name';
+  if (this.lname === '')
+    throw 'missing lname';
 };
 
 // ------------------------------------------------------------------------
@@ -165,6 +184,8 @@ TableOfContent.prototype.numItems = function() {
 };
 
 TableOfContent.prototype.addItem = function(itm) {
+  if (!helper.isUndefined(this.content[itm.id]))
+    throw 'id ' + itm.id + ' already exists';
   this.content[itm.id] = itm;
 };
 
@@ -185,6 +206,13 @@ TableOfContent.prototype.borrow = function(toc) {
     var ti = toc.getItem(key);
     if (ti !== null)
       val.borrow(ti);
+  });
+};
+
+// verify that core attributes are presented in the table of content
+TableOfContent.prototype.verify = function() {
+  _.each(this.content, function(val, key) {
+    val.verify();
   });
 };
 
@@ -937,6 +965,8 @@ TextRenderer.prototype.renderBook = function(book) {
 getBibleRequireObj().BBM            = BBM;
 getBibleRequireObj().Tags           = Tags;
 getBibleRequireObj().TableOfContent = TableOfContent;
+getBibleRequireObj().TocItem        = TocItem;
+
 
 //getBibleRequireObj().Verse        = Verse;
 
