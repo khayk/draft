@@ -10,8 +10,8 @@
         {"id":"GEN", "name":"Genesis",   "desc":"1 Moses in some Bibles"},
         {"id":"EXO", "name":"Exodus",    "desc":"2 Moses in some Bibles"},
         {"id":"LEV", "name":"Leviticus", "desc":"3 Moses in some Bibles"},
-        {"id":"NUM", "name":"Numbers",   "desc":"4 Moses in some Bibles"},
-        {"id":"ACT", "name":"Acts",      "desc":"The Acts of the Apostles"},
-        {"id":"BAR", "name":"Baruch",    "desc":"Baruch"}
+        {"id":"OBA", "name":"Obadiah",   "desc":""},
+        {"id":"MAT", "name":"Matthew",   "desc":"The Gospel according to Matthew"},
+        {"id":"LUK", "name":"Luke",      "desc":"The Gospel according to Luke"}
     ]
 }

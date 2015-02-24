@@ -133,8 +133,12 @@ var TocItem = function(id, abbr, name, lname, desc) {
   // reuse default abbreviation of book for missing items
   if (this.abbr === '')
     this.abbr = BBM.instance().entryById(this.id).abbr;
-  if (this.lname)
+  if (this.lname) {
     this.lname = this.lname.trim();
+    // if after all long name is empty get the value from name
+    if (this.lname === '')
+      this.lname = this.name;
+  }
   if (this.desc)
     this.desc = this.desc.trim();
 };

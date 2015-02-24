@@ -205,9 +205,16 @@ describe('Core modules', function() {
     it('loading test data from disc', function(done) {
       core.PackManager.scan('./data/test/', true, stub(done).onScanned);
     });
+  });
 
-    // it('construction by parser', function() {});
+  describe('Bible interface', function() {
+    it('Verse', function() {
+    });
 
-    // it('manual construction', function() {});
+    it('Chapter', function() {
+    });
+
+    it('Book', function() {
+    });
   });
 });
