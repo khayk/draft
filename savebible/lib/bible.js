@@ -66,17 +66,31 @@ var BBM = (function() {
       byOn[obj.index] = entries.length - 1;
     });
 
+    var iterate = function(obj, key, num) {
+      var keys = Object.keys(obj);
+      var pos = keys.indexOf(key.toString());
+      console.log(keys);
+      var ind = pos + num;
+      if (ind < 0 || ind >= keys.length)
+        return null;
+      return keys[ind];
+    };
+
     return {
       // get an entry by given id
       entryById: function(id) {
-        // TODO - verification, do not add if absent
-        return entries[byId[id]];
+        var ref = byId[id];
+        if (helper.isUndefined(ref))
+          return null;
+        return entries[ref];
       },
 
       // get entries by order number (i.e. by index)
       entryByOn: function(on) {
-        // TODO - verify range
-        return entries[byOn[on]];
+        var ref = byOn[on];
+        if (helper.isUndefined(ref))
+          return null;
+        return entries[ref];
       },
 
       // entries count
@@ -104,6 +118,24 @@ var BBM = (function() {
       // return order numbers collection
       ons: function() {
         return byOn;
+      },
+
+      // @returns id that stands after to the entry with specified id,
+      //          null if there are no more entries
+      nextId: function(id) {
+        var ref = this.entryById(id);
+        if (ref !== null) {
+          ref = iterate(byOn, ref.index, 1);
+          if (ref !== null)
+            return ref.id;
+        }
+        return ref;
+      },
+
+      // @returns id that stands before the entry with specified id.
+      //          null returned if there are no more entries
+      prevId: function(id) {
+
       }
     };
   }
@@ -389,13 +421,13 @@ Verse.prototype = {
 //                               CHAPTER
 // ------------------------------------------------------------------------
 var Chapter = function(book, number) {
- this.parent = book || null;
- this.number = number || 0;
- this.verses = [];
+  this.parent = book || null;
+  this.number = number || 0;
+  this.verses = [];
 
- // the pair <verse index, heading>, where heading should be displayed
- // just above the verse with the 'verse index'
- this.heading = {};
+  // the pair <verse index, heading>, where heading should be displayed
+  // just above the verse with the 'verse index'
+  this.heading = {};
 };
 
 Chapter.prototype = {
@@ -470,6 +502,38 @@ var Book = function(bible, id) {
 };
 
 Book.prototype = {
+  id: function() {
+    return this.id;
+  },
+
+  // return the next verse of the chapter containing current verse
+  // return null there are no more
+  next: function() {
+    if (parent === null)
+      return null;
+    //return parent.getBook(number + 1);
+  },
+
+  // return the previous verse of the chapter containing current verse
+  // return null there are no more
+  prev: function() {
+    if (parent === null)
+      return null;
+    //return parent.getChapter(number - 1);
+  },
+
+  numChapters: function() {
+    return chapters.length;
+  },
+
+  addChapter: function(chapter) {
+
+  },
+
+  getChapter: function(number) {
+
+  },
+
   render: function(renderer) {
     return renderer.renderBook(this);
   },

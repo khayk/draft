@@ -24,7 +24,9 @@ describe('stress BBM module', function() {
       'existsId',
       'entries',
       'ids',
-      'ons');
+      'ons',
+      'nextId',
+      'prevId');
   });
 
   it('content', function() {
@@ -60,7 +62,7 @@ describe('stress BBM module', function() {
 
   it('immutability', function() {
     // the number of entries should not be altered if queries missing entry
-    expect(o.entryById('NOT FOUND')).to.equal(undefined);
+    expect(o.entryById('NOT FOUND')).to.equal(null);
     expect(o.existsId('NONE')).to.equal(false);
     expect(o.numEntries()).to.equal(initialCount);
   });
@@ -209,6 +211,7 @@ describe('Core modules', function() {
 
   describe('Bible interface', function() {
     it('Verse', function() {
+      console.log()
     });
 
     it('Chapter', function() {

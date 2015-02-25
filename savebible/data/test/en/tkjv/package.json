@@ -12,6 +12,7 @@
         {"id":"LEV", "name":"Leviticus", "desc":"3 Moses in some Bibles"},
         {"id":"OBA", "name":"Obadiah",   "desc":""},
         {"id":"MAT", "name":"Matthew",   "desc":"The Gospel according to Matthew"},
-        {"id":"LUK", "name":"Luke",      "desc":"The Gospel according to Luke"}
+        {"id":"LUK", "name":"Luke",      "desc":"The Gospel according to Luke"},
+        {"id":"BAR", "name":"Baruch",    "desc":"5 chapters in Orthodox Bibles ..."}
     ]
 }

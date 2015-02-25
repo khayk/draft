@@ -133,12 +133,37 @@ var HiResTimer   = helper.HiResTimer;
     //console.log(util.inspect(process.memoryUsage()));
   }
 
+  var iterate = function(obj, key, num) {
+    var keys = Object.keys(obj);
+    var pos = keys.indexOf(key);
+    var ind = pos + num;
+    if (ind < 0 || ind >= keys.length)
+      return null;
+    return keys[ind];
+  };
+
 
   function main() {
     timer.start();
     try {
-      renderTest();
+      //renderTest();
       //packMgr.discover('./data/test/', onDiscovered);
+      var obj = {4: 'hayk', 7: 'artyom', 13: 'armine'};
+      console.log(obj);
+
+      // console.log(keys.indexOf('hayk'));
+      // console.log(keys.indexOf('7'));
+      // console.log(keys.indexOf("13"));
+      // console.log(keys.indexOf(4));
+
+
+
+      var id = 4;
+      while (id !== null) {
+        console.log(id);
+        id = iterate(obj, id.toString(), 1);
+      }
+
     } catch (e) {
       console.error('ERROR:', e);
     }
