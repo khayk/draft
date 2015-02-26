@@ -58,6 +58,24 @@ describe('stress BBM module', function() {
       else
         prev = ind;
     });
+
+    // go back and forth in the BBM
+    // move forward
+    var id = 'GEN';
+    var count = 0;
+    while (id !== null) {
+      id = BBM.instance().nextId(id);
+      ++count;
+    }
+    expect(count).to.equal(initialCount);
+
+    // move backward
+    id = 'REV';
+    while (id !== null) {
+      id = BBM.instance().prevId(id);
+      --count;
+    }
+    expect(count).to.equal(0);
   });
 
   it('immutability', function() {
@@ -211,7 +229,6 @@ describe('Core modules', function() {
 
   describe('Bible interface', function() {
     it('Verse', function() {
-      console.log()
     });
 
     it('Chapter', function() {

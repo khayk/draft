@@ -68,12 +68,21 @@ var BBM = (function() {
 
     var iterate = function(obj, key, num) {
       var keys = Object.keys(obj);
-      var pos = keys.indexOf(key.toString());
-      console.log(keys);
+      var pos = keys.indexOf(key);
       var ind = pos + num;
       if (ind < 0 || ind >= keys.length)
         return null;
       return keys[ind];
+    };
+
+    var advance = function(id, delta) {
+      var ref = instance_.entryById(id);
+      if (ref === null)
+        return null;
+      ref = iterate(byOn, ref.index.toString(), delta);
+      if (ref === null)
+        return null;
+      return instance_.entryByOn(ref).id;
     };
 
     return {
@@ -120,22 +129,16 @@ var BBM = (function() {
         return byOn;
       },
 
-      // @returns id that stands after to the entry with specified id,
+      // @returns id that come after the entry with specified id,
       //          null if there are no more entries
       nextId: function(id) {
-        var ref = this.entryById(id);
-        if (ref !== null) {
-          ref = iterate(byOn, ref.index, 1);
-          if (ref !== null)
-            return ref.id;
-        }
-        return ref;
+        return advance(id, 1);
       },
 
       // @returns id that stands before the entry with specified id.
       //          null returned if there are no more entries
       prevId: function(id) {
-
+        return advance(id, -1);
       }
     };
   }
@@ -469,9 +472,7 @@ Chapter.prototype = {
     if ( verse.number - this.numVerses() !== 1 ) {
       throw 'detected verse gap while adding verse ' + verse.id();
     }
-    if ( this.verses.push(verse) !== verse.number ) {
-      throw 'inconsistency detected while adding verse ' + verse.id();
-    }
+    this.verses.push(verse);
   },
 
   getVerse: function(number) {
@@ -511,7 +512,14 @@ Book.prototype = {
   next: function() {
     if (parent === null)
       return null;
-    //return parent.getBook(number + 1);
+    var nbi = this.id;
+    while (nbi !== null) {
+      nbi = BBM.instance().nextId(this.id);
+      var nb = parent.getBook(nbi);
+      if (nb !== null)
+        return nb;
+    }
+    return null;
   },
 
   // return the previous verse of the chapter containing current verse
@@ -519,30 +527,43 @@ Book.prototype = {
   prev: function() {
     if (parent === null)
       return null;
-    //return parent.getChapter(number - 1);
+    var nbi = this.id;
+    while (nbi !== null) {
+      nbi = BBM.instance().prevId(this.id);
+      var nb = parent.getBook(nbi);
+      if (nb !== null)
+        return nb;
+    }
+    return null;
   },
 
   numChapters: function() {
-    return chapters.length;
+    return this.chapters.length;
   },
 
   addChapter: function(chapter) {
-
+    chapter.parent = this;
+    if ( chapter.number - this.numChapters() !== 1 ) {
+      throw 'detected gap while adding chapter ' + chapter.id();
+    }
+    this.chapters.push(chapter);
   },
 
   getChapter: function(number) {
-
+    if (number < 1 || number > this.numChapters())
+      return null;
+    return this.chapters[number - 1];
   },
 
   render: function(renderer) {
     return renderer.renderBook(this);
   },
 
-  getVerse: function(cn, vn) {
-    if (cn > this.chapters.length || cn < 1)
-      throw 'invalid chapter for book \"' + this.id + '\": [' + cn + '/' + this.chapters.length + ']';
-    return this.chapters[cn - 1].getVerse(vn);
-  }
+  // getVerse: function(cn, vn) {
+  //   if (cn > this.chapters.length || cn < 1)
+  //     throw 'invalid chapter for book \"' + this.id + '\": [' + cn + '/' + this.chapters.length + ']';
+  //   return this.chapters[cn - 1].getVerse(vn);
+  // }
 };
 
 

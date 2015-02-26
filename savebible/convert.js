@@ -148,22 +148,6 @@ var HiResTimer   = helper.HiResTimer;
     try {
       //renderTest();
       //packMgr.discover('./data/test/', onDiscovered);
-      var obj = {4: 'hayk', 7: 'artyom', 13: 'armine'};
-      console.log(obj);
-
-      // console.log(keys.indexOf('hayk'));
-      // console.log(keys.indexOf('7'));
-      // console.log(keys.indexOf("13"));
-      // console.log(keys.indexOf(4));
-
-
-
-      var id = 4;
-      while (id !== null) {
-        console.log(id);
-        id = iterate(obj, id.toString(), 1);
-      }
-
     } catch (e) {
       console.error('ERROR:', e);
     }
