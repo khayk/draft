@@ -178,6 +178,7 @@ var TocItem = function(id, abbr, name, lname, desc) {
     this.desc = this.desc.trim();
 };
 
+
 TocItem.prototype.borrow = function(itm) {
   if (this.id !== itm.id)
     throw 'unable to borrow attributes from the source of different id';
@@ -200,6 +201,7 @@ TocItem.prototype.verify = function() {
   if (this.lname === '')
     throw 'missing lname';
 };
+
 
 // ------------------------------------------------------------------------
 //                      Table of content for Bible
@@ -238,6 +240,7 @@ TableOfContent.prototype.getItem = function(id) {
 TableOfContent.prototype.haveItem = function(id) {
   return !helper.isUndefined(this.content[id]);
 };
+
 
 // fill empty keys from input object
 TableOfContent.prototype.borrow = function(toc) {
@@ -476,7 +479,7 @@ Chapter.prototype = {
   },
 
   getVerse: function(number) {
-    if (number > this.verses.length || number < 1) {
+    if (number > this.numVerses() || number < 1) {
       console.error('invalid verse number %d for chapter %s', number, this.id());
       return null;
     }
