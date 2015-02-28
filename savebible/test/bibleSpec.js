@@ -84,13 +84,25 @@ describe('stress BBM module', function() {
     expect(o.existsId('NONE')).to.equal(false);
     expect(o.numEntries()).to.equal(initialCount);
   });
+
+  it('performance', function() {
+    var id, count;
+    for (var i = 0; i < 1000; ++i) {
+      id = 'GEN';
+      while (id !== null) {
+        id = BBM.instance().nextId(id);
+      }
+    }
+  });
+
 });
 
 
 describe('TableOfContent module', function() {
 
   it('functionality', function() {
-    var toc = new TableOfContent([]);
+    var toc = new TableOfContent();
+    expect(toc.firstItem()).to.equal(null);
     toc.addItem(new TocItem('GEN', undefined, 'name1', 'lname1', 'desc1'));
     expect(toc.numItems()).to.equal(1);
     expect(toc.haveItem('GEN')).to.equal(true);
@@ -106,7 +118,7 @@ describe('TableOfContent module', function() {
     expect(toc.addItem(new TocItem('EXO', '', 'name2', 'lname2', 'desc2')));
     expect(toc.numItems()).to.equal(2);
 
-    var toc2 = new TableOfContent([]);
+    var toc2 = new TableOfContent();
     toc2.addItem(new TocItem('GEN', undefined, 'name3', 'lname3', 'desc3'));
     toc2.addItem(new TocItem('EXO', undefined, '', '', ''));
 
@@ -127,6 +139,23 @@ describe('TableOfContent module', function() {
 
     expect(toc.verify.bind()).not.throw();
     expect(toc2.verify.bind()).not.throw();
+
+    itm = toc.firstItem();
+    expect(itm.id).to.equal('GEN');
+  });
+
+  it('performance', function() {
+    var toc = new TableOfContent();
+    BBM.instance().entries().forEach(function(e) {
+      toc.addItem(new TocItem(e.id, e.abbr, 'a', 'b', 'c'));
+    });
+
+    expect(toc.numItems()).to.equal(BBM.instance().numEntries());
+    for (var i = 0; i < 1000; ++i) {
+      var it = toc.firstItem();
+      while (it)
+        it = toc.nextItem(it.id);
+    }
   });
 });
 
@@ -182,7 +211,7 @@ describe('Core modules', function() {
         expect(bible.desc).to.equal(pack.ctx.desc);
         expect(bible.year).to.equal(pack.ctx.year);
         expect(bible.lang).to.equal(pack.ctx.lang);
-        expect(bible.toc).to.be.an.instanceof(bibleModule.TableOfContent);
+        //expect(bible.toc).to.be.an.instanceof(bibleModule.TableOfContent);
 
         expect(bible.toc.numItems()).to.equal(bible.books.length);
 

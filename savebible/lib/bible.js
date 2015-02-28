@@ -62,27 +62,27 @@ var BBM = (function() {
     idsmap.idsmap.forEach(function(e) {
       var obj = new BBMEntry(e.id, e.index, e.abbr, e.type);
       entries.push(obj);
-      byId[obj.id] = entries.length - 1;
-      byOn[obj.index] = entries.length - 1;
     });
 
-    var iterate = function(obj, key, num) {
-      var keys = Object.keys(obj);
-      var pos = keys.indexOf(key);
-      var ind = pos + num;
-      if (ind < 0 || ind >= keys.length)
-        return null;
-      return keys[ind];
-    };
+    // sort entries in by index
+    entries.sort(function(x, y) {
+      return x.index - y.index;
+    });
+
+    // initialize maps
+    entries.forEach(function(e, i) {
+      byId[e.id] = i;
+      byOn[e.index] = i;
+    });
 
     var advance = function(id, delta) {
       var ref = instance_.entryById(id);
-      if (ref === null)
-        return null;
-      ref = iterate(byOn, ref.index.toString(), delta);
-      if (ref === null)
-        return null;
-      return instance_.entryByOn(ref).id;
+      if (ref) {
+        ref = instance_.entryByOn(ref.index + delta);
+        if (ref)
+          return ref.id;
+      }
+      return null;
     };
 
     return {
@@ -206,56 +206,79 @@ TocItem.prototype.verify = function() {
 // ------------------------------------------------------------------------
 //                      Table of content for Bible
 // ------------------------------------------------------------------------
-var TableOfContent = function(arrToc) {
-  arrToc = arrToc || [];
-  this.content = {};
-  var self = this;
-  arrToc.forEach(function(ta) {
-    var itm = new TocItem(ta.id,
-                          ta.abbr,
-                          ta.name,
-                          ta.lname,
-                          ta.desc);
-    self.content[itm.id] = itm;
-  });
-};
+var TableOfContent = function() {
+  var content = {};
+  var size = 0;
 
-TableOfContent.prototype.numItems = function() {
-  return Object.keys(this.content).length;
-};
+  return {
+    numItems: function() {
+      return size;
+    },
 
-TableOfContent.prototype.addItem = function(itm) {
-  if (!helper.isUndefined(this.content[itm.id]))
-    throw 'id ' + itm.id + ' already exists';
-  this.content[itm.id] = itm;
-};
+    addItem: function(itm) {
+      if (!helper.isUndefined(content[itm.id]))
+        throw 'id ' + itm.id + ' already exists';
+      content[itm.id] = itm;
+      ++size;
+    },
 
-TableOfContent.prototype.getItem = function(id) {
-  var itm = this.content[id];
-  if (helper.isUndefined(itm))
-    return null;
-  return itm;
-};
+    getItem: function(id) {
+      var itm = content[id];
+      if (helper.isUndefined(itm))
+        return null;
+      return itm;
+    },
 
-TableOfContent.prototype.haveItem = function(id) {
-  return !helper.isUndefined(this.content[id]);
-};
+    firstItem: function() {
+      var key = null;
+      for (key in content) break;
+      if (key)
+        return this.getItem(key);
+      return null;
+    },
 
+    nextItem: function(id) {
+      var nid = id;
+      while (nid) {
+        nid = BBM.instance().nextId(nid);
+        var itm = this.getItem(nid);
+        if (itm)
+          return itm;
+      }
+      return null;
+    },
 
-// fill empty keys from input object
-TableOfContent.prototype.borrow = function(toc) {
-  _.each(this.content, function(val, key) {
-    var ti = toc.getItem(key);
-    if (ti !== null)
-      val.borrow(ti);
-  });
-};
+    prevItem: function(id) {
+      var nid = id;
+      while (nid) {
+        nid = BBM.instance().prevId(nid);
+        var itm = this.getItem(nid);
+        if (itm)
+          return itm;
+      }
+      return null;
+    },
 
-// verify that core attributes are presented in the table of content
-TableOfContent.prototype.verify = function() {
-  _.each(this.content, function(val, key) {
-    val.verify();
-  });
+    haveItem: function(id) {
+      return !helper.isUndefined(content[id]);
+    },
+
+    // fill empty keys from input object
+    borrow: function(toc) {
+      _.each(content, function(val, key) {
+        var ti = toc.getItem(key);
+        if (ti !== null)
+          val.borrow(ti);
+      });
+    },
+
+    // verify that core attributes are presented in the table of content
+    verify: function() {
+      _.each(this.content, function(val, key) {
+        val.verify();
+      });
+    }
+  };
 };
 
 // ------------------------------------------------------------------------
@@ -399,23 +422,23 @@ Verse.prototype = {
   // the whole bible
   id: function() {
     if (this.parent === null) {
-      return 'null 0: ' + this.number;
+      return 'o 0: ' + this.number;
     }
     return this.parent.id() + ':' + this.number;
   },
 
   // return the next verse of the chapter containing current verse
   next: function() {
-    if (parent === null)
-      return null;
-    return parent.getVerse(number + 1);
+    if (parent)
+      return parent.getVerse(number + 1);
+    return null;
   },
 
   // return the previous verse of the chapter containing current verse
   prev: function() {
-    if (parent === null)
-      return null;
-    return parent.getVerse(number - 1);
+    if (parent)
+      return parent.getVerse(number - 1);
+    return null;
   },
 
   render: function(renderer) {
@@ -444,20 +467,20 @@ Chapter.prototype = {
     return this.parent.id() + ' ' + this.number;
   },
 
-  // return the next verse of the chapter containing current verse
+  // return the next chapter in the book containing current chapter
   // return null there are no more
   next: function() {
-    if (parent === null)
-      return null;
-    return parent.getChapter(number + 1);
+    if (parent)
+      return parent.getChapter(number + 1);
+    return null;
   },
 
-  // return the previous verse of the chapter containing current verse
+  // return the previous chapter in the book containing current chapter
   // return null there are no more
   prev: function() {
-    if (parent === null)
-      return null;
-    return parent.getChapter(number - 1);
+    if (parent)
+      return parent.getChapter(number - 1);
+    return null;
   },
 
   numVerses: function() {
@@ -510,32 +533,24 @@ Book.prototype = {
     return this.id;
   },
 
-  // return the next verse of the chapter containing current verse
+  // return the next book of the bible
   // return null there are no more
   next: function() {
-    if (parent === null)
-      return null;
-    var nbi = this.id;
-    while (nbi !== null) {
-      nbi = BBM.instance().nextId(this.id);
-      var nb = parent.getBook(nbi);
-      if (nb !== null)
-        return nb;
+    if (parent) {
+      var tocItem = parent.getToc().nextItem(this.id);
+      if (tocItem)
+        return parent.getBook(tocItem.id);
     }
     return null;
   },
 
-  // return the previous verse of the chapter containing current verse
+  // return the previous book of the bible
   // return null there are no more
   prev: function() {
-    if (parent === null)
-      return null;
-    var nbi = this.id;
-    while (nbi !== null) {
-      nbi = BBM.instance().prevId(this.id);
-      var nb = parent.getBook(nbi);
-      if (nb !== null)
-        return nb;
+    if (parent) {
+      var tocItem = parent.getToc().prevItem(this.id);
+      if (tocItem)
+        return parent.getBook(tocItem.id);
     }
     return null;
   },
@@ -560,7 +575,7 @@ Book.prototype = {
 
   render: function(renderer) {
     return renderer.renderBook(this);
-  },
+  }
 
   // getVerse: function(cn, vn) {
   //   if (cn > this.chapters.length || cn < 1)
@@ -590,6 +605,11 @@ Bible.prototype.sort = function() {
   });
 };
 
+// returns first book in the bible
+Bible.prototype.next = function(id) {
+//  return toc.next(id);
+};
+
 // add book into bible if it is not added already. duplicate book insertion
 // will raise an exception
 Bible.prototype.addBook = function(book) {
@@ -602,6 +622,9 @@ Bible.prototype.addBook = function(book) {
   this.books.push(book);
 };
 
+Bible.prototype.getBook = function(id) {
+//
+};
 
 // ------------------------------------------------------------------------
 //                            PARSER BASE
@@ -826,7 +849,6 @@ USFMParser.prototype.parseBible = function(arr, details) {
   var self = this;
 
   bible.toc = new TableOfContent();
-
   arr.forEach(function(obj) {
     try {
       // parse each book separately
@@ -851,7 +873,17 @@ USFMParser.prototype.parseBible = function(arr, details) {
     bible.desc   = details.desc;
     bible.year   = details.year;
     bible.lang   = details.lang;
-    bible.toc.borrow(new TableOfContent(details.toc));
+
+    var tmp = details.toc || [];
+    var tmpTOC = new TableOfContent();
+    tmp.forEach(function(ta) {
+      tmpTOC.addItem(new TocItem(ta.id,
+                            ta.abbr,
+                            ta.name,
+                            ta.lname,
+                            ta.desc));
+    });
+    bible.toc.borrow(tmpTOC);
   }
 
   return bible;
