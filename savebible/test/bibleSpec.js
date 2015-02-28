@@ -142,6 +142,14 @@ describe('TableOfContent module', function() {
 
     itm = toc.firstItem();
     expect(itm.id).to.equal('GEN');
+
+    itm = toc.nextItem(itm.id);
+    expect(itm.id).to.equal('EXO');
+
+    itm = toc.prevItem(itm.id);
+    expect(itm.id).to.equal('GEN');
+
+    toc.verify();
   });
 
   it('performance', function() {

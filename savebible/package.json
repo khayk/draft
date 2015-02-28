@@ -1,0 +1,7 @@
+{
+    "config": {
+      "blanket": {
+        "pattern": "c:/Dev/code/projects/personal/draft/savebible/lib"
+      }
+    }
+}
