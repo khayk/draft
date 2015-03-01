@@ -13,6 +13,11 @@ var TextRenderer   = bibleModule.TextRenderer;
 var TableOfContent = bibleModule.TableOfContent;
 var TocItem        = bibleModule.TocItem;
 
+var Verse          = bibleModule.Verse;
+var Chapter        = bibleModule.Chapter;
+var Book           = bibleModule.Book;
+var Bible          = bibleModule.Bible;
+
 describe('module BBM', function() {
   var o = BBM.instance();
   var initialCount = o.numEntries();
@@ -265,13 +270,86 @@ describe('core modules', function() {
   });
 
   describe('Bible interface', function() {
-    it('verse', function() {
+    var bb = new Bible();
+    var b1 = new Book();
+    var b2 = new Book();
+    var c1 = new Chapter();
+    var c2 = new Chapter();
+    var v1 = new Verse();
+    var v2 = new Verse();
+
+    describe('isolated behavior', function() {
+      it('book', function() {
+        expect(b1.id).to.be.equal('');
+        expect(b1.next()).to.be.equal(null);
+        expect(b1.prev()).to.be.equal(null);
+        expect(b1.numChapters()).to.be.equal(0);
+      });
+
+      it('chapter', function() {
+        expect(c1.id()).to.be.equal('null 0');
+        expect(c1.next()).to.be.equal(null);
+        expect(c1.prev()).to.be.equal(null);
+        expect(c1.numVerses()).to.be.equal(0);
+      });
+
+      it('verse', function() {
+        expect(v1.id()).to.be.equal('null 0: 0');
+        expect(v1.next()).to.be.equal(null);
+        expect(v1.prev()).to.be.equal(null);
+      });
     });
 
-    it('chapter', function() {
+    describe('combined behavior', function() {
+      var tid1 = 'MAT';
+      var tid2 = 'MRK';
+
+      before(function() {
+        v1.number = 1;
+        c1.number = 1;
+        c1.addVerse(v1);
+        b1.id = tid1;
+        b1.addChapter(c1);
+        b2.id = tid2;
+        bb.addBook(b1);
+        bb.addBook(b2);
+      });
+
+      it('exceptions', function() {
+        v2.number = 3;
+        expect(c1.addVerse.bind(c1, v2)).to.throw();
+        c2.number = 3;
+        expect(b1.addChapter.bind(b1, c2)).to.throw();
+
+        v2.number = 2;
+        expect(c1.addVerse.bind(c1, v2)).to.not.throw();
+        c2.number = 2;
+        expect(b1.addChapter.bind(b1, c2)).to.not.throw();
+      });
+
+      it('verse', function() {
+        expect(v1.id()).to.be.equal(tid1 + ' 1:1');
+        expect(v2.id()).to.be.equal(tid1 + ' 1:2');
+        expect(v1.next()).to.be.equal(v2);
+        expect(v2.next()).to.be.equal(null);
+        expect(v2.prev()).to.be.equal(v1);
+        expect(v1.prev()).to.be.equal(null);
+      });
+
+      it('chapter', function() {
+        expect(c1.id()).to.be.equal(tid1 + ' 1');
+        expect(c2.id()).to.be.equal(tid1 + ' 2');
+        expect(c1.next()).to.be.equal(c2);
+        expect(c2.next()).to.be.equal(null);
+        expect(c2.prev()).to.be.equal(c1);
+        expect(c1.prev()).to.be.equal(null);
+        expect(c1.numVerses()).to.be.equal(2);
+        expect(c2.numVerses()).to.be.equal(0);
+      });
+
+      it('book', function() {
+      });
     });
 
-    it('book', function() {
-    });
   });
 });

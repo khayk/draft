@@ -410,9 +410,9 @@ CompoundNode.prototype.normalize = function() {
 // ------------------------------------------------------------------------
 //                               VERSE
 // ------------------------------------------------------------------------
-var Verse = function(chapter, number) {
-  this.parent = chapter || null;
-  this.number = number || 0;
+var Verse = function() {
+  this.parent = null;
+  this.number = 0;
   this.np     = false; // new paragraph
   this.node   = new CompoundNode('', null);
 };
@@ -422,22 +422,22 @@ Verse.prototype = {
   // the whole bible
   id: function() {
     if (this.parent === null) {
-      return 'o 0: ' + this.number;
+      return 'null 0: ' + this.number;
     }
     return this.parent.id() + ':' + this.number;
   },
 
   // return the next verse of the chapter containing current verse
   next: function() {
-    if (parent)
-      return parent.getVerse(number + 1);
+    if (this.parent)
+      return this.parent.getVerse(this.number + 1);
     return null;
   },
 
   // return the previous verse of the chapter containing current verse
   prev: function() {
-    if (parent)
-      return parent.getVerse(number - 1);
+    if (this.parent)
+      return this.parent.getVerse(this.number - 1);
     return null;
   },
 
@@ -449,9 +449,9 @@ Verse.prototype = {
 // ------------------------------------------------------------------------
 //                               CHAPTER
 // ------------------------------------------------------------------------
-var Chapter = function(book, number) {
-  this.parent = book || null;
-  this.number = number || 0;
+var Chapter = function() {
+  this.parent = null;
+  this.number = 0;
   this.verses = [];
 
   // the pair <verse index, heading>, where heading should be displayed
@@ -464,32 +464,27 @@ Chapter.prototype = {
     if (this.parent === null) {
       return 'null ' + this.number;
     }
-    return this.parent.id() + ' ' + this.number;
+    return this.parent.id + ' ' + this.number;
   },
 
   // return the next chapter in the book containing current chapter
   // return null there are no more
   next: function() {
-    if (parent)
-      return parent.getChapter(number + 1);
+    if (this.parent)
+      return this.parent.getChapter(this.number + 1);
     return null;
   },
 
   // return the previous chapter in the book containing current chapter
   // return null there are no more
   prev: function() {
-    if (parent)
-      return parent.getChapter(number - 1);
+    if (this.parent)
+      return this.parent.getChapter(this.number - 1);
     return null;
   },
 
   numVerses: function() {
     return this.verses.length;
-  },
-
-  // set verse into chapter into its final position
-  setVerse: function(verse) {
-    this.verses.splice(verse.number - 1, 1, verse);
   },
 
   // insert verse into chapter, throw exception if something went wrong
@@ -503,7 +498,6 @@ Chapter.prototype = {
 
   getVerse: function(number) {
     if (number > this.numVerses() || number < 1) {
-      console.error('invalid verse number %d for chapter %s', number, this.id());
       return null;
     }
     return this.verses[number - 1];
@@ -518,9 +512,9 @@ Chapter.prototype = {
 // ------------------------------------------------------------------------
 //                               BOOK
 // ------------------------------------------------------------------------
-var Book = function(bible, id) {
-  this.parent   = bible || null;
-  this.id       = id || '';
+var Book = function() {
+  this.parent   = null;
+  this.id       = '';
   this.abbr     = '';
   this.name     = '';
   this.lname    = '';
@@ -529,17 +523,14 @@ var Book = function(bible, id) {
 };
 
 Book.prototype = {
-  id: function() {
-    return this.id;
-  },
 
   // return the next book of the bible
   // return null there are no more
   next: function() {
-    if (parent) {
-      var tocItem = parent.getToc().nextItem(this.id);
+    if (this.parent) {
+      var tocItem = this.parent.getToc().nextItem(this.id);
       if (tocItem)
-        return parent.getBook(tocItem.id);
+        return this.parent.getBook(tocItem.id);
     }
     return null;
   },
@@ -547,10 +538,10 @@ Book.prototype = {
   // return the previous book of the bible
   // return null there are no more
   prev: function() {
-    if (parent) {
-      var tocItem = parent.getToc().prevItem(this.id);
+    if (this.parent) {
+      var tocItem = this.parent.getToc().prevItem(this.id);
       if (tocItem)
-        return parent.getBook(tocItem.id);
+        return this.parent.getBook(tocItem.id);
     }
     return null;
   },
@@ -798,7 +789,7 @@ var USFMParser = function(supportedOnly) {
       var c = this.parseChapter(cstr);
       c.parent = book;
       c.number = cn;
-      book.chapters.push(c);
+      book.addChapter(c);
 
       if (arr === null)
         return;
