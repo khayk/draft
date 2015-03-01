@@ -489,10 +489,10 @@ Chapter.prototype = {
 
   // insert verse into chapter, throw exception if something went wrong
   addVerse: function(verse) {
-    verse.parent = this;
     if ( verse.number - this.numVerses() !== 1 ) {
       throw 'detected verse gap while adding verse ' + verse.id();
     }
+    verse.parent = this;
     this.verses.push(verse);
   },
 
@@ -551,10 +551,10 @@ Book.prototype = {
   },
 
   addChapter: function(chapter) {
-    chapter.parent = this;
     if ( chapter.number - this.numChapters() !== 1 ) {
       throw 'detected gap while adding chapter ' + chapter.id();
     }
+    chapter.parent = this;
     this.chapters.push(chapter);
   },
 
@@ -596,25 +596,19 @@ Bible.prototype.sort = function() {
   });
 };
 
-// returns first book in the bible
-Bible.prototype.next = function(id) {
-//  return toc.next(id);
-};
-
 // add book into bible if it is not added already. duplicate book insertion
 // will raise an exception
 Bible.prototype.addBook = function(book) {
-  book.parent = this;
   // make sure that the new book is not exist in the instance of bible
   this.books.forEach(function(b) {
     if (b.id === book.id)
       throw 'book ' + id + ' is already exist in the bible';
   });
+  book.parent = this;
   this.books.push(book);
 };
 
 Bible.prototype.getBook = function(id) {
-//
 };
 
 // ------------------------------------------------------------------------

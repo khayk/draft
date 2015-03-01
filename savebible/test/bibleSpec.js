@@ -154,6 +154,8 @@ describe('module TableOfContent', function() {
     itm = toc.prevItem(itm.id);
     expect(itm.id).to.equal('GEN');
 
+    itm = toc.prevItem(itm.id);
+    expect(itm).to.equal(null);
     toc.verify();
   });
 
@@ -348,6 +350,10 @@ describe('core modules', function() {
       });
 
       it('book', function() {
+        expect(b1.prev()).to.be.equal(null);
+        expect(b1.next()).to.be.equal(b2);
+        expect(b2.prev()).to.be.equal(b1);
+        expect(b2.next()).to.be.equal(null);
       });
     });
 
