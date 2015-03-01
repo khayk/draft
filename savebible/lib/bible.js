@@ -274,7 +274,7 @@ var TableOfContent = function() {
 
     // verify that core attributes are presented in the table of content
     verify: function() {
-      _.each(this.content, function(val, key) {
+      _.each(content, function(val, key) {
         val.verify();
       });
     }

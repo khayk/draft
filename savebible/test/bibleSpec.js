@@ -13,7 +13,7 @@ var TextRenderer   = bibleModule.TextRenderer;
 var TableOfContent = bibleModule.TableOfContent;
 var TocItem        = bibleModule.TocItem;
 
-describe('stress BBM module', function() {
+describe('module BBM', function() {
   var o = BBM.instance();
   var initialCount = o.numEntries();
 
@@ -98,7 +98,7 @@ describe('stress BBM module', function() {
 });
 
 
-describe('TableOfContent module', function() {
+describe('module TableOfContent', function() {
 
   it('functionality', function() {
     var toc = new TableOfContent();
@@ -168,7 +168,7 @@ describe('TableOfContent module', function() {
 });
 
 
-describe('TAGs module', function() {
+describe('module TAGs', function() {
   it('supported tags', function() {
     var arrSupported = ['add', '+add*', 'add*', 'nd', '\\qt', '\\+wj'];
 
@@ -197,7 +197,7 @@ describe('TAGs module', function() {
 });
 
 
-describe('Core modules', function() {
+describe('core modules', function() {
   var bible = null;
 
   var stub = function(cb) {
@@ -265,13 +265,13 @@ describe('Core modules', function() {
   });
 
   describe('Bible interface', function() {
-    it('Verse', function() {
+    it('verse', function() {
     });
 
-    it('Chapter', function() {
+    it('chapter', function() {
     });
 
-    it('Book', function() {
+    it('book', function() {
     });
   });
 });
