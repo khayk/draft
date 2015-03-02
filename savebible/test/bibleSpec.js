@@ -234,13 +234,13 @@ describe('core modules', function() {
     };
   };
 
-  describe('USFM format', function() {
+  describe('read usfm format', function() {
     var parser = new USFMParser(true);
     var parserAll = new USFMParser(false);
     var usfmRndr = new USFMRenderer();
     var textRndr = new TextRenderer();
 
-    it('USFMRenderer', function() {
+    it('write as usfm', function() {
       dataUSFM.verses.forEach(function(o) {
         var ref = o.data;
         var orig = ref.orig.replace(/\n/g, ' ').trim();
@@ -255,7 +255,7 @@ describe('core modules', function() {
       });
     });
 
-    it('TextRenderer', function() {
+    it('write as text', function() {
       dataUSFM.verses.forEach(function(o) {
         var ref = o.data;
         var orig = ref.orig.replace(/\n/g, ' ').trim();
@@ -270,7 +270,7 @@ describe('core modules', function() {
     });
   });
 
-  describe('Bible interface', function() {
+  describe('bible interface', function() {
     var bb = new Bible();
     var b1 = new Book();
     var b2 = new Book();
@@ -364,5 +364,12 @@ describe('core modules', function() {
       });
     });
 
+    describe('rendering', function() {
+      it('bible', function() {
+        var usfmRndr = new USFMRenderer();
+        for (var i = 0; i < 100; ++i)
+          var str = bible.render(usfmRndr);
+      });
+    });
   });
 });
