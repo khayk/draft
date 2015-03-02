@@ -17,7 +17,6 @@ getBibleRequireObj = (function (bibleGlobal) {
 
 
 var idsmap = require('./idsmap.js');
-var helper = require('./helper.js');
 var _ = require('underscore');
 
 
@@ -89,7 +88,7 @@ var BBM = (function() {
       // get an entry by given id
       entryById: function(id) {
         var ref = byId[id];
-        if (helper.isUndefined(ref))
+        if (_.isUndefined(ref))
           return null;
         return entries[ref];
       },
@@ -97,7 +96,7 @@ var BBM = (function() {
       // get entries by order number (i.e. by index)
       entryByOn: function(on) {
         var ref = byOn[on];
-        if (helper.isUndefined(ref))
+        if (_.isUndefined(ref))
           return null;
         return entries[ref];
       },
@@ -109,7 +108,7 @@ var BBM = (function() {
 
       // check if entry with given id exists
       existsId: function(id) {
-        if (helper.isUndefined(byId[id]))
+        if (_.isUndefined(byId[id]))
           return false;
         return true;
       },
@@ -216,7 +215,7 @@ var TableOfContent = function() {
     },
 
     addItem: function(itm) {
-      if (!helper.isUndefined(content[itm.id]))
+      if (!_.isUndefined(content[itm.id]))
         throw 'id ' + itm.id + ' already exists';
       content[itm.id] = itm;
       ++size;
@@ -224,7 +223,7 @@ var TableOfContent = function() {
 
     getItem: function(id) {
       var itm = content[id];
-      if (helper.isUndefined(itm))
+      if (_.isUndefined(itm))
         return null;
       return itm;
     },
@@ -260,7 +259,7 @@ var TableOfContent = function() {
     },
 
     haveItem: function(id) {
-      return !helper.isUndefined(content[id]);
+      return !_.isUndefined(content[id]);
     },
 
     // fill empty keys from input object
@@ -577,13 +576,14 @@ Book.prototype = {
 
 
 var Bible = function() {
+  this.ids     = {};
   this.books   = [];
   this.abbr    = '';
   this.name    = '';
   this.desc    = '';
   this.year    = '';
   this.lang    = '';
-  this.toc     = null;
+  this.toc     = new TableOfContent();
 };
 
 Bible.prototype.render = function(renderer) {
@@ -592,7 +592,12 @@ Bible.prototype.render = function(renderer) {
 
 Bible.prototype.sort = function() {
   this.books.sort(function(x, y) {
-    return BBM.instance().byId(x.id).index - BBM.instance().byId(y.id).index;
+    return BBM.instance().entryById(x.id).index - BBM.instance().entryById(y.id).index;
+  });
+
+  var self = this;
+  this.books.forEach(function(b, i) {
+    self.ids[b.id] = i;
   });
 };
 
@@ -600,15 +605,28 @@ Bible.prototype.sort = function() {
 // will raise an exception
 Bible.prototype.addBook = function(book) {
   // make sure that the new book is not exist in the instance of bible
-  this.books.forEach(function(b) {
-    if (b.id === book.id)
-      throw 'book ' + id + ' is already exist in the bible';
-  });
+  if (!_.isUndefined(this.ids[book.id]))
+    throw 'book ' + id + ' is already exist in the bible';
+
   book.parent = this;
   this.books.push(book);
+  this.ids[book.id] = this.books.length - 1;
+  this.toc.addItem(new TocItem(book.id,
+                               book.abbr,
+                               book.name,
+                               book.lname,
+                               book.desc));
 };
 
 Bible.prototype.getBook = function(id) {
+  var ref = this.ids[id];
+  if (_.isUndefined(ref))
+    return null;
+  return this.books[ref];
+};
+
+Bible.prototype.getToc = function() {
+  return this.toc;
 };
 
 // ------------------------------------------------------------------------
@@ -833,17 +851,11 @@ USFMParser.prototype.parseBible = function(arr, details) {
   var bible = new Bible();
   var self = this;
 
-  bible.toc = new TableOfContent();
   arr.forEach(function(obj) {
     try {
       // parse each book separately
       var book = self.parseBook(obj.data);
       bible.addBook(book);
-      bible.toc.addItem(new TocItem(book.id,
-                                    book.abbr,
-                                    book.name,
-                                    book.lname,
-                                    book.desc));
     }
     catch (e) {
       console.log('"%s" file processing failed. Error: %s', obj.name, e);
@@ -897,7 +909,7 @@ var ParserFactory = (function() {
 
   return {
     createParser: function(format) {
-      if (helper.isUndefined(format))
+      if (_.isUndefined(format))
         throw 'format is undefined';
 
       if (format === 'txt') {

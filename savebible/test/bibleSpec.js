@@ -1,7 +1,6 @@
 var _              = require('underscore');
 var expect         = require('chai').expect;
 var bibleModule    = require('../lib/bible.js');
-var helper         = require('../lib/helper.js');
 var core           = require('../core.js');
 var dataUSFM       = require('./dataUSFM.js');
 
@@ -354,6 +353,14 @@ describe('core modules', function() {
         expect(b1.next()).to.be.equal(b2);
         expect(b2.prev()).to.be.equal(b1);
         expect(b2.next()).to.be.equal(null);
+        expect(b1.numChapters()).to.be.equal(2);
+        expect(b1.getChapter(c1.number)).to.be.equal(c1);
+        expect(b1.getChapter(c2.number)).to.be.equal(c2);
+        expect(b2.numChapters()).to.be.equal(0);
+      });
+
+      it('bible', function() {
+        bb.sort();
       });
     });
 

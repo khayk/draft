@@ -47,16 +47,9 @@ var HiResTimer = function() {
   };
 };
 
-var removeComments = function(data) {
-  return data.replace(/^(.*?)\/\/(.*?)\r?\n/gm, '');
-};
-
-
-var isUndefined = function(obj) {
-  return typeof obj === 'undefined';
-};
-
+// var isUndefined = function(obj) {
+//   //return typeof obj === 'undefined';
+//   return obj === void 0;
+// };
 
 helperRequire().HiResTimer     = HiResTimer;
-helperRequire().removeComments = removeComments;
-helperRequire().isUndefined    = isUndefined;

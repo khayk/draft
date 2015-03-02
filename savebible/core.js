@@ -1,4 +1,3 @@
-var helper = require('./lib/helper.js');
 var bibl   = require('./lib/bible.js');
 var dir    = require('node-dir');
 var fs     = require('fs');
@@ -10,6 +9,9 @@ var Package = function() {
   this.ctx = null;
 };
 
+var removeComments = function(data) {
+  return data.replace(/^(.*?)\/\/(.*?)\r?\n/gm, '');
+};
 
 // Manage bible packages, search, load ...
 var PackManager = (function() {
@@ -34,7 +36,7 @@ var PackManager = (function() {
         // parse discovered packages
         files.forEach(function(file) {
           var str = fs.readFileSync(file, 'utf8');
-          str = helper.removeComments(str);
+          str = removeComments(str);
           var jo = null;
           try {
             jo = JSON.parse(str);
