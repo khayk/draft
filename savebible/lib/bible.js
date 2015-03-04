@@ -1054,6 +1054,7 @@ TextRenderer.prototype.renderNode = function(node) {
 
 TextRenderer.prototype.renderVerse = function(verse) {
   return verse.node.render(this).replace(/\s+/g, ' ').trim();
+  //return verse.node.render(this).replace(/\s+/g, ' ').trim();
 };
 
 TextRenderer.prototype.renderChapter = function(chapter) {

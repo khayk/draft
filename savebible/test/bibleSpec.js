@@ -3,6 +3,7 @@ var expect         = require('chai').expect;
 var bibleModule    = require('../lib/bible.js');
 var core           = require('../core.js');
 var dataUSFM       = require('./dataUSFM.js');
+var fs             = require('fs');
 
 var BBM            = bibleModule.BBM;
 var Tags           = bibleModule.Tags;
@@ -205,6 +206,7 @@ describe('module TAGs', function() {
 
 describe('core modules', function() {
   var bible = null;
+  var pack = null;
 
   var stub = function(cb) {
     var completionCb = cb;
@@ -213,8 +215,8 @@ describe('core modules', function() {
         expect(core.PackManager.getAll()).be.equal(packages);
 
         var lid = 'en';
-        var abbr = 'kjv';
-        var pack = core.PackManager.getPackage(lid, abbr);
+        var abbr = 'tkjv';
+        pack = core.PackManager.getPackage(lid, abbr);
 
         expect(pack).to.not.equal(null);
         bible = core.Loader.loadBible(pack);
@@ -365,10 +367,25 @@ describe('core modules', function() {
     });
 
     describe('rendering', function() {
-      it('bible', function() {
-        var usfmRndr = new USFMRenderer();
-        for (var i = 0; i < 100; ++i)
-          var str = bible.render(usfmRndr);
+      var str;
+      describe('bible', function() {
+        it('usfm', function() {
+          var usfmRndr = new USFMRenderer();
+          str = bible.render(usfmRndr);
+
+          //var data = fs.readFileSync(file, 'utf8');
+          fs.writeFile(pack.dir + '/usfm.render', str);
+          //console.log("USFM length: ", str.length);
+          //console.log(pack.dir);
+        });
+
+        it('text', function() {
+          var textRndr = new TextRenderer();
+          str = bible.render(textRndr);
+          fs.writeFile(pack.dir + '/text.render', str);
+          //console.log("TEXT length: ", str.length);
+          //console.log(pack.dir);
+        });
       });
     });
   });
