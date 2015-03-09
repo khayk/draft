@@ -1,19 +1,21 @@
-var fs           = require('fs');
-var path         = require('path');
-var util         = require('util');
+var fs             = require('fs');
+var path           = require('path');
+var util           = require('util');
 
-var theBible     = require('./lib/bible.js');
-var helper       = require('./lib/helper.js');
+var theBible       = require('./lib/bible.js');
+var helper         = require('./lib/helper.js');
 
-var BBM          = theBible.BBM;
-var Verse        = theBible.Verse;
-var Chapter      = theBible.Chapter;
-var Book         = theBible.Book;
-var Bible        = theBible.Bible;
-var USFMParser   = theBible.USFMParser;
-var Renderer     = theBible.Renderer;
-var TextRenderer = theBible.TextRenderer;
-var USFMRenderer = theBible.USFMRenderer;
+var BBM            = theBible.BBM;
+var Verse          = theBible.Verse;
+var Chapter        = theBible.Chapter;
+var Book           = theBible.Book;
+var Bible          = theBible.Bible;
+var USFMParser     = theBible.USFMParser;
+var Renderer       = theBible.Renderer;
+var TextRenderer   = theBible.TextRenderer;
+var USFMRenderer   = theBible.USFMRenderer;
+var Tags           = theBible.Tags;
+var USFMCounter    = theBible.USFMCounter;
 
 // utils exports
 var HiResTimer   = helper.HiResTimer;
@@ -25,14 +27,14 @@ var HiResTimer   = helper.HiResTimer;
   var timer = new HiResTimer();
   var bible = [];
 
-  var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
-  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
+  ///var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+  var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
 
 
   function launchStressTest() {
     var dataRoot = dropboxDir + 'Private/projects/bible project/data/real/';
 
-    var count    = 1;
+    var samples  = 1;
     var parser   = new USFMParser(false);
     var renderer = new USFMRenderer();
 
@@ -42,7 +44,7 @@ var HiResTimer   = helper.HiResTimer;
 
       var data = '';
       bible.forEach(function(b) {
-        for (var i = 0; i < count; ++i) {
+        for (var i = 0; i < samples; ++i) {
           data += b.render(renderer) + '\n';
         }
       });
@@ -65,7 +67,7 @@ var HiResTimer   = helper.HiResTimer;
         if (path.extname(p) === '.usfm') {
           var str  = fs.readFileSync(dataRoot + p, {encoding: 'utf8'});
           var book = null;
-          for (var i = 0; i < count; ++i) {
+          for (var i = 0; i < samples; ++i) {
             try {
               book = parser.parseBook(str);
               bible.push(book);
@@ -79,9 +81,16 @@ var HiResTimer   = helper.HiResTimer;
 
       console.log(util.inspect(process.memoryUsage()));
 
-      // timer.stop();
-      // timer.report();
-      // console.log("PARSING COMPLETED.");
+      // var counter = new USFMCounter();
+      // bible.forEach(function(book) {
+      //   counter.bookTags(book);
+      // });
+      // counter.report();
+
+      timer.stop();
+      timer.report();
+      console.log("PARSING COMPLETED.");
+
       // launchRenderTest(bible);
 
       // bible = [];
@@ -91,7 +100,6 @@ var HiResTimer   = helper.HiResTimer;
       // setTimeout(function() {
       //   launchStressTest();
       // }, 10);
-      // console.log(util.inspect(process.memoryUsage()));
     });
   }
 
@@ -99,18 +107,35 @@ var HiResTimer   = helper.HiResTimer;
     var testBook = './data/raw/70-MATeng-kjv-old.usfm';
     var str = fs.readFileSync(testBook, 'utf8');
 
-    //var renderer   = new USFMRenderer();
-    var renderer = new TextRenderer();
+    var renderer   = new USFMRenderer();
+    //var renderer = new TextRenderer();
 
 
     // supported tags only
-    var parser = new USFMParser(true);
+    var parser = new USFMParser(false);
     var book   = parser.parseBook(str);
     var data   = book.render(renderer);
 
-    var verse  = book.getVerse(27, 47);
-    // fs.writeFile('./data/raw/mt_27_47.txt', verse.render(renderer));
-    fs.writeFile('./data/raw/output.usfm', data);
+    var tc = new USFMCounter();
+
+  //  var verse = parser.parseVerse('\\zx \\zx*');
+    var verse = parser.parseVerse('\\zw \\+zws H0776 \\+zws*\\zw*And the earth\\zx \\zx* \\zw \\+zws H01961 \\+zws*\\+zwm strongMorph:TH8804 \\+zwm*\\zw*was\\zx \\zx*\n' +
+        '\\zw \\+zws H08414 \\+zws*\\zw*without form\\zx \\zx*, \\zw \\+zws H0922 \\+zws*\\zw*and\n' +
+        'void\\zx \\zx*; \\zw \\+zws H02822 \\+zws*\\zw*and darkness\\zx \\zx* \\add was\\add*\n' +
+        '\\zw \\+zws H06440 \\+zws*\\zw*upon the face\\zx \\zx* \\zw \\+zws H08415 \\+zws*\\zw*of the\n' +
+        'deep\\zx \\zx*. \\zw \\+zws H07307 \\+zws*\\zw*And the Spirit\\zx \\zx* \\zw \\+zws H0430 \\+zws*\\zw*of\n' +
+        'God\\zx \\zx* \\zw \\+zws H07363 \\+zws*\\+zwm strongMorph:TH8764 \\+zwm*\\zw*moved\\zx \\zx*\n' +
+        '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the\n' +
+        'face\\zx \\zx* \\zw \\+zws H04325 \\+zws*\\zw*of the waters\\zx \\zx*.');
+//    var verse = book.getChapter(27).getVerse(47);
+    var result = verse.render(renderer);
+    console.log(result);
+    fs.writeFile('./data/raw/mt_27_47.txt', result);
+    //tc.bookTags(book);
+    //tc.verseTags(verse);
+    //tc.report();
+
+    //fs.writeFile('./data/raw/output.usfm', data);
 
     // all tags
     // var parseAll = new USFMParser(false);
@@ -139,19 +164,13 @@ var HiResTimer   = helper.HiResTimer;
   }
 
   function main() {
-    timer.start();
     try {
       //launchStressTest();
-      //renderTest();
+      renderTest();
       //packMgr.discover('./data/test/', onDiscovered);
     } catch (e) {
       console.error('ERROR:', e);
     }
-
-    timer.stop();
-    timer.report();
-
-    console.log(util.inspect(process.memoryUsage()));
   }
 
   main();

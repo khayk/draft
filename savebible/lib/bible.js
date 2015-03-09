@@ -28,6 +28,8 @@ function extend(child, parent) {
   child.uber = parent.prototype;
 }
 
+var LF = '\n'; // line feed
+var CR = '\r'; // carriage return
 
 // -----------------------------------------------------------------------
 //                             BBMEntry
@@ -328,38 +330,53 @@ var Tags = (function() {
 // ------------------------------------------------------------------------
 //                      NODE - THE BASE CLASS
 // ------------------------------------------------------------------------
-var NODE_TYPE_TEXT = 1;
-var NODE_TYPE_TAG  = 2;
-var NODE_TYPE_NULL = 3;
-var LF             = '\n'; // line feed
-var CR             = '\r'; // carriage return
-
 var Node = function(parent, type) {
   this.parent = parent;
-  this.type   = type;
 };
 
-Node.prototype.addChild = function(node) {
-  throw 'implement "addChild" in the derived class';
-};
+// -----------------------------------------------------------------------=
+var NH = function() {
+  var tmp;
+  return {
+    getParent: function(node) {
+      tmp = node.parent;
+      if (tmp) return tmp;
+      return null;
+    },
 
-Node.prototype.render = function(renderer) {
-  throw 'implement "render" in the derived class';
-};
+    nullify: function(node) {
+      node.nullified = 1;
+    },
 
-Node.prototype.type = function() {
-  return this.type;
-};
+    isNullified: function(node) {
+      if (node.nullified)
+        return true;
+      return false;
+    },
 
+    isCompound: function(node) {
+      if (node.nodes)
+        return true;
+      return false;
+    },
+
+    isText: function(node) {
+      if (node.text)
+        return true;
+      return false;
+    },
+  };
+}();
 
 // ------------------------------------------------------------------------
 //                             TEXT NODE
 // ------------------------------------------------------------------------
 var TextNode = function(text, parent) {
-  Node.call(this, parent, NODE_TYPE_TEXT);
+  Node.call(this, parent);
   this.text = text;
 };
 extend(TextNode, Node);
+
 TextNode.prototype.render = function(renderer) {
   return this.text;
 };
@@ -369,13 +386,15 @@ TextNode.prototype.render = function(renderer) {
 //                             TAG NODE
 // ------------------------------------------------------------------------
 var CompoundNode = function(tag, parent) {
-  Node.call(this, parent, NODE_TYPE_TAG);
+  Node.call(this, parent);
   this.tag = tag;
-  this.nodes = [];
+  this.nodes = null;//[];
 };
 extend(CompoundNode, Node);
 
 CompoundNode.prototype.addChild = function(node) {
+  if (this.nodes === null)
+    this.nodes = [];
   this.nodes.push(node);
 };
 
@@ -385,8 +404,11 @@ CompoundNode.prototype.render = function(renderer) {
 
 CompoundNode.prototype.normalize = function() {
   var current = null;
+  if (this.nodes === null)
+    return;
+
   this.nodes.forEach(function(n) {
-    if (n.type === NODE_TYPE_TAG) {
+    if (NH.isCompound(n)) {
       current = null;
       n.normalize();
     }
@@ -395,14 +417,14 @@ CompoundNode.prototype.normalize = function() {
         current = n;
       else {
         current.text += n.text;
-        n.type = NODE_TYPE_NULL;
+        NH.nullify(n);
       }
     }
   });
 
   // now remove all null nodes
   this.nodes = this.nodes.filter(function(n) {
-    return n.type !== NODE_TYPE_NULL;
+    return !NH.isNullified(n);
   });
 };
 
@@ -731,9 +753,9 @@ var USFMParser = function(supportedOnly) {
         // remove last character as the current tag ends with symbol *
         tag = tag.slice(0, -1);
         while (node !== null && node.tag !== tag) {
-          node = node.parent;
+          node = NH.getParent(node);
         }
-        this.parseVerseHelper(str, ind, arr, re, node !== null ? node.parent : node);
+        this.parseVerseHelper(str, ind, arr, re, node !== null ? NH.getParent(node) : node);
       }
     } else {
       // collect remaining text
@@ -944,12 +966,27 @@ var Renderer = function() {
 function renderNodeCommon(renderer, node) {
   var res = '';
 
+  if (node.nodes === null)
+    return res;
+
   // combine the result of child nodes
   node.nodes.forEach(function(n) {
     res += n.render(renderer);
   });
   return res;
 }
+
+Renderer.prototype.renderBible = function(bible) {
+  var res = '';
+  var self = this;
+
+  bible.books.forEach(function(b) {
+    if (res !== '')
+      res += LF + LF;
+    res += b.render(self);
+  });
+  return res;
+};
 
 
 // ------------------------------------------------------------------------
@@ -997,17 +1034,6 @@ USFMRenderer.prototype.renderBook = function(book) {
   return res;
 };
 
-Renderer.prototype.renderBible = function(bible) {
-  var res = '';
-  var self = this;
-
-  bible.books.forEach(function(b) {
-    if (res !== '')
-      res += LF + LF;
-    res += b.render(self);
-  });
-  return res;
-};
 
 // ------------------------------------------------------------------------
 //                           TEXT RENDERER
@@ -1016,8 +1042,8 @@ var TextRenderer = function() {};
 extend(TextRenderer, Renderer);
 TextRenderer.prototype.renderNode = function(node) {
 
-  if (node.parent !== null &&
-      node.type === NODE_TYPE_TAG &&
+  if (NH.getParent(node) !== null &&
+      NH.isCompound(node) &&
       !Tags.isSupported(node.tag) ) {
     return '';
   }
@@ -1082,6 +1108,76 @@ TextRenderer.prototype.renderBook = function(book) {
 };
 
 
+var USFMCounter = function() {
+  var tags = {};
+  var totalBytes = 0;
+  var nodesCount = 0;
+
+  var clearMetrics = function() {
+    tags = {};
+    totalBytes = 0;
+  };
+
+  var calcNTs = function(node) {
+    ++nodesCount;
+    if (node.hasOwnProperty('nodes')) {
+      // combine the result of child nodes
+      node.nodes.forEach(function(n) {
+        calcNTs(n);
+      });
+    }
+
+    if (node.hasOwnProperty('tag')) {
+      var ref = node.tag;
+      if (ref === '')
+        return;
+      if (_.isUndefined(tags[ref]))
+        tags[ref] = 0;
+      tags[ref]++;
+      totalBytes += ref.length;
+    }
+};
+
+  var calcVTs = function(verse) {
+    calcNTs(verse.node);
+  };
+
+  var calcCTs = function(chapter) {
+    chapter.verses.forEach(function(v) {
+      calcVTs(v);
+    });
+  };
+
+  var calcBTs = function(book) {
+    book.chapters.forEach(function(c) {
+      calcCTs(c);
+    });
+  };
+
+  var calcBBTs = function(bible) {
+    bible.books.forEach(function(b) {
+      calcBTs(b);
+    });
+  };
+
+  var reportResult = function() {
+    console.log("Dicovered %d tags", Object.keys(tags).length);
+    _.each(tags, function(val, key) {
+      console.log("%s: %d", key, val);
+    });
+    console.log("Nodes: %d", nodesCount);
+  };
+
+  return {
+    reset: clearMetrics,
+    verseTags: calcVTs,
+    chapterTags: calcCTs,
+    bookTags: calcBTs,
+    bibleTags: calcBBTs,
+    report: reportResult
+  };
+};
+
 // ------------------------------------------------------------------------
 //                           EXPORTING
 // ------------------------------------------------------------------------
@@ -1107,4 +1203,6 @@ getBibleRequireObj().ParserFactory  = ParserFactory;
 getBibleRequireObj().Renderer       = Renderer;
 getBibleRequireObj().TextRenderer   = TextRenderer;
 getBibleRequireObj().USFMRenderer   = USFMRenderer;
+
+getBibleRequireObj().USFMCounter    = USFMCounter;
 
