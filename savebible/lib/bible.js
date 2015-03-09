@@ -190,6 +190,7 @@ TocItem.prototype.borrow = function(itm) {
     this.desc = itm.desc;
 };
 
+
 TocItem.prototype.verify = function() {
   if (this.id === '')
     throw 'missing id';
@@ -601,6 +602,11 @@ Bible.prototype.sort = function() {
   });
 };
 
+// returns books count in the bible
+Bible.prototype.numBooks = function() {
+  return this.books.length;
+};
+
 // add book into bible if it is not added already. duplicate book insertion
 // will raise an exception
 Bible.prototype.addBook = function(book) {
@@ -633,10 +639,10 @@ Bible.prototype.getToc = function() {
 //                            PARSER BASE
 // ------------------------------------------------------------------------
 var Parser = function() {};
-Parser.prototype.parseVerse   = function(str) { throw 'implement parser'; };
-Parser.prototype.parseChapter = function(str) { throw 'implement parser'; };
-Parser.prototype.parseBook    = function(str) { throw 'implement parser'; };
-Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
+// Parser.prototype.parseVerse   = function(str) { throw 'implement parser'; };
+// Parser.prototype.parseChapter = function(str) { throw 'implement parser'; };
+// Parser.prototype.parseBook    = function(str) { throw 'implement parser'; };
+// Parser.prototype.parseBible   = function(arr) { throw 'implement parser'; };
 
 
 // ------------------------------------------------------------------------
@@ -894,10 +900,6 @@ var TextParser = function() {
 
 };
 extend(TextParser, Parser);
-TextParser.prototype.parseVerse   = function(str) { throw 'implement parseVerse'; };
-TextParser.prototype.parseChapter = function(str) { throw 'implement parseChapter'; };
-TextParser.prototype.parseBook    = function(str) { throw 'implement parseBook'; };
-TextParser.prototype.parseBible   = function(arr) { throw 'implement parseBible'; };
 
 
 // ------------------------------------------------------------------------
@@ -933,11 +935,11 @@ var ParserFactory = (function() {
 var Renderer = function() {
 };
 
-Renderer.prototype.renderNode    = function(node)    { throw 'implement node renderer'; };
-Renderer.prototype.renderVerse   = function(verse)   { throw 'implement verse renderer'; };
-Renderer.prototype.renderChapter = function(chapter) { throw 'implement chapter renderer'; };
-Renderer.prototype.renderBook    = function(book)    { throw 'implement book renderer'; };
-Renderer.prototype.renderBible   = function(bible)   { throw 'implement bible renderer'; };
+// Renderer.prototype.renderNode    = function(node)    { throw 'implement node renderer'; };
+// Renderer.prototype.renderVerse   = function(verse)   { throw 'implement verse renderer'; };
+// Renderer.prototype.renderChapter = function(chapter) { throw 'implement chapter renderer'; };
+// Renderer.prototype.renderBook    = function(book)    { throw 'implement book renderer'; };
+// Renderer.prototype.renderBible   = function(bible)   { throw 'implement bible renderer'; };
 
 function renderNodeCommon(renderer, node) {
   var res = '';

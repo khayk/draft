@@ -33,7 +33,7 @@ var HiResTimer   = helper.HiResTimer;
     var dataRoot = dropboxDir + 'Private/projects/bible project/data/real/';
 
     var count    = 1;
-    var parser   = new USFMParser();
+    var parser   = new USFMParser(false);
     var renderer = new USFMRenderer();
 
     function launchRenderTest(bible) {
@@ -66,19 +66,24 @@ var HiResTimer   = helper.HiResTimer;
           var str  = fs.readFileSync(dataRoot + p, {encoding: 'utf8'});
           var book = null;
           for (var i = 0; i < count; ++i) {
-            book = parser.parseBook(str);
+            try {
+              book = parser.parseBook(str);
+              bible.push(book);
+            }
+            catch (e) {
+              console.log(e);
+            }
           }
-          bible.push(book);
         }
       });
 
       console.log(util.inspect(process.memoryUsage()));
 
-      timer.stop();
-      timer.report();
-      console.log("PARSING COMPLETED.");
-      launchRenderTest(bible);
-      // bible.pop();
+      // timer.stop();
+      // timer.report();
+      // console.log("PARSING COMPLETED.");
+      // launchRenderTest(bible);
+
       // bible = [];
       // parser = null;
       // renderer = null;
@@ -86,7 +91,7 @@ var HiResTimer   = helper.HiResTimer;
       // setTimeout(function() {
       //   launchStressTest();
       // }, 10);
-      console.log(util.inspect(process.memoryUsage()));
+      // console.log(util.inspect(process.memoryUsage()));
     });
   }
 
@@ -133,19 +138,10 @@ var HiResTimer   = helper.HiResTimer;
     //console.log(util.inspect(process.memoryUsage()));
   }
 
-  var iterate = function(obj, key, num) {
-    var keys = Object.keys(obj);
-    var pos = keys.indexOf(key);
-    var ind = pos + num;
-    if (ind < 0 || ind >= keys.length)
-      return null;
-    return keys[ind];
-  };
-
-
   function main() {
     timer.start();
     try {
+      //launchStressTest();
       //renderTest();
       //packMgr.discover('./data/test/', onDiscovered);
     } catch (e) {
@@ -154,6 +150,8 @@ var HiResTimer   = helper.HiResTimer;
 
     timer.stop();
     timer.report();
+
+    console.log(util.inspect(process.memoryUsage()));
   }
 
   main();
@@ -168,51 +166,8 @@ Ref(str) {
     this.vn,
 }
 
-Verse {
-    id()
-    next()
-    prev()
-}
-
-Chapter {
-    id()
-    next()
-    prev()
-
-    numVerses()
-    addVerse(verse)
-    getVerse(number)
-}
-
-Book {
-    id()
-    next()
-    prev()
-    abbr()
-    name()
-    desc()
-
-    numChapters()
-    addChapter(chapter)
-    getChapter(number)
-}
-
 Bible {
-    numBooks()
-    addBook(book)
-    getBook(id)
-    setTOC(toc)
-    getTOC()
-
     search(query, opt)  // returns an array of references, opt contains
-}
-
-BibleAttribute {
-    abbr
-    name
-    desc
-    year
-    lang
 }
 
 TableOfContent {
