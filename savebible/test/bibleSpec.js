@@ -373,18 +373,28 @@ describe('core modules', function() {
           var usfmRndr = new USFMRenderer();
           str = bible.render(usfmRndr);
 
-          //var data = fs.readFileSync(file, 'utf8');
-          fs.writeFile(pack.dir + '/usfm.render', str);
-          //console.log("USFM length: ", str.length);
-          //console.log(pack.dir);
+          var file = pack.dir + '/usfm.render';
+          var data = '';
+          try {
+            data = fs.readFileSync(file, 'utf8');
+          }
+          catch (e) {
+          }
+
+          if (data === '')
+            fs.writeFile(file, str);
+          else
+            expect(str).to.equal(data);
         });
 
         it('text', function() {
           var textRndr = new TextRenderer();
           str = bible.render(textRndr);
-          fs.writeFile(pack.dir + '/text.render', str);
-          //console.log("TEXT length: ", str.length);
-          //console.log(pack.dir);
+
+          var file = pack.dir + '/text.render';
+          var data = fs.readFileSync(file, 'utf8');
+
+          fs.writeFile(file, str);
         });
       });
     });
