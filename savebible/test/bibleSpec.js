@@ -244,10 +244,10 @@ describe('core modules', function() {
 
     it('write as usfm', function() {
       dataUSFM.verses.forEach(function(o) {
-        var ref = o.data;
-        var orig = ref.orig.replace(/\n/g, ' ').trim();
-        var verse = parser.parseVerse(orig);
-        var verseAll = parserAll.parseVerse(orig);
+        var ref      = o.data;
+        var orig     = ref.orig.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+        var verse    = parser.parseVerse(ref.orig);
+        var verseAll = parserAll.parseVerse(ref.orig);
 
         var restored = verse.render(usfmRndr);
         var restoredAll = verseAll.render(usfmRndr);
@@ -393,6 +393,22 @@ describe('core modules', function() {
           var file = pack.dir + '/text.render';
           compareContentOrCreate(file, str);
         });
+
+        var samples = 500;
+        it('usfm performance', function() {
+          var usfmRndr = new USFMRenderer();
+          var str = null;
+          for (var i = 0; i < samples; ++i)
+            bible.render(usfmRndr);
+        });
+
+        it('text performance', function() {
+          var textRndr = new TextRenderer();
+          var str = null;
+          for (var i = 0; i < samples; ++i)
+            bible.render(textRndr);
+        });
+
       });
     });
   });

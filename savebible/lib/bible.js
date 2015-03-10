@@ -339,13 +339,13 @@ var NH = function() {
   var tmp;
   return {
     isCompound: function(node) {
-      if (node.nodes)
+      if (typeof node.nodes !== 'undefined')
         return true;
       return false;
     },
 
     isText: function(node) {
-      if (node.text)
+      if (typeof node.text !== 'undefined')
         return true;
       return false;
     },
@@ -825,7 +825,7 @@ USFMParser.prototype.parseVerse = function(str) {
   // LF (line feed) characters with space
   str = str.replace(/\r/gm, '')
            .replace(/\n|¶/gm, ' ')
-           .replace(/\s+/g, ' ')
+           .replace(/\s{2,}/gm, ' ')
            .trim();
 
   this.vre.lastIndex = 0;
@@ -1023,14 +1023,14 @@ USFMRenderer.prototype.renderBook = function(book) {
 var TextRenderer = function() {};
 extend(TextRenderer, Renderer);
 TextRenderer.prototype.renderNode = function(node) {
-
+  var res = '';
   if (node.parent !== null &&
       NH.isCompound(node) &&
       !Tags.isSupported(node.tag) ) {
-    return '';
+    return res;
   }
 
-  var res = renderNodeCommon(this, node);
+  res = renderNodeCommon(this, node);
   if (Tags.isTranslator(node.tag))
     return '[' + res + ']';
   return res;
@@ -1064,7 +1064,7 @@ TextRenderer.prototype.renderNode = function(node) {
 
 TextRenderer.prototype.renderVerse = function(verse) {
   return verse.node.render(this);
-  //return verse.node.render(this).replace(/\s+/g, ' ').trim();
+
   //return verse.node.render(this).replace(/\s+/g, ' ').trim();
 };
 

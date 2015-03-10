@@ -1,7 +1,7 @@
 var fs             = require('fs');
 var path           = require('path');
 var util           = require('util');
-var agent          = require('webkit-devtools-agent');
+//var agent          = require('webkit-devtools-agent');
 
 var theBible       = require('./lib/bible.js');
 var helper         = require('./lib/helper.js');
@@ -28,8 +28,8 @@ var HiResTimer   = helper.HiResTimer;
 
   var timer = new HiResTimer();
 
-  var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
-  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
+  //var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+  var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
 
 
   function launchStressTest() {
@@ -95,7 +95,7 @@ var HiResTimer   = helper.HiResTimer;
       timer.report();
       console.log("PARSING COMPLETED.");
 
-      launchRenderTest(bible);
+      //launchRenderTest(bible);
 
       // bible = [];
       // parser = null;
@@ -168,11 +168,11 @@ var HiResTimer   = helper.HiResTimer;
 
   function main() {
     try {
-      launchStressTest();
+      //launchStressTest();
 
       //agent.start();
 
-      //renderTest();
+      renderTest();
       //packMgr.discover('./data/test/', onDiscovered);
     } catch (e) {
       console.error('ERROR:', e);
