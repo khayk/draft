@@ -38,6 +38,7 @@ var HiResTimer   = helper.HiResTimer;
 
     function launchRenderTest(bible) {
       var renderer = new USFMRenderer();
+      //var renderer = new TextRenderer();
       console.log("RENDER STARTED...");
       timer.start();
 
@@ -84,17 +85,17 @@ var HiResTimer   = helper.HiResTimer;
 
       console.log(util.inspect(process.memoryUsage()));
 
-      var counter = new USFMCounter();
-      bible.forEach(function(book) {
-        counter.bookTags(book);
-      });
-      counter.report();
+      // var counter = new USFMCounter();
+      // bible.forEach(function(book) {
+      //   counter.bookTags(book);
+      // });
+      // counter.report();
 
       timer.stop();
       timer.report();
       console.log("PARSING COMPLETED.");
 
-      // launchRenderTest(bible);
+      launchRenderTest(bible);
 
       // bible = [];
       // parser = null;
@@ -109,35 +110,35 @@ var HiResTimer   = helper.HiResTimer;
     var testBook = './data/raw/70-MATeng-kjv-old.usfm';
     var str = fs.readFileSync(testBook, 'utf8');
 
-    var renderer   = new USFMRenderer();
-    //var renderer = new TextRenderer();
+    //var renderer   = new USFMRenderer();
+    var renderer = new TextRenderer();
 
 
     // supported tags only
-    var parser = new USFMParser(false);
+    var parser = new USFMParser(true);
     var book   = parser.parseBook(str);
     var data   = book.render(renderer);
 
-    var tc = new USFMCounter();
+    fs.writeFile('./data/raw/output.usfm', data);
 
   //  var verse = parser.parseVerse('\\zx \\zx*');
-    var verse = parser.parseVerse('\\zw \\+zws H0776 \\+zws*\\zw*And the earth\\zx \\zx* \\zw \\+zws H01961 \\+zws*\\+zwm strongMorph:TH8804 \\+zwm*\\zw*was\\zx \\zx*\n' +
-        '\\zw \\+zws H08414 \\+zws*\\zw*without form\\zx \\zx*, \\zw \\+zws H0922 \\+zws*\\zw*and\n' +
-        'void\\zx \\zx*; \\zw \\+zws H02822 \\+zws*\\zw*and darkness\\zx \\zx* \\add was\\add*\n' +
-        '\\zw \\+zws H06440 \\+zws*\\zw*upon the face\\zx \\zx* \\zw \\+zws H08415 \\+zws*\\zw*of the\n' +
-        'deep\\zx \\zx*. \\zw \\+zws H07307 \\+zws*\\zw*And the Spirit\\zx \\zx* \\zw \\+zws H0430 \\+zws*\\zw*of\n' +
-        'God\\zx \\zx* \\zw \\+zws H07363 \\+zws*\\+zwm strongMorph:TH8764 \\+zwm*\\zw*moved\\zx \\zx*\n' +
-        '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the\n' +
-        'face\\zx \\zx* \\zw \\+zws H04325 \\+zws*\\zw*of the waters\\zx \\zx*.');
+    // var verse = parser.parseVerse('\\zw \\+zws H0776 \\+zws*\\zw*And the earth\\zx \\zx* \\zw \\+zws H01961 \\+zws*\\+zwm strongMorph:TH8804 \\+zwm*\\zw*was\\zx \\zx*\n' +
+    //     '\\zw \\+zws H08414 \\+zws*\\zw*without form\\zx \\zx*, \\zw \\+zws H0922 \\+zws*\\zw*and\n' +
+    //     'void\\zx \\zx*; \\zw \\+zws H02822 \\+zws*\\zw*and darkness\\zx \\zx* \\add was\\add*\n' +
+    //     '\\zw \\+zws H06440 \\+zws*\\zw*upon the face\\zx \\zx* \\zw \\+zws H08415 \\+zws*\\zw*of the\n' +
+    //     'deep\\zx \\zx*. \\zw \\+zws H07307 \\+zws*\\zw*And the Spirit\\zx \\zx* \\zw \\+zws H0430 \\+zws*\\zw*of\n' +
+    //     'God\\zx \\zx* \\zw \\+zws H07363 \\+zws*\\+zwm strongMorph:TH8764 \\+zwm*\\zw*moved\\zx \\zx*\n' +
+    //     '\\zw \\+zws H05921 \\+zws*\\zw*upon\\zx \\zx* \\zw \\+zws H06440 \\+zws*\\zw*the\n' +
+    //     'face\\zx \\zx* \\zw \\+zws H04325 \\+zws*\\zw*of the waters\\zx \\zx*.');
 //    var verse = book.getChapter(27).getVerse(47);
-    var result = verse.render(renderer);
-    console.log(result);
-    fs.writeFile('./data/raw/mt_27_47.txt', result);
+    //var result = verse.render(renderer);
+    //console.log(result);
+
+    //var tc = new USFMCounter();
+    //fs.writeFile('./data/raw/mt_27_47.txt', result);
     //tc.bookTags(book);
     //tc.verseTags(verse);
     //tc.report();
-
-    //fs.writeFile('./data/raw/output.usfm', data);
 
     // all tags
     // var parseAll = new USFMParser(false);
@@ -167,7 +168,7 @@ var HiResTimer   = helper.HiResTimer;
 
   function main() {
     try {
-      // launchStressTest();
+      launchStressTest();
 
       //agent.start();
 

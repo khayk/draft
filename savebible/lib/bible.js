@@ -823,7 +823,10 @@ extend(USFMParser, Parser);
 USFMParser.prototype.parseVerse = function(str) {
   // get rid of CR (carriage return) character, and replace
   // LF (line feed) characters with space
-  str = str.replace(/\r/gm, '').replace(/\n|¶/gm, ' ').trim();
+  str = str.replace(/\r/gm, '')
+           .replace(/\n|¶/gm, ' ')
+           .replace(/\s+/g, ' ')
+           .trim();
 
   this.vre.lastIndex = 0;
   var arr            = this.vre.exec(str);
@@ -1060,7 +1063,8 @@ TextRenderer.prototype.renderNode = function(node) {
 };
 
 TextRenderer.prototype.renderVerse = function(verse) {
-  return verse.node.render(this).replace(/\s+/g, ' ').trim();
+  return verse.node.render(this);
+  //return verse.node.render(this).replace(/\s+/g, ' ').trim();
   //return verse.node.render(this).replace(/\s+/g, ' ').trim();
 };
 
