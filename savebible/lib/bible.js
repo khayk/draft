@@ -330,7 +330,7 @@ var Tags = (function() {
 // ------------------------------------------------------------------------
 //                      NODE - THE BASE CLASS
 // ------------------------------------------------------------------------
-var Node = function(parent, type) {
+var Node = function(parent) {
   this.parent = parent;
 };
 
@@ -338,22 +338,6 @@ var Node = function(parent, type) {
 var NH = function() {
   var tmp;
   return {
-    getParent: function(node) {
-      tmp = node.parent;
-      if (tmp) return tmp;
-      return null;
-    },
-
-    nullify: function(node) {
-      node.nullified = 1;
-    },
-
-    isNullified: function(node) {
-      if (node.nullified)
-        return true;
-      return false;
-    },
-
     isCompound: function(node) {
       if (node.nodes)
         return true;
@@ -387,14 +371,12 @@ TextNode.prototype.render = function(renderer) {
 // ------------------------------------------------------------------------
 var CompoundNode = function(tag, parent) {
   Node.call(this, parent);
-  this.tag = tag;
-  this.nodes = null;//[];
+  this.tag   = tag;
+  this.nodes = [];
 };
 extend(CompoundNode, Node);
 
 CompoundNode.prototype.addChild = function(node) {
-  if (this.nodes === null)
-    this.nodes = [];
   this.nodes.push(node);
 };
 
@@ -404,9 +386,6 @@ CompoundNode.prototype.render = function(renderer) {
 
 CompoundNode.prototype.normalize = function() {
   var current = null;
-  if (this.nodes === null)
-    return;
-
   this.nodes.forEach(function(n) {
     if (NH.isCompound(n)) {
       current = null;
@@ -417,14 +396,14 @@ CompoundNode.prototype.normalize = function() {
         current = n;
       else {
         current.text += n.text;
-        NH.nullify(n);
+        n.text = '';
       }
     }
   });
 
-  // now remove all null nodes
+  // now remove redundant nodes
   this.nodes = this.nodes.filter(function(n) {
-    return !NH.isNullified(n);
+    return !(NH.isText(n) && n.text === '');
   });
 };
 
@@ -753,9 +732,9 @@ var USFMParser = function(supportedOnly) {
         // remove last character as the current tag ends with symbol *
         tag = tag.slice(0, -1);
         while (node !== null && node.tag !== tag) {
-          node = NH.getParent(node);
+          node = node.parent;
         }
-        this.parseVerseHelper(str, ind, arr, re, node !== null ? NH.getParent(node) : node);
+        this.parseVerseHelper(str, ind, arr, re, node !== null ? node.parent : node);
       }
     } else {
       // collect remaining text
@@ -1042,7 +1021,7 @@ var TextRenderer = function() {};
 extend(TextRenderer, Renderer);
 TextRenderer.prototype.renderNode = function(node) {
 
-  if (NH.getParent(node) !== null &&
+  if (node.parent !== null &&
       NH.isCompound(node) &&
       !Tags.isSupported(node.tag) ) {
     return '';
@@ -1161,11 +1140,11 @@ var USFMCounter = function() {
   };
 
   var reportResult = function() {
-    console.log("Dicovered %d tags", Object.keys(tags).length);
+    console.log("\n\nDicovered %d tags", Object.keys(tags).length);
     _.each(tags, function(val, key) {
       console.log("%s: %d", key, val);
     });
-    console.log("Nodes: %d", nodesCount);
+    console.log("Nodes: %d\n\n", nodesCount);
   };
 
   return {

@@ -1,6 +1,7 @@
 var fs             = require('fs');
 var path           = require('path');
 var util           = require('util');
+var agent          = require('webkit-devtools-agent');
 
 var theBible       = require('./lib/bible.js');
 var helper         = require('./lib/helper.js');
@@ -20,25 +21,23 @@ var USFMCounter    = theBible.USFMCounter;
 // utils exports
 var HiResTimer   = helper.HiResTimer;
 
+
 (function() {
 
   'use strict';
 
   var timer = new HiResTimer();
-  var bible = [];
 
-  ///var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
-  var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
+  var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
 
 
   function launchStressTest() {
     var dataRoot = dropboxDir + 'Private/projects/bible project/data/real/';
-
     var samples  = 1;
-    var parser   = new USFMParser(false);
-    var renderer = new USFMRenderer();
 
     function launchRenderTest(bible) {
+      var renderer = new USFMRenderer();
       console.log("RENDER STARTED...");
       timer.start();
 
@@ -57,9 +56,13 @@ var HiResTimer   = helper.HiResTimer;
       //fs.writeFile('./data/raw/output.usfm', data);
     }
 
+    var bible = [];
+    var parser   = new USFMParser(false);
 
     fs.readdir(dataRoot, function(err, files) {
-      if (err) throw err;
+      if (err)
+        throw err;
+
       console.log("PARSING STARTED...");
       timer.start();
 
@@ -81,11 +84,11 @@ var HiResTimer   = helper.HiResTimer;
 
       console.log(util.inspect(process.memoryUsage()));
 
-      // var counter = new USFMCounter();
-      // bible.forEach(function(book) {
-      //   counter.bookTags(book);
-      // });
-      // counter.report();
+      var counter = new USFMCounter();
+      bible.forEach(function(book) {
+        counter.bookTags(book);
+      });
+      counter.report();
 
       timer.stop();
       timer.report();
@@ -95,11 +98,10 @@ var HiResTimer   = helper.HiResTimer;
 
       // bible = [];
       // parser = null;
-      // renderer = null;
 
       // setTimeout(function() {
       //   launchStressTest();
-      // }, 10);
+      // }, 1);
     });
   }
 
@@ -165,8 +167,11 @@ var HiResTimer   = helper.HiResTimer;
 
   function main() {
     try {
-      //launchStressTest();
-      renderTest();
+      // launchStressTest();
+
+      //agent.start();
+
+      //renderTest();
       //packMgr.discover('./data/test/', onDiscovered);
     } catch (e) {
       console.error('ERROR:', e);
