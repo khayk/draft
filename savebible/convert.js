@@ -28,8 +28,8 @@ var HiResTimer   = helper.HiResTimer;
 
   var timer = new HiResTimer();
 
-  //var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
-  var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
+  var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
 
 
   function launchStressTest() {
@@ -168,11 +168,11 @@ var HiResTimer   = helper.HiResTimer;
 
   function main() {
     try {
-      //launchStressTest();
+      launchStressTest();
 
       //agent.start();
 
-      renderTest();
+      //renderTest();
       //packMgr.discover('./data/test/', onDiscovered);
     } catch (e) {
       console.error('ERROR:', e);

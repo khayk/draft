@@ -283,17 +283,34 @@ var TableOfContent = function() {
   };
 };
 
+
+// all tags should be presented here
+var TAG = {
+  H:    '\\h',       // Running header text.
+  ID:   '\\id',      // File identification.
+  IDE:  '\\ide',     // An optional character encoding specification.
+  MT:   '\\mt',      // Major title.
+  IS:   '\\is',      // Introduction section heading.
+  TOC1: '\\toc1',    // Long table of contents text.
+  TOC2: '\\toc2',    // Short table of contents text.
+  TOC3: '\\toc3',    // Book abbreviation.
+
+  C:    '\\c',       // Chapter number.
+  V:    '\\v',       // Verse number.
+  P:    '\\p',       // Normal paragraph.
+
+  ADD:  '\\add',     // Translator's addition.
+  WJ:   '\\wj',      // Words of Jesus.
+  ND:   '\\nd',      // Name of God (name of Deity).
+  QT:   '\\qt'       // Quoted text. Old Testament quotations in the New Testament
+};
+
+
 // ------------------------------------------------------------------------
 //                         TAG manipulation
 // ------------------------------------------------------------------------
 var Tags = (function() {
-  // \qt  - Quoted text.
-  //        Old Testament quotations in the New Testament
-  // \add - Translator's addition.
-  // \wj  - Words of Jesus.
-  // \nd  - Name of God (name of Deity).
   supported  = /add|wj|nd|qt/;
-  tags       = {};
   translator = /add/;
   jesusWord  = /wj/;
 
@@ -667,7 +684,7 @@ var USFMParser = function(supportedOnly) {
     while ((arr = re.exec(header)) !== null) {
       var tag = arr[1];
       var str = arr[2];
-      if (tag === '\\id') {
+      if (tag === TAG.ID) {
         arr = /(\w+)\s+(.+)/gm.exec(str);
         if (arr === null)
           throw 'failed to identify book id';
@@ -675,21 +692,21 @@ var USFMParser = function(supportedOnly) {
         book.name = arr[2];
       }
       else {
-        if (tag === '\\mt' || tag == '\\toc1') {
+        if (tag === TAG.MT || tag === TAG.TOC1) {
           book.desc = str;
         }
-        else if (tag === '\\toc2' || tag === '\\h') {
+        else if (tag === TAG.TOC2 || tag === TAG.H) {
           book.name = str;
         }
-        else if (tag === '\\toc3') {
+        else if (tag === TAG.TOC3) {
           book.abbr = str;
         }
-        else if (tag === '\\ide') {
+        else if (tag === TAG.IDE) {
           if (str !== 'UTF-8')
             console.warn('unknown encoding %s in %s book.', str, book.id);
         }
         else {
-          if (tag !== '\\is')
+          if (tag !== TAG.IS)
             console.warn('unknown tag \"%s\" in \"%s\" book.', tag, book.id);
         }
       }
@@ -772,7 +789,7 @@ var USFMParser = function(supportedOnly) {
       if (arr !== null) {
         np = false;
         vn = arr[5];
-        if (arr[2] === '\\p') {
+        if (arr[2] === TAG.P) {
           np = true;
         }
       }
@@ -988,12 +1005,12 @@ USFMRenderer.prototype.renderNode = function(node) {
 USFMRenderer.prototype.renderVerse = function(verse) {
   var prefix = '';
   if (verse.np === true)
-    prefix = '\\p' + LF;
-  return prefix + '\\v ' + verse.number + ' ' + verse.node.render(this);
+    prefix = TAG.P + LF;
+  return prefix + TAG.V + ' ' + verse.number + ' ' + verse.node.render(this);
 };
 
 USFMRenderer.prototype.renderChapter = function(chapter) {
-  var res = '\\c ' + chapter.number;
+  var res = TAG.C + ' ' + chapter.number;
   var self = this;
   chapter.verses.forEach(function(v) {
     res += LF + v.render(self);
@@ -1003,12 +1020,12 @@ USFMRenderer.prototype.renderChapter = function(chapter) {
 
 USFMRenderer.prototype.renderBook = function(book) {
   var res = '';
-  res += '\\id ' + book.id + ' ' + book.name + LF;
-  res += '\\h '  + book.name + LF;
-  res += '\\toc1 ' + book.desc + LF;
-  res += '\\toc2 ' + book.name + LF;
-  res += '\\toc3 ' + book.abbr + LF;
-  res += '\\mt '   + book.desc;
+  res += TAG.ID   + ' ' + book.id   + ' ' + book.name + LF;
+  res += TAG.H    + ' ' + book.name + LF;
+  res += TAG.TOC1 + ' ' + book.desc + LF;
+  res += TAG.TOC2 + ' ' + book.name + LF;
+  res += TAG.TOC3 + ' ' + book.abbr + LF;
+  res += TAG.MT   + ' ' + book.desc;
   var self = this;
   book.chapters.forEach(function(c) {
     res += LF + c.render(self);
