@@ -1120,14 +1120,12 @@ var USFMCounter = function() {
 
   var calcNTs = function(node) {
     ++nodesCount;
-    if (node.hasOwnProperty('nodes')) {
+    if (NH.isCompound(node)) {
       // combine the result of child nodes
       node.nodes.forEach(function(n) {
         calcNTs(n);
       });
-    }
 
-    if (node.hasOwnProperty('tag')) {
       var ref = node.tag;
       if (ref === '')
         return;
@@ -1187,9 +1185,6 @@ getBibleRequireObj().Tags           = Tags;
 getBibleRequireObj().TableOfContent = TableOfContent;
 getBibleRequireObj().TocItem        = TocItem;
 
-
-//getBibleRequireObj().Verse        = Verse;
-
 getBibleRequireObj().Verse          = Verse;
 getBibleRequireObj().Chapter        = Chapter;
 getBibleRequireObj().Book           = Book;
@@ -1198,7 +1193,6 @@ getBibleRequireObj().Bible          = Bible;
 getBibleRequireObj().Parser         = Parser;
 getBibleRequireObj().USFMParser     = USFMParser;
 getBibleRequireObj().ParserFactory  = ParserFactory;
-
 
 getBibleRequireObj().Renderer       = Renderer;
 getBibleRequireObj().TextRenderer   = TextRenderer;
