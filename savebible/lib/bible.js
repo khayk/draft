@@ -28,6 +28,7 @@ function extend(child, parent) {
   child.uber = parent.prototype;
 }
 
+
 var LF = '\n'; // line feed
 var CR = '\r'; // carriage return
 
@@ -1108,14 +1109,21 @@ TextRenderer.prototype.renderBook = function(book) {
 };
 
 
-var USFMCounter = function() {
+var BibleStats = function() {
   var tags = {};
   var totalBytes = 0;
   var nodesCount = 0;
+  var verseCount = 0;
+  var chapterCount = 0;
+  var bookCount = 0;
 
   var clearMetrics = function() {
     tags = {};
     totalBytes = 0;
+    nodesCount = 0;
+    verseCount = 0;
+    chapterCount = 0;
+    bookCount = 0;
   };
 
   var calcNTs = function(node) {
@@ -1131,25 +1139,28 @@ var USFMCounter = function() {
         return;
       if (_.isUndefined(tags[ref]))
         tags[ref] = 0;
-      tags[ref]++;
+      tags[ref] ++;
       totalBytes += ref.length;
     }
-};
+  };
 
   var calcVTs = function(verse) {
     calcNTs(verse.node);
+    ++verseCount;
   };
 
   var calcCTs = function(chapter) {
     chapter.verses.forEach(function(v) {
       calcVTs(v);
     });
+    ++chapterCount;
   };
 
   var calcBTs = function(book) {
     book.chapters.forEach(function(c) {
       calcCTs(c);
     });
+    ++bookCount;
   };
 
   var calcBBTs = function(bible) {
@@ -1163,7 +1174,10 @@ var USFMCounter = function() {
     _.each(tags, function(val, key) {
       console.log("%s: %d", key, val);
     });
-    console.log("Nodes: %d\n\n", nodesCount);
+    console.log("\n\nNodes: %d", nodesCount);
+    console.log("Verses: %d", verseCount);
+    console.log("Chapters: %d", chapterCount);
+    console.log("Books: %d\n\n", bookCount);
   };
 
   return {
@@ -1198,5 +1212,5 @@ getBibleRequireObj().Renderer       = Renderer;
 getBibleRequireObj().TextRenderer   = TextRenderer;
 getBibleRequireObj().USFMRenderer   = USFMRenderer;
 
-getBibleRequireObj().USFMCounter    = USFMCounter;
+getBibleRequireObj().BibleStats     = BibleStats;
 

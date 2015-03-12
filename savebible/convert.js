@@ -1,6 +1,7 @@
 var fs             = require('fs');
 var path           = require('path');
 var util           = require('util');
+var _              = require('underscore')
 //var agent          = require('webkit-devtools-agent');
 
 var theBible       = require('./lib/bible.js');
@@ -16,7 +17,7 @@ var Renderer       = theBible.Renderer;
 var TextRenderer   = theBible.TextRenderer;
 var USFMRenderer   = theBible.USFMRenderer;
 var Tags           = theBible.Tags;
-var USFMCounter    = theBible.USFMCounter;
+var BibleStats     = theBible.BibleStats;
 
 // utils exports
 var HiResTimer   = helper.HiResTimer;
@@ -28,8 +29,8 @@ var HiResTimer   = helper.HiResTimer;
 
   var timer = new HiResTimer();
 
-  var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
-  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
+  //var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+  var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
 
 
   function launchStressTest() {
@@ -85,16 +86,29 @@ var HiResTimer   = helper.HiResTimer;
 
       console.log(util.inspect(process.memoryUsage()));
 
-      // var counter = new USFMCounter();
-      // bible.forEach(function(book) {
-      //   counter.bookTags(book);
-      // });
-      // counter.report();
+      var stats = new BibleStats();
+      bible.forEach(function(book) {
+        stats.bookTags(book);
+      });
+      stats.report();
 
       timer.stop();
       timer.report();
       console.log("PARSING COMPLETED.");
 
+      _.each(BBM.instance().ids(), function(val, key) {
+        var  found = false;
+        bible.forEach(function(book) {
+          if (book.id === key)
+            found = true;
+        });
+
+        if (!found)
+          console.log(key);
+        //console.log(key, val);
+        // if (bible.indexOf(key) === -1)
+        //   console.log(key);
+      });
       //launchRenderTest(bible);
 
       // bible = [];
@@ -166,9 +180,79 @@ var HiResTimer   = helper.HiResTimer;
     //console.log(util.inspect(process.memoryUsage()));
   }
 
+  var Lexical = (function() {
+    var langs = {};
+
+    return {
+      addLanguage: function(entry) {
+        var key = entry.lang;
+        var data = entry.data;
+        if (_.isUndefined(langs[key])) {
+          langs[key] = {
+            letters   : new RegExp('['  + data.letters + ']', 'gm'),
+            nonLetters: new RegExp('[^' + data.letters + '\\s]', 'gm'),
+            question  : data.question,
+            emphasis  : data.emphasis
+          };
+        }
+        else {
+          throw 'Language \"' + entry.lang + '\" is already exists';
+        }
+      },
+
+      getLanguages: function() {
+        return Object.keys(langs);
+      },
+
+      isKnownLanguage: function(lang) {
+        return !_.isUndefined(langs[lang]);
+      },
+
+      removePunctuations: function(lang, str) {
+        return str.replace(langs[lang].nonLetters, '').trim();
+      }
+    };
+  })();
+
+  function langTest() {
+    var lexFile = './data/lexical.json';
+
+    var data = fs.readFileSync(lexFile, 'utf8');
+    var js = JSON.parse(data);
+    js.forEach(function(x) {
+      Lexical.addLanguage(x);
+    });
+
+
+    console.log(Lexical.getLanguages());
+
+    var src = 'Բար՜և!!! Ձեզ, ինչպես եք';
+    var res = Lexical.removePunctuations('hy', src);
+
+    console.log(util.inspect(process.memoryUsage()));
+
+    // for (var i = 0; i < 1000000; i++) {
+    //   res = Lexical.removePunctuations('hy', src);
+    // }
+
+    var y = 'ax004012';
+    var id = y.substr(0, 2);
+    var cn = parseInt(y.substr(2, 3));
+    var vn = parseInt(y.substr(6, 3));
+    for (var i = 10000000; i >= 0; i--) {
+      id = y.substr(0, 2);
+      cn = parseInt(y.substr(2, 3));
+      vn = parseInt(y.substr(6, 3));
+    }
+
+    console.log(id, cn, vn);
+    console.log(util.inspect(process.memoryUsage()));
+  }
+
   function main() {
     try {
-      launchStressTest();
+      langTest();
+      //launchStressTest();
 
       //agent.start();
 
@@ -203,3 +287,11 @@ TableOfContent {
 }
  */
 
+
+
+// 1 - GEN 1:1
+// 2 - GEN 1:2
+// ...
+// 123 - NUM 2:4
+
+// AA001001

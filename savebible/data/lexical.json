@@ -1,0 +1,28 @@
+[
+  {
+    "lang": "hy",
+    "data": {
+      "letters": "Ա-Ֆա-և",
+      "question": "՞",
+      "emphasis": "՛"
+    }
+  },
+
+  {
+    "lang": "en",
+    "data": {
+      "letters": "A-Za-z",
+      "question": "?",
+      "emphasis": "!"
+    }
+  },
+
+  {
+    "lang": "ru",
+    "data": {
+      "letters": "А-Яа-я",
+      "question": "?",
+      "emphasis": "!"
+    }
+  }
+]
