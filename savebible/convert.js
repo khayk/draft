@@ -181,14 +181,14 @@ var HiResTimer   = helper.HiResTimer;
   }
 
   var Lexical = (function() {
-    var langs = {};
+    var langs_ = {};
 
     return {
       addLanguage: function(entry) {
         var key = entry.lang;
         var data = entry.data;
-        if (_.isUndefined(langs[key])) {
-          langs[key] = {
+        if (_.isUndefined(langs_[key])) {
+          langs_[key] = {
             letters   : new RegExp('['  + data.letters + ']', 'gm'),
             nonLetters: new RegExp('[^' + data.letters + '\\s]', 'gm'),
             question  : data.question,
@@ -201,22 +201,42 @@ var HiResTimer   = helper.HiResTimer;
       },
 
       getLanguages: function() {
-        return Object.keys(langs);
+        return Object.keys(langs_);
       },
 
       isKnownLanguage: function(lang) {
-        return !_.isUndefined(langs[lang]);
+        return !_.isUndefined(langs_[lang]);
       },
 
       removePunctuations: function(lang, str) {
-        return str.replace(langs[lang].nonLetters, '').trim();
+        return str.replace(langs_[lang].nonLetters, '').trim();
       }
     };
   })();
 
+
+  var BibleSearch = function() {
+    var bible_ = null;
+    var dict_  = null;
+
+    return {
+      initialize: function(bible, dictionary) {
+
+      },
+
+      searchText: function(text) {
+        var refs = [];
+        return refs;
+      },
+
+      navigate: function(query) {
+
+      }
+    };
+  };
+
   function langTest() {
     var lexFile = './data/lexical.json';
-
     var data = fs.readFileSync(lexFile, 'utf8');
     var js = JSON.parse(data);
     js.forEach(function(x) {
@@ -239,15 +259,11 @@ var HiResTimer   = helper.HiResTimer;
     var id = y.substr(0, 2);
     var cn = parseInt(y.substr(2, 3));
     var vn = parseInt(y.substr(6, 3));
-    for (var i = 10000000; i >= 0; i--) {
-      id = y.substr(0, 2);
-      cn = parseInt(y.substr(2, 3));
-      vn = parseInt(y.substr(6, 3));
-    }
 
     console.log(id, cn, vn);
     console.log(util.inspect(process.memoryUsage()));
   }
+
 
   function main() {
     try {
@@ -264,6 +280,7 @@ var HiResTimer   = helper.HiResTimer;
   }
 
   main();
+
 }());
 
 
