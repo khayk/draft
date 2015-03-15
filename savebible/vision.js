@@ -43,3 +43,41 @@ for (var i = 1; i >= 0; i--) {
 console.log(r);
 //bible.searchReference('Gen');
 
+
+// 01.  this is a TeXt where we want to find some words
+//   .  ...
+// 37.  and this is a tExt in the middle part
+//   .  ...
+// 77.  finally, a,  end of text, is
+
+// A) query: is a text
+//    options:  W: true, CS: true
+//    result:
+//    options:  W: true, CS: false
+//    result: 01, 37
+//    options:  W: false, CS: false, LO: && (default is AND)
+//    result: 01, 37, 77
+
+
+// B) query: some and end
+//    options:  W: false, CS: false, LO: || (logical OR)
+//    result: 01, 37, 77
+//
+
+
+
+// refList = navigate('any bible reference');
+// refList = search('any sentence' [, options]);
+// refList = advancedSearch('any sentence', options);
+
+
+//
+//   *
+function search(text, options) {}
+
+// options {
+//    wholeWord bool default=true
+//    ignoreCase bool default=true
+// }
+
+SearchResultManager = refList;
