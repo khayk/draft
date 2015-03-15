@@ -1,7 +1,7 @@
 var fs             = require('fs');
 var path           = require('path');
 var util           = require('util');
-var _              = require('underscore')
+var _              = require('underscore');
 //var agent          = require('webkit-devtools-agent');
 
 var theBible       = require('./lib/bible.js');
@@ -209,6 +209,10 @@ var HiResTimer   = helper.HiResTimer;
       },
 
       removePunctuations: function(lang, str) {
+        if (!this.isKnownLanguage(lang)) {
+          console.log('unknown language: ', lang);
+          return '';
+        }
         return str.replace(langs_[lang].nonLetters, '').trim();
       }
     };
@@ -235,6 +239,83 @@ var HiResTimer   = helper.HiResTimer;
     };
   };
 
+
+  var src = {
+    'a makar a a': '04',
+    'barev': '01',
+    'a good': '05',
+    'kikos': '02',
+    'poxos a the': '03',
+    'eat barev a kikos bad': '08',
+    'a bad': '06',
+    'good kikos poxos': '07'
+  };
+
+
+
+
+
+  function Dictionary() {
+    var optimized_ = false;
+    var index_     = {};
+    var numWords_  = 0;
+    var changed_   = 0;
+
+    this.addWord = function(word, ref) {
+      var lcword = word.toLowerCase();
+      if (_.isUndefined(index_[lcword]))
+        index_[lcword] = {c: 0, refs: []};
+      index_[lcword].refs.push(ref);
+      index_[lcword].c++;
+      optimized_ = false;
+      changed_   = true;
+    };
+
+    this.optimize = function() {
+      _.each(index_, function(value, key) {
+
+        // we need to sort refs and make them unique
+        var o = value.refs;
+        var n = {}, r = [];
+        for (var i = 0; i < o.length; i++) {
+          if (typeof n[o[i] === 'undefined']) {
+            n[o[i]] = true;
+            r.push(o[i]);
+          }
+        }
+
+        // r is now unique
+        value.refs = r;
+        value.refs.sort();
+      });
+
+      numWords_ = Object.keys(index_).length;
+      changed_ = false;
+      optimized_ = true;
+    };
+
+    this.getRefs = function(word) {
+      if (!optimized_)
+        console.warn('Dictionary is not optimized. Call optimize!!!');
+      var lcword = word.toLowerCase();
+      var r = index_[lcword];
+      if (_.isUndefined(r))
+        return [];
+      return r.refs;
+    };
+
+    this.getWords = function() {
+      return Object.keys(index_);
+    };
+
+    this.getWordsCount = function() {
+      return numWords_;
+    };
+  }
+
+  var dict = new Dictionary();
+
+
   function langTest() {
     var lexFile = './data/lexical.json';
     var data = fs.readFileSync(lexFile, 'utf8');
@@ -249,27 +330,34 @@ var HiResTimer   = helper.HiResTimer;
     var src = 'Բար՜և!!! Ձեզ, ինչպես եք';
     var res = Lexical.removePunctuations('hy', src);
 
-    console.log(util.inspect(process.memoryUsage()));
+    //console.log(util.inspect(process.memoryUsage()));
 
     // for (var i = 0; i < 1000000; i++) {
     //   res = Lexical.removePunctuations('hy', src);
     // }
 
-    var y = 'ax004012';
-    var id = y.substr(0, 2);
-    var cn = parseInt(y.substr(2, 3));
-    var vn = parseInt(y.substr(6, 3));
-
-    console.log(id, cn, vn);
-    console.log(util.inspect(process.memoryUsage()));
+    //console.log(util.inspect(process.memoryUsage()));
   }
-
 
   function main() {
     try {
-      langTest();
-      //launchStressTest();
 
+      langTest();
+
+      _.each(src, function(value, key) {
+        var pureWord = Lexical.removePunctuations('en', key);
+        pureWord.split(' ').forEach(function(e) {
+          dict.addWord(e, value);
+        });
+      });
+
+      dict.optimize();
+
+      console.log(dict.getWords());
+      console.log(dict.getRefs('A'));
+      console.log(dict.getRefs('kikos'));
+      console.log('words: %d', dict.getWordsCount());
+      //launchStressTest();
       //agent.start();
 
       //renderTest();
