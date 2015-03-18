@@ -1,4 +1,39 @@
 var _              = require('underscore');
+var bounds         = require('binary-search-bounds');
+
+
+
+
+
+//var arr = [1, 1, 1, 4, 5, 6, 6, 10];
+var arr = [];
+for (var i = 0 ; i < 100000000; ++i)
+  arr.push(i);
+
+var val = 5, lb = 0, ub = 0;
+
+console.log('start lookup...');
+for (var j = 0; j < 10000000; ++j) {
+  lb = bounds.ge(arr, val);
+  ub = bounds.le(arr, val);
+}
+console.log('end lookup...');
+
+if (lb < 0)
+  lb = 0;
+
+var res = [];
+for (var i = lb; i <= ub; ++i) {
+  res.push(arr[i]);
+}
+
+console.log(res);
+console.log('lb: %d', lb);
+console.log('ub: %d', ub);
+
+// console.log(lb);
+// console.log(ub);
+
 
 var Reference = function(id, cn, vn) {
   this.id = id || 'GEN';
@@ -80,4 +115,4 @@ function search(text, options) {}
 //    ignoreCase bool default=true
 // }
 
-SearchResultManager = refList;
+// SearchResultManager = refList;
