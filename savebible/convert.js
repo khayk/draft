@@ -240,21 +240,6 @@ var HiResTimer   = helper.HiResTimer;
   };
 
 
-  var src = {
-    'a makar a a': '04',
-    'barev': '01',
-    'a good': '05',
-    'kikos': '02',
-    'poxos a the': '03',
-    'eat barev a kikos bad': '08',
-    'a bad': '06',
-    'good kikos poxos': '07'
-  };
-
-
-
-
-
   function Dictionary() {
     var optimized_ = false;
     var index_     = {};
@@ -272,6 +257,7 @@ var HiResTimer   = helper.HiResTimer;
     };
 
     this.optimize = function() {
+
       _.each(index_, function(value, key) {
 
         // we need to sort refs and make them unique
@@ -338,6 +324,17 @@ var HiResTimer   = helper.HiResTimer;
 
     //console.log(util.inspect(process.memoryUsage()));
   }
+
+  var src = {
+    'an apple, an apricot, an ariplane': '04',
+    'Apple is a good fruit.': '01',
+    'Excellent!!!': '05',
+    'How do to do?': '02',
+    'Example of DUMMY text.': '03',
+    'ok, ok ok. ok! ok?': '08',
+    'apple, samsung': '06',
+    'aa': '07'
+  };
 
   function main() {
     try {
