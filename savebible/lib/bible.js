@@ -1109,6 +1109,7 @@ TextRenderer.prototype.renderBook = function(book) {
 };
 
 
+
 var BibleStats = function() {
   var tags = {};
   var totalBytes = 0;

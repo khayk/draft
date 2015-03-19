@@ -1,0 +1,38 @@
+
+BBM:
+LexicalAnalyzer:
+
+==============================================================================
+
+
+Reference
+
+'01001001' -> encodeRef(verse);
+{id: 'GEN', cn: 1, vn: 1} -> decodeRef('01001001');
+
+[] union(refs1, refs2)
+[] intersect(refs1, refs2)
+
+==============================================================================
+Dictionary -> all words will be added into dictionary
+    find -> perform search in the dictionary
+            returns list of encoded references
+            options input patameter can react as a filter
+
+    addWord(word, ref)
+
+    count -> number of words
+
+
+==============================================================================
+Navigator -> accept queries as a text, and return the result
+             of possible references
+    navigate ->
+
+
+==============================================================================
+Bible
+    navigator_;
+    dictionary_;
+
+    buildDictionary;

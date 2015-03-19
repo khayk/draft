@@ -2,9 +2,6 @@ var _              = require('underscore');
 var bounds         = require('binary-search-bounds');
 
 
-
-
-
 //var arr = [1, 1, 1, 4, 5, 6, 6, 10];
 var arr = [];
 for (var i = 0 ; i < 100000000; ++i)
@@ -33,6 +30,9 @@ console.log('ub: %d', ub);
 
 // console.log(lb);
 // console.log(ub);
+
+
+
 
 
 var Reference = function(id, cn, vn) {
