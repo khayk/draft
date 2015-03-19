@@ -109,6 +109,21 @@ var BBM = (function() {
         return entries.length;
       },
 
+      onById: function(id) {
+        var ref = this.entryById(id);
+        if (ref === null) {
+          return 0;
+        }
+        return ref.index;
+      },
+
+      idByOn: function(on) {
+        var ref = this.entryByOn(on);
+        if (ref === null)
+          return ref;
+        return ref.id;
+      },
+
       // check if entry with given id exists
       existsId: function(id) {
         if (_.isUndefined(byId[id]))
@@ -446,6 +461,24 @@ Verse.prototype = {
     return this.parent.id() + ':' + this.number;
   },
 
+  vn: function() {
+    return this.number;
+  },
+
+  // retuns the chapter number that holds this verse, if no parent 0 returned
+  cn: function() {
+    if (this.parent)
+      return this.parent.number;
+    return 0;
+  },
+
+  // returns id of the book, that holds this verse, if no parent null returned
+  bid: function() {
+    if (this.parent)
+      return this.parent.bid();
+    return 'null';
+  },
+
   // return the next verse of the chapter containing current verse
   next: function() {
     if (this.parent)
@@ -484,6 +517,14 @@ Chapter.prototype = {
       return 'null ' + this.number;
     }
     return this.parent.id + ' ' + this.number;
+  },
+
+  // return book id containing current verse
+  bid: function() {
+    if (this.parent) {
+      return this.parent.id;
+    }
+    return 'null';
   },
 
   // return the next chapter in the book containing current chapter
@@ -825,7 +866,7 @@ var USFMParser = function(supportedOnly) {
 
       var c = this.parseChapter(cstr);
       c.parent = book;
-      c.number = cn;
+      c.number = parseInt(cn);
       book.addChapter(c);
 
       if (arr === null)
@@ -1183,7 +1224,6 @@ var BibleStats = function() {
     var text = 'hello';
     var tag  = '';
     var baseNode = new Node(null);
-    var emp = new Empty(null);
 
     var n = new Node(baseNode);
     var tn = new TextNode(text, n);

@@ -27,10 +27,43 @@ var HiResTimer   = helper.HiResTimer;
 
   'use strict';
 
+  // Pad a number with leading zeros to "pad" places:
+  //
+  // @param number: The number to pad
+  // @param pad: The maximum number of leading zeros
+  //
+  function padNumber(number, pad) {
+    var N = Math.pow(10, pad);
+    return number < N ? ('' + (N + number)).slice(1) : '' + number;
+  }
+
+  function getDecodedRef(verse) {
+    return {
+      ix: BBM.instance().onById(verse.bid()),
+      cn: verse.cn(),
+      vn: verse.vn()
+    };
+  }
+
+  function encodeRef(cred) {
+    return padNumber(cred.ix, 2) +
+      padNumber(cred.cn, 3) +
+      padNumber(cred.vn, 3);
+  }
+
+  function decodeRef(encodedRef) {
+    return {
+      ix: parseInt(encodedRef.substr(0, 2)),
+      cn: parseInt(encodedRef.substr(2, 3)),
+      vn: parseInt(encodedRef.substr(5, 3))
+    };
+  }
+
+
   var timer = new HiResTimer();
 
-  //var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
-  var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
+  var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
 
 
   function launchStressTest() {
@@ -86,29 +119,58 @@ var HiResTimer   = helper.HiResTimer;
 
       console.log(util.inspect(process.memoryUsage()));
 
-      var stats = new BibleStats();
-      bible.forEach(function(book) {
-        stats.bookTags(book);
-      });
-      stats.report();
+      // var stats = new BibleStats();
+      // bible.forEach(function(book) {
+      //   stats.bookTags(book);
+      // });
+      // stats.report();
 
       timer.stop();
       timer.report();
       console.log("PARSING COMPLETED.");
 
-      _.each(BBM.instance().ids(), function(val, key) {
-        var  found = false;
-        bible.forEach(function(book) {
-          if (book.id === key)
-            found = true;
-        });
+      var xxx = '';
+      //_.each(BBM.instance().ids(), function(val, key) {
+      bible.forEach(function(book) {
+        var chap = book.getChapter(1);
 
-        if (!found)
-          console.log(key);
-        //console.log(key, val);
-        // if (bible.indexOf(key) === -1)
-        //   console.log(key);
+        while (chap !== null) {
+          var verse = chap.getVerse(1);
+          while (verse !== null) {
+            var decRef1 = getDecodedRef(verse);
+            var encRef  = encodeRef(decRef1);
+            var decRef2 = decodeRef(encRef);
+
+            if (!_.isEqual(decRef1, decRef2)) {
+              console.log(decRef1, 'not equal to', decRef2);
+            }
+
+            xxx += verse.id() + ' - ';
+            xxx += encRef;
+            xxx += '\n';
+
+            verse = verse.next();
+          }
+          chap = chap.next();
+        }
       });
+
+      console.log(util.inspect(process.memoryUsage()));
+      fs.writeFile('./data/raw/ids.txt', xxx);
+
+
+      // _.each(BBM.instance().ids(), function(val, key) {
+      //   var  found = false;
+      //   bible.forEach(function(book) {
+      //     if (book.id === key)
+      //       found = true;
+      //   });
+
+      //   if (!found)
+      //     console.log(key);
+      // });
+
+
       //launchRenderTest(bible);
 
       // bible = [];
@@ -314,22 +376,23 @@ var HiResTimer   = helper.HiResTimer;
   function main() {
     try {
 
-      langTest();
+      // langTest();
 
-      _.each(src, function(value, key) {
-        var pureWord = Lexical.removePunctuations('en', key);
-        pureWord.split(' ').forEach(function(e) {
-          dict.addWord(e, value);
-        });
-      });
+      // _.each(src, function(value, key) {
+      //   var pureWord = Lexical.removePunctuations('en', key);
+      //   pureWord.split(' ').forEach(function(e) {
+      //     dict.addWord(e, value);
+      //   });
+      // });
 
-      dict.optimize();
+      // dict.optimize();
 
-      console.log(dict.getWords());
-      console.log(dict.getRefs('A'));
-      console.log(dict.getRefs('kikos'));
-      console.log('words: %d', dict.getWordsCount());
-      //launchStressTest();
+      // console.log(dict.getWords());
+      // console.log(dict.getRefs('A'));
+      // console.log(dict.getRefs('kikos'));
+      // console.log('words: %d', dict.getWordsCount());
+
+      launchStressTest();
       //agent.start();
 
       //renderTest();
