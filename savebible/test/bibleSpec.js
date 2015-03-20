@@ -23,14 +23,17 @@ describe('module BBM', function() {
   var initialCount = o.numEntries();
 
   it('interface', function() {
-    expect(BBM.instance()).to.have.all.keys('entryById',
-      'entryByOn',
-      'numEntries',
-      'existsId',
+    expect(BBM.instance()).to.have.all.keys(
       'entries',
+      'entryById',
+      'entryByOn',
+      'existsId',
+      'idByOn',
       'ids',
-      'ons',
       'nextId',
+      'numEntries',
+      'onById',
+      'ons',
       'prevId');
   });
 
@@ -44,6 +47,9 @@ describe('module BBM', function() {
     expect(o.entryByOn(gen.index)).to.equal(gen);
     expect(o.existsId('REV')).to.equal(true);
     expect(o.existsId('1TH')).to.equal(true);
+    expect(o.onById('REV')).to.equal(75);
+    expect(o.idByOn(75)).to.equal('REV');
+
 
     expect(o.numEntries()).to.equal(initialCount);
 
@@ -87,6 +93,8 @@ describe('module BBM', function() {
     // the number of entries should not be altered if queries missing entry
     expect(o.entryById('NOT FOUND')).to.equal(null);
     expect(o.existsId('NONE')).to.equal(false);
+    expect(o.onById('NONE')).to.equal(0);
+    expect(o.idByOn(111)).to.equal(null);
     expect(o.numEntries()).to.equal(initialCount);
   });
 
@@ -291,6 +299,7 @@ describe('core modules', function() {
 
       it('chapter', function() {
         expect(c1.id()).to.be.equal('null 0');
+        expect(c1.bid()).to.be.equal('');
         expect(c1.next()).to.be.equal(null);
         expect(c1.prev()).to.be.equal(null);
         expect(c1.numVerses()).to.be.equal(0);
@@ -298,6 +307,9 @@ describe('core modules', function() {
 
       it('verse', function() {
         expect(v1.id()).to.be.equal('null 0: 0');
+        expect(v1.vn()).to.be.equal(0);
+        expect(v1.cn()).to.be.equal(0);
+        expect(v1.bid()).to.be.equal('');
         expect(v1.next()).to.be.equal(null);
         expect(v1.prev()).to.be.equal(null);
       });
@@ -337,11 +349,15 @@ describe('core modules', function() {
         expect(v2.next()).to.be.equal(null);
         expect(v2.prev()).to.be.equal(v1);
         expect(v1.prev()).to.be.equal(null);
+        expect(v1.vn()).to.be.equal(1);
+        expect(v1.cn()).to.be.equal(1);
+        expect(v1.bid()).to.be.equal(tid1);
       });
 
       it('chapter', function() {
         expect(c1.id()).to.be.equal(tid1 + ' 1');
         expect(c2.id()).to.be.equal(tid1 + ' 2');
+        expect(c2.bid()).to.be.equal(tid1);
         expect(c1.next()).to.be.equal(c2);
         expect(c2.next()).to.be.equal(null);
         expect(c2.prev()).to.be.equal(c1);

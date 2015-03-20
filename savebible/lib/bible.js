@@ -476,7 +476,7 @@ Verse.prototype = {
   bid: function() {
     if (this.parent)
       return this.parent.bid();
-    return 'null';
+    return '';
   },
 
   // return the next verse of the chapter containing current verse
@@ -524,7 +524,7 @@ Chapter.prototype = {
     if (this.parent) {
       return this.parent.id;
     }
-    return 'null';
+    return '';
   },
 
   // return the next chapter in the book containing current chapter

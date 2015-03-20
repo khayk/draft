@@ -45,10 +45,10 @@ var HiResTimer   = helper.HiResTimer;
     };
   }
 
-  function encodeRef(cred) {
-    return padNumber(cred.ix, 2) +
-      padNumber(cred.cn, 3) +
-      padNumber(cred.vn, 3);
+  function encodeRef(decodedRef) {
+    return padNumber(decodedRef.ix, 2) +
+      padNumber(decodedRef.cn, 3) +
+      padNumber(decodedRef.vn, 3);
   }
 
   function decodeRef(encodedRef) {
