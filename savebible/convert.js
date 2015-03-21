@@ -62,8 +62,8 @@ var HiResTimer   = helper.HiResTimer;
 
   var timer = new HiResTimer();
 
-  var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
-  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
+  //var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
+  var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
 
 
   function launchStressTest() {
@@ -71,8 +71,8 @@ var HiResTimer   = helper.HiResTimer;
     var samples  = 1;
 
     function launchRenderTest(bible) {
-      var renderer = new USFMRenderer();
-      //var renderer = new TextRenderer();
+      //var renderer = new USFMRenderer();
+      var renderer = new TextRenderer({textOnly: false});
       console.log("RENDER STARTED...");
       timer.start();
 
@@ -88,7 +88,7 @@ var HiResTimer   = helper.HiResTimer;
       timer.report();
       console.log("RENDER COMPLETED.");
 
-      //fs.writeFile('./data/raw/output.usfm', data);
+      fs.writeFile('./data/raw/output.usfm', data);
     }
 
     var bible = [];
@@ -108,7 +108,8 @@ var HiResTimer   = helper.HiResTimer;
           for (var i = 0; i < samples; ++i) {
             try {
               book = parser.parseBook(str);
-              bible.push(book);
+              if ( BBM.instance().entryById(book.id).type !== 3)
+                bible.push(book);
             }
             catch (e) {
               console.log(e);
@@ -171,7 +172,7 @@ var HiResTimer   = helper.HiResTimer;
       // });
 
 
-      //launchRenderTest(bible);
+      launchRenderTest(bible);
 
       // bible = [];
       // parser = null;
@@ -392,8 +393,26 @@ var HiResTimer   = helper.HiResTimer;
       // console.log(dict.getRefs('kikos'));
       // console.log('words: %d', dict.getWordsCount());
 
-      launchStressTest();
+      //launchStressTest();
       //agent.start();
+
+      var Smth = function(opts) {
+        // if (!options) {
+        //   options = { encoding: null, flag: 'r' };
+        // } else if (typeof options === 'string') {
+        //   options = { encoding: options, flag: 'r' };
+        // } else if (typeof options !== 'object') {
+        //   throw new TypeError('Bad arguments');
+        // }
+        this.t = opts.t || true;
+      };
+      var s1 = new Smth({});
+      var s2 = new Smth({t: false});
+      var s3 = new Smth({t: true});
+
+      console.log(s1, s2, s3);
+      var str  = fs.readFileSync('aaa', {encoding: 'utf8'});
+
 
       //renderTest();
       //packMgr.discover('./data/test/', onDiscovered);

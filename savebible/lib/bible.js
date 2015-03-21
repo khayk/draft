@@ -756,6 +756,8 @@ var USFMParser = function(supportedOnly) {
 
     if (!BBM.instance().existsId(book.id))
       throw 'Invalid book id: ' + book.id;
+    if (book.abbr === '')
+      book.abbr = BBM.instance().entryById(book.id).abbr;
   };
 
   // helps to perform verse parsing
@@ -1079,7 +1081,14 @@ USFMRenderer.prototype.renderBook = function(book) {
 // ------------------------------------------------------------------------
 //                           TEXT RENDERER
 // ------------------------------------------------------------------------
-var TextRenderer = function() {};
+var TextRenderer = function(options) {
+  if (!options)
+    options = { textOnly: true };
+  else if (typeof options !== 'object')
+    throw new TypeError('Bad arguments');
+  this.textOnly = options.textOnly;
+};
+
 extend(TextRenderer, Renderer);
 TextRenderer.prototype.renderNode = function(node) {
   var res = '';
@@ -1122,7 +1131,7 @@ TextRenderer.prototype.renderNode = function(node) {
 };
 
 TextRenderer.prototype.renderVerse = function(verse) {
-  return verse.node.render(this);
+  return (this.textOnly ? '' : verse.id() + ' ') + verse.node.render(this);
 
   //return verse.node.render(this).replace(/\s+/g, ' ').trim();
 };
@@ -1181,8 +1190,8 @@ var BibleStats = function() {
         return;
       if (_.isUndefined(tags[ref]))
         tags[ref] = 0;
-      tags[ref] ++;
-      totalBytes += ref.length;
+      tags[ref]++;
+      //totalBytes += ref.length;
     }
   };
 
@@ -1220,6 +1229,8 @@ var BibleStats = function() {
     console.log("Verses: %d", verseCount);
     console.log("Chapters: %d", chapterCount);
     console.log("Books: %d\n\n", bookCount);
+
+    console.log("Bytes: %d\n\n", totalBytes);
 
     var text = 'hello';
     var tag  = '';
