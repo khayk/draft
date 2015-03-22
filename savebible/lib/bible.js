@@ -549,10 +549,10 @@ Chapter.prototype = {
 
   // insert verse into chapter, throw exception if something went wrong
   addVerse: function(verse) {
+    verse.parent = this;
     if ( verse.number - this.numVerses() !== 1 ) {
       throw 'detected verse gap while adding verse ' + verse.id();
     }
-    verse.parent = this;
     this.verses.push(verse);
   },
 
@@ -1274,4 +1274,8 @@ getBibleRequireObj().TextRenderer   = TextRenderer;
 getBibleRequireObj().USFMRenderer   = USFMRenderer;
 
 getBibleRequireObj().BibleStats     = BibleStats;
+getBibleRequireObj().CompoundNode   = CompoundNode;
+getBibleRequireObj().TextNode       = TextNode;
+
+
 
