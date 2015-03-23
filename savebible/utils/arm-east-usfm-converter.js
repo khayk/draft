@@ -5,7 +5,7 @@ var bibm         = require('../lib/bible.js');
 var fs           = require('fs');
 var readline     = require('readline');
 var mkdirp       = require('mkdirp');
-
+var cmn          = require('./common.js');
 
 var BBM          = bibm.BBM;
 var Bible        = bibm.Bible;
@@ -18,16 +18,11 @@ var TextRenderer = bibm.TextRenderer;
 var TextNode     = bibm.TextNode;
 var CompoundNode = bibm.CompoundNode;
 
+var fwrite       = cmn.fwrite;
 
 
-var textRndr   = new TextRenderer({textOnly:true});
+var textRndr   = new TextRenderer({textOnly:false, useAbbr: true});
 var usfmParser = new USFMParser();
-
-
-function padNumber(number, pad) {
-  var N = Math.pow(10, pad);
-  return number < N ? ('' + (N + number)).slice(1) : '' + number;
-}
 
 
 var addChildTextNode = function (node, str, from, to) {
@@ -59,7 +54,6 @@ function parseVerse(vstr) {
   var verse = new Verse();
   addNodes(verse.node, vstr, 0);
   return verse;
-  //return usfmParser.parseVerse(vstr);
 }
 
 function addVerse(chap, vstr, vn) {
@@ -94,6 +88,7 @@ function parseChapter(chap, cstr) {
   return chap;
 }
 
+var remainingBooks = 0;
 
 function parseBook(f, bible, id, on) {
   var book = new Book();
@@ -129,13 +124,19 @@ function parseBook(f, bible, id, on) {
   }).on('close', function() {
     var rbook = book.render(textRndr);
     var ppath = './uniform/eab/';
-    var fname = ppath + padNumber(on, 2) + '-' + id + '.txt';
+    var fname = ppath + cmn.padNumber(on, 2) + '-' + id + '.txt';
 
     mkdirp(ppath, function(err) {
-      fs.writeFile(fname, rbook);
+      fwrite(fname, rbook);
     });
 
     bible.addBook(book);
+    --remainingBooks;
+    if (remainingBooks === 0) {
+      bible.sort();
+      fwrite(ppath + cfg.combined_name(), bible.render(textRndr));
+      cmn.summarizeBible(bible, ppath + cfg.info_name());
+    }
   });
 }
 
@@ -146,6 +147,7 @@ function createKnownFormats() {
       throw err;
 
     var bible = new Bible();
+    remainingBooks = files.length;
 
     files.forEach(function(f) {
       var ext = path.extname(f);
@@ -164,7 +166,11 @@ function createKnownFormats() {
 
       var on = parseInt(arr[1]);
       var id  = arr[2];
-      parseBook(f, bible, id, on);
+
+      if (BBM.instance().entryById(id).type !== 3)
+        parseBook(f, bible, id, on);
+      else
+        --remainingBooks;
     });
   });
 }

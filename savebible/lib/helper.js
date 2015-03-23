@@ -47,6 +47,7 @@ var HiResTimer = function() {
   };
 };
 
+
 // var isUndefined = function(obj) {
 //   //return typeof obj === 'undefined';
 //   return obj === void 0;

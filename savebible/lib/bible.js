@@ -1025,7 +1025,7 @@ Renderer.prototype.renderBible = function(bible) {
 
   bible.books.forEach(function(b) {
     if (res !== '')
-      res += LF + LF;
+      res += LF;
     res += b.render(self);
   });
   return res;
@@ -1083,10 +1083,11 @@ USFMRenderer.prototype.renderBook = function(book) {
 // ------------------------------------------------------------------------
 var TextRenderer = function(options) {
   if (!options)
-    options = { textOnly: true };
+    options = { textOnly: true, useAbbr: false };
   else if (typeof options !== 'object')
     throw new TypeError('Bad arguments');
   this.textOnly = options.textOnly;
+  this.useAbbr  = options.useAbbr;
 };
 
 extend(TextRenderer, Renderer);
@@ -1131,8 +1132,16 @@ TextRenderer.prototype.renderNode = function(node) {
 };
 
 TextRenderer.prototype.renderVerse = function(verse) {
-  return (this.textOnly ? '' : verse.id() + ' ') + verse.node.render(this);
-
+  var res = '';
+  if (!this.textOnly) {
+    if (this.useAbbr)
+      res = BBM.instance().entryById(verse.bid()).abbr + ' ' + verse.cn() + ':' + verse.vn();
+    else
+      res = verse.id();
+    res += ' ';
+  }
+  res += verse.node.render(this);
+  return res;
   //return verse.node.render(this).replace(/\s+/g, ' ').trim();
 };
 

@@ -17,6 +17,14 @@ var Configs = (function() {
 
     ptx: function() {
       return dropboxDir + dataDir + 'ptx';
+    },
+
+    info_name: function() {
+      return 'bible.info';
+    },
+
+    combined_name: function() {
+      return 'bible.txt';
     }
   };
 })();
