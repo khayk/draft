@@ -1,7 +1,14 @@
 {
-    "config": {
-      "blanket": {
-        "pattern": "c:/Dev/code/projects/personal/draft/savebible/lib"
-      }
-    }
+  "name": "savebible",
+  "description": "perparation for bible",
+  "dependencies": {
+    "chai": "2.2.0",
+    "iconv-lite": ">= 0.4.7",
+    "mkdirp": ">= 0.5.0",
+    "node-dir": ">= 0.1.6",
+    "underscore": ">= 1.8.2",
+    "winston": ">= 0.9.0",
+    "minimist": ">= 1.1.1"
+  },
+  "engine": "node 0.10.36"
 }

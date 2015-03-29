@@ -1,11 +1,12 @@
+var argv         = require('minimist')(process.argv.slice(2));
 var cfg          = require('../configs.js').Configs;
-var dir          = require('node-dir');
-var path         = require('path');
 var bibm         = require('../lib/bible.js');
-var fs           = require('fs');
+var cmn          = require('./common.js');
+var dir          = require('node-dir');
 var readline     = require('readline');
 var mkdirp       = require('mkdirp');
-var cmn          = require('./common.js');
+var path         = require('path');
+var fs           = require('fs');
 
 var BBM          = bibm.BBM;
 var Bible        = bibm.Bible;
@@ -15,57 +16,16 @@ var Verse        = bibm.Verse;
 
 var USFMParser   = bibm.USFMParser;
 var TextRenderer = bibm.TextRenderer;
-var TextNode     = bibm.TextNode;
-var CompoundNode = bibm.CompoundNode;
 
 var fwrite       = cmn.fwrite;
+var addVerse     = cmn.addVerse;
 
 
 var textRndr   = new TextRenderer({textOnly:false, useAbbr: true});
 var usfmParser = new USFMParser();
 
 
-var addChildTextNode = function (node, str, from, to) {
-  var text = str.substring(from, to).trim();
-  if (text.length > 0)
-    node.addChild(new TextNode(text, node));
-};
 
-function addNodes(node, vstr, index) {
-  var found = vstr.indexOf('[', index);
-  if (found !== -1) {
-    addChildTextNode(node, vstr, index, found);
-    var compoundNode = new CompoundNode('\\add', node);
-    node.addChild(compoundNode);
-    addNodes(compoundNode, vstr, found + 1);
-  }
-  else {
-    found = vstr.indexOf(']', index);
-    if (found !== -1) {
-      addChildTextNode(node, vstr, index, found);
-      addNodes(node.parent, vstr, found + 1);
-    }
-    else
-      addChildTextNode(node, vstr, index, vstr.length);
-  }
-}
-
-function parseVerse(vstr) {
-  var verse = new Verse();
-  addNodes(verse.node, vstr, 0);
-  return verse;
-}
-
-function addVerse(chap, vstr, vn) {
-  var verse = parseVerse(vstr);
-  verse.number = vn;
-  try {
-    chap.addVerse(verse);
-  }
-  catch (e) {
-    console.error(e);
-  }
-}
 
 function parseChapter(chap, cstr) {
   var nums = /\d+/g;
@@ -87,6 +47,7 @@ function parseChapter(chap, cstr) {
 
   return chap;
 }
+
 
 var remainingBooks = 0;
 
@@ -141,7 +102,7 @@ function parseBook(f, bible, id, on) {
 }
 
 
-function createKnownFormats() {
+function createKnownFormats(types) {
   dir.files(cfg.text_arm(), function(err, files) {
     if (err)
       throw err;
@@ -166,8 +127,9 @@ function createKnownFormats() {
 
       var on = parseInt(arr[1]);
       var id  = arr[2];
+      var type = BBM.instance().entryById(id).type;
 
-      if (BBM.instance().entryById(id).type !== 3)
+      if (types && (types.length === 0 || types.indexOf(type) !== -1))
         parseBook(f, bible, id, on);
       else
         --remainingBooks;
@@ -175,5 +137,4 @@ function createKnownFormats() {
   });
 }
 
-
-createKnownFormats();
+createKnownFormats(argv._);

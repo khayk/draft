@@ -1,4 +1,9 @@
 var fs           = require('fs');
+var bibm         = require('../lib/bible.js');
+
+var TextNode     = bibm.TextNode;
+var CompoundNode = bibm.CompoundNode;
+var Verse        = bibm.Verse;
 
 
 function padNumber(number, pad) {
@@ -28,6 +33,7 @@ function fwrite(file, data) {
     }
   });
 }
+
 
 function briefInfo(bible) {
   var res = '';
@@ -79,6 +85,55 @@ function summarizeBible(bible, file) {
   fwrite(file, res);
 }
 
+
+
+var addChildTextNode = function (node, str, from, to) {
+  var text = str.substring(from, to).trim();
+  if (text.length > 0)
+    node.addChild(new TextNode(text, node));
+};
+
+
+function addNodes(node, vstr, index) {
+  var found = vstr.indexOf('[', index);
+  if (found !== -1) {
+    addChildTextNode(node, vstr, index, found);
+    var compoundNode = new CompoundNode('\\add', node);
+    node.addChild(compoundNode);
+    addNodes(compoundNode, vstr, found + 1);
+  }
+  else {
+    found = vstr.indexOf(']', index);
+    if (found !== -1) {
+      addChildTextNode(node, vstr, index, found);
+      addNodes(node.parent, vstr, found + 1);
+    }
+    else
+      addChildTextNode(node, vstr, index, vstr.length);
+  }
+}
+
+
+function parseVerse(vstr) {
+  var verse = new Verse();
+  addNodes(verse.node, vstr, 0);
+  return verse;
+}
+
+
+function addVerse(chap, vstr, vn) {
+  var verse = parseVerse(vstr);
+  verse.number = vn;
+  try {
+    chap.addVerse(verse);
+  }
+  catch (e) {
+    console.error(e);
+  }
+}
+
+
 exports.padNumber      = padNumber;
-exports.fwrite      = fwrite;
+exports.fwrite         = fwrite;
+exports.addVerse       = addVerse;
 exports.summarizeBible = summarizeBible;

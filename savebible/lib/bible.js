@@ -39,9 +39,10 @@ var CR = '\r'; // carriage return
 var BBM_TYPE_OLD = 1;
 var BBM_TYPE_NEW = 2;
 var BBM_TYPE_ADD = 3;
+var BBM_TYPE_SEC = 4;
 
 var BBMEntry = function(id, index, abbr, type) {
-  if (!type || type < BBM_TYPE_OLD || type > BBM_TYPE_ADD)
+  if (!type || type < BBM_TYPE_OLD || type > BBM_TYPE_SEC)
     throw 'invalid Bible book mapping entry type: ' + type;
 
   this.id = id;        // book unique id

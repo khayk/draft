@@ -15,6 +15,10 @@ var Configs = (function() {
       return dropboxDir + dataDir + 'txt-arm';
     },
 
+    text_rus: function() {
+      return dropboxDir + dataDir + 'txt-rus-synod';
+    },
+
     ptx: function() {
       return dropboxDir + dataDir + 'ptx';
     },

@@ -74,6 +74,13 @@
     {"id":"2JN", "index":72, "abbr":"2Jo",  "type":2},
     {"id":"3JN", "index":73, "abbr":"3Jo",  "type":2},
     {"id":"JUD", "index":74, "abbr":"Jude", "type":2},
-    {"id":"REV", "index":75, "abbr":"Re",   "type":2}
+    {"id":"REV", "index":75, "abbr":"Re",   "type":2},
+    {"id":"ESG", "index":80, "abbr":"esg",  "type":4},
+    {"id":"LJE", "index":81, "abbr":"lje",  "type":4},
+    {"id":"S3Y", "index":82, "abbr":"s3y",  "type":4},
+    {"id":"SUS", "index":83, "abbr":"sus",  "type":4},
+    {"id":"BEL", "index":84, "abbr":"bel",  "type":4},
+    {"id":"MAN", "index":85, "abbr":"man",  "type":4},
+    {"id":"2ES", "index":86, "abbr":"2es",  "type":4}
   ];
 })(typeof exports === 'undefined' ? this.idsmap = {} : exports);

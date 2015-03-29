@@ -38,7 +38,7 @@ describe('module BBM', function() {
   });
 
   it('content', function() {
-    expect(initialCount).to.equal(75);
+    expect(initialCount).to.be.at.least(75);
     var gen = o.entryById('GEN');
     expect(gen).to.have.all.keys('id', 'index', 'abbr', 'type');
     expect(gen.abbr).to.equal('Ge');
@@ -78,7 +78,7 @@ describe('module BBM', function() {
       id = BBM.instance().nextId(id);
       ++count;
     }
-    expect(count).to.equal(initialCount);
+    expect(count).to.equal(75);
 
     // move backward
     id = 'REV';
