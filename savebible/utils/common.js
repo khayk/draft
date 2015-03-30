@@ -1,9 +1,18 @@
-var fs           = require('fs');
+var cfg          = require('../configs.js').Configs;
 var bibm         = require('../lib/bible.js');
+var mkdirp       = require('mkdirp');
+var fs           = require('fs');
+
 
 var TextNode     = bibm.TextNode;
 var CompoundNode = bibm.CompoundNode;
 var Verse        = bibm.Verse;
+var Book         = bibm.Book;
+var TextRenderer = bibm.TextRenderer;
+
+
+
+var textRndr     = new TextRenderer({textOnly:false, useAbbr: true});
 
 
 function padNumber(number, pad) {
@@ -29,7 +38,7 @@ function padWithSymbol(n, width, z) {
 function fwrite(file, data) {
   fs.writeFile(file, data, function(err) {
     if (err) {
-      logger.error('failed to write file: ', file, ', err: ', err);
+      console.error('failed to write file: ', file, ', err: ', err);
     }
   });
 }
@@ -50,6 +59,7 @@ function briefInfo(bible) {
   });
   return res;
 }
+
 
 function summerizeBook(book) {
   var maxVN = 0, maxCN = 0;
@@ -77,12 +87,35 @@ function summerizeBook(book) {
   return res;
 }
 
+
 function summarizeBible(bible, file) {
   var res = briefInfo(bible) + '\r\n\r\n';
   bible.books.forEach(function(b) {
     res += summerizeBook(b) + '\r\n\r\n';
   });
   fwrite(file, res);
+}
+
+
+function saveBook(dstDir, book, on, id) {
+  var rbook = book.render(textRndr);
+  mkdirp(dstDir, function(err) {
+    if (err) {
+      console.error('mkdirp failed on dstDir: %s, err: %s', dstDir, err);
+      return;
+    }
+    var fname = dstDir + padNumber(on, 2) + '-' + id + '.txt';
+    fwrite(fname, rbook);
+  });
+}
+
+
+function outputResult(dstDir, bible) {
+  bible.sort();
+  mkdirp(dstDir, function(err) {
+    fwrite(dstDir + cfg.combined_name(), bible.render(textRndr));
+    summarizeBible(bible, dstDir + cfg.info_name());
+  });
 }
 
 
@@ -137,3 +170,5 @@ exports.padNumber      = padNumber;
 exports.fwrite         = fwrite;
 exports.addVerse       = addVerse;
 exports.summarizeBible = summarizeBible;
+exports.outputResult   = outputResult;
+exports.saveBook       = saveBook;

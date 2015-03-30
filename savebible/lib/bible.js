@@ -564,6 +564,13 @@ Chapter.prototype = {
     return this.verses[number - 1];
   },
 
+  addHeading: function(text) {
+    var loc = this.verses.length;
+    if (_.isUndefined(this.heading[loc]))
+      this.heading[loc] = [];
+    this.heading[loc].push(text);
+  },
+
   render: function(renderer) {
     return renderer.renderChapter(this);
   }
@@ -581,6 +588,7 @@ var Book = function() {
   this.lname    = '';
   this.desc     = '';
   this.chapters = [];
+  this.preface  = [];
 };
 
 Book.prototype = {

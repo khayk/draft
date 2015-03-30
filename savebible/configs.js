@@ -1,26 +1,37 @@
 var Configs = (function() {
   var dropboxDir = 'c:/Users/Hayk/Dropbox/';
   var dataDir    = 'Data/';
+  var uniformDir = './uniform/';
 
   return {
-    usfm_kjv: function() {
-      return dropboxDir + dataDir + 'usfm-kjv';
+    en_kjv_usfm: function() {
+      var from_ = dropboxDir + dataDir + 'en-kjv-usfm';
+      var to_   = './';
+      return {from: from_, to: to_};
     },
 
-    usfm_kjv_plus: function() {
-      return dropboxDir + dataDir + 'usfm-kjv+';
+    en_kjv_usfm_plus: function() {
+      var from_ = dropboxDir + dataDir + 'en-kjv-usfm+';
+      var to_   = './';
+      return {from: from_, to: to_};
     },
 
-    text_arm: function() {
-      return dropboxDir + dataDir + 'txt-arm';
+    am_eab_text: function() {
+      var from_ = dropboxDir + dataDir + 'am_eab_text';
+      var to_   = uniformDir + 'eab/';
+      return {from: from_, to: to_};
     },
 
-    text_rus: function() {
-      return dropboxDir + dataDir + 'txt-rus-synod';
+    ru_synod_text: function() {
+      var from_ = dropboxDir + dataDir + 'ru_synod_text';
+      var to_   = uniformDir + 'synod/';
+      return {from: from_, to: to_};
     },
 
-    ptx: function() {
-      return dropboxDir + dataDir + 'ptx';
+    en_kjv_ptx: function() {
+      var from_ = dropboxDir + dataDir + 'en_kjv_ptx';
+      var to_   = '';
+      return {from: from_, to: to_};
     },
 
     info_name: function() {

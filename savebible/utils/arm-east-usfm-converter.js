@@ -21,10 +21,11 @@ var fwrite       = cmn.fwrite;
 var addVerse     = cmn.addVerse;
 
 
-var textRndr   = new TextRenderer({textOnly:false, useAbbr: true});
-var usfmParser = new USFMParser();
+var textRndr     = new TextRenderer({textOnly:false, useAbbr: true});
+var usfmParser   = new USFMParser();
 
-
+var srcDir       = cfg.am_eab_text().from;
+var destDir      = cfg.am_eab_text().to;
 
 
 function parseChapter(chap, cstr) {
@@ -83,27 +84,18 @@ function parseBook(f, bible, id, on) {
     }
 
   }).on('close', function() {
-    var rbook = book.render(textRndr);
-    var ppath = './uniform/eab/';
-    var fname = ppath + cmn.padNumber(on, 2) + '-' + id + '.txt';
-
-    mkdirp(ppath, function(err) {
-      fwrite(fname, rbook);
-    });
-
     bible.addBook(book);
+    cmn.saveBook(destDir, book, on, id);
     --remainingBooks;
     if (remainingBooks === 0) {
-      bible.sort();
-      fwrite(ppath + cfg.combined_name(), bible.render(textRndr));
-      cmn.summarizeBible(bible, ppath + cfg.info_name());
+      cmn.outputResult(destDir, bible);
     }
   });
 }
 
 
 function createKnownFormats(types) {
-  dir.files(cfg.text_arm(), function(err, files) {
+  dir.files(srcDir, function(err, files) {
     if (err)
       throw err;
 
