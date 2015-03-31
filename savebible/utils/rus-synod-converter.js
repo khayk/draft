@@ -79,7 +79,7 @@ function parseBook(f, bible, id, on) {
         }
       }
       else {
-        var vstr = line.substring(arr[0].length, line.length);
+        var vstr = line.substring(arr[0].length);
         //console.log(vstr);
 
         if (chap === null) {

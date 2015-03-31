@@ -4,7 +4,6 @@ var bibm         = require('../lib/bible.js');
 var cmn          = require('./common.js');
 var dir          = require('node-dir');
 var readline     = require('readline');
-var mkdirp       = require('mkdirp');
 var path         = require('path');
 var fs           = require('fs');
 
@@ -14,15 +13,7 @@ var Book         = bibm.Book;
 var Chapter      = bibm.Chapter;
 var Verse        = bibm.Verse;
 
-var USFMParser   = bibm.USFMParser;
-var TextRenderer = bibm.TextRenderer;
-
-var fwrite       = cmn.fwrite;
 var addVerse     = cmn.addVerse;
-
-
-var textRndr     = new TextRenderer({textOnly:false, useAbbr: true});
-var usfmParser   = new USFMParser();
 
 var srcDir       = cfg.am_eab_text().from;
 var destDir      = cfg.am_eab_text().to;
@@ -44,7 +35,7 @@ function parseChapter(chap, cstr) {
     vn = parseInt(arr[0]);
     prevIndex = nums.lastIndex;
   }
-  addVerse(chap, cstr.substring(prevIndex, cstr.length), vn);
+  addVerse(chap, cstr.substring(prevIndex), vn);
 
   return chap;
 }

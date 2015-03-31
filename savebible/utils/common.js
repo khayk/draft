@@ -46,7 +46,12 @@ function fwrite(file, data) {
 
 function briefInfo(bible) {
   var res = '';
-  var prePadded = '     ';
+  var prePadded = '      ';
+
+  var tbs = 0;  // total books count
+  var tcs = 0;  // total chapters count
+  var tvs = 0;  // total verses count
+
   bible.books.forEach(function(b) {
     var nvs = 0;
     b.chapters.forEach(function(c) {
@@ -56,7 +61,17 @@ function briefInfo(bible) {
     res += padString(b.id,            prePadded, false) +
            padString(b.numChapters(), prePadded, false) +
            nvs + '\r\n';
+
+    tcs += b.numChapters();
+    tvs += nvs;
+    tbs++;
   });
+
+  res +=  '\r\n' +
+          padString(tbs,  prePadded, false) +
+          padString(tcs,  prePadded, false) +
+          tvs + '\r\n';
+
   return res;
 }
 
@@ -110,8 +125,12 @@ function saveBook(dstDir, book, on, id) {
 }
 
 
-function outputResult(dstDir, bible) {
-  bible.sort();
+function outputResult(dstDir, bible, performSort) {
+  if (performSort === void 0)
+    performSort = true;
+  if (performSort)
+    bible.sort();
+
   mkdirp(dstDir, function(err) {
     fwrite(dstDir + cfg.combined_name(), bible.render(textRndr));
     summarizeBible(bible, dstDir + cfg.info_name());
