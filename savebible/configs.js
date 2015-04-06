@@ -4,6 +4,24 @@ var Configs = (function() {
   var uniformDir = './uniform/';
 
   return {
+    am_eab_text: function() {
+      var from_ = dropboxDir + dataDir + 'am-eab-text';
+      var to_   = uniformDir + 'eab/';
+      return {from: from_, to: to_};
+    },
+
+    am_grabar_text: function() {
+      var from_ = dropboxDir + dataDir + 'am_grabar_text';
+      var to_   = uniformDir + 'grabar/';
+      return {from: from_, to: to_};
+    },
+
+    ru_synod_text: function() {
+      var from_ = dropboxDir + dataDir + 'ru-synod-text';
+      var to_   = uniformDir + 'synod/';
+      return {from: from_, to: to_};
+    },
+
     en_kjv_usfm: function() {
       var from_ = dropboxDir + dataDir + 'en-kjv-usfm';
       var to_   = './';
@@ -13,18 +31,6 @@ var Configs = (function() {
     en_kjv_usfm_plus: function() {
       var from_ = dropboxDir + dataDir + 'en-kjv-usfm+';
       var to_   = './';
-      return {from: from_, to: to_};
-    },
-
-    am_eab_text: function() {
-      var from_ = dropboxDir + dataDir + 'am-eab-text';
-      var to_   = uniformDir + 'eab/';
-      return {from: from_, to: to_};
-    },
-
-    ru_synod_text: function() {
-      var from_ = dropboxDir + dataDir + 'ru-synod-text';
-      var to_   = uniformDir + 'synod/';
       return {from: from_, to: to_};
     },
 
