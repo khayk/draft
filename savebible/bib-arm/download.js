@@ -91,7 +91,7 @@ function getContent(uri, callback, retryCount) {
   var remaining = retryCount || 2;
   --remaining;
 
-  logger.info('query[%d]: %s', queryNumber++, uri);
+  var selfNumber = queryNumber++;
   http.get(uri, function(res) {
     var content = '';
     res.setEncoding('utf8');
@@ -101,12 +101,13 @@ function getContent(uri, callback, retryCount) {
     });
 
     res.on('end', function() {
+      logger.info('Query[%d] completed: %s', selfNumber, uri);
       callback(null, content);
     });
 
   }).on('error', function(err) {
     if (remaining > 0) {
-      logger.warn('Query failed, retrying: %s', uri);
+      logger.warn('Query[%d] failed, retrying: %s', selfNumber, uri);
       getContent(uri, callback, remaining);
     }
     else {
@@ -116,17 +117,23 @@ function getContent(uri, callback, retryCount) {
 }
 
 // handle book content
-function handleBookContent(err, content) {
-  //var re = /value=\"(.*?)\"\s+title=\"(.*?)\">(.*?)</g;
-  // while ((arr = re.exec(tocContent)) !== null) {
+function bookContentWrap(destFolder, id) {
 
-  // }
+  function handleBookContent(err, content) {
+    //var re = /value=\"(.*?)\"\s+title=\"(.*?)\">(.*?)</g;
+    // while ((arr = re.exec(tocContent)) !== null) {
 
-  fs.writeFile(saveFolder + 'ttt.html', content, function(err) {
-    if (err) {
-      logger.error('Failed to write file: ', file, ', err: ', err);
-    }
-  });
+    // }
+
+    var file = destFolder + id + '.html';
+    fs.writeFile(file, content, function(err) {
+      if (err) {
+        logger.error('Failed to write file: ', file, ', err: ', err);
+      }
+    });
+  }
+
+  return handleBookContent;
 }
 
 // extract books list from the content of TOC
@@ -142,9 +149,10 @@ function extractBooks(tocContent, saveFolder, bibleName) {
     var desc = arr[2];
     var name = arr[3];
 
-    output += mapping.getId(name) + ' > ' + name + ' > ' + desc + '\n';
-    getContent(rootUri + addr, handleBookContent);
-    return;
+    var id = mapping.getId(name);
+    output += id + ' > ' + name + ' > ' + desc + '\n';
+    getContent(rootUri + addr, bookContentWrap(saveFolder, id));
+    //return;
     //logger.info("addr: %s, desc: %s, name: %s", addr, desc, name);
   }
 
@@ -170,7 +178,7 @@ function processToc(toc) {
         return;
       }
 
-      fs.writeFile(parent + 'toc.html', content, function(err) {
+      fs.writeFile(parent + '_TOC.html', content, function(err) {
         if (err) {
           logger.error('Failed to write file: ', file, ', err: ', err);
         }
@@ -182,7 +190,7 @@ function processToc(toc) {
 }
 
 
-logger.info('##################### started ###########################');
+logger.info('------------------------ started ------------------------------');
 
 tocs.forEach(function(toc) {
   processToc(toc);
