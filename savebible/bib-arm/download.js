@@ -1,9 +1,12 @@
-
 var http    = require('http');
 var fs      = require('fs');
 var mkdirp  = require('mkdirp');
 var winston = require('winston');
 var path    = require('path');
+var bibm    = require('../lib/bible.js');
+
+var BBM     = bibm.BBM;
+
 
 
 // configure logger
@@ -21,9 +24,10 @@ var logger = new(winston.Logger)({
 
 
 // main variables
-dstPath = 'result';
-rootUri = 'http://bible.armenia.ru/';
-tocs = [
+var queryNumber = 0;
+var dstPath = 'result';
+var rootUri = 'http://bible.armenia.ru/';
+var tocs = [
   {addr: 'hy/toc/1.html', title:'Синодальный перевод 1876 года', name:'Библия', folder:'synod'},
   {addr: 'hy/toc/2.html', title:'The King James Bible', name:'Bible', folder:'kjv'},
   {addr: 'hy/toc/3.html', title:'Մայր Աթոռ Սուրբ Էջմիածին եւ Հայաստանի աստուածաշնչային ընկերութիւն, 1994', name:'Աստուածաշունչ', folder:'ejmiacin'},
@@ -31,8 +35,63 @@ tocs = [
 ];
 
 
+/// hold name/id mapping information for specified file
+var NIM = function(mappingFile) {
+  this.nameId = {};
+  this.idName = {};
+
+  var data   = fs.readFileSync(mappingFile, 'utf8');
+  var lines  = data.split('\n');
+
+  for (var l in lines) {
+    var line = lines[l].trim();
+    if (line.length === 0)
+      continue;
+
+    var arr = line.split(':');
+    if (arr.length !== 2)
+      throw 'Invalid mapping file: ' + mappingFile + ', entry: ' + line;
+    var id   = arr[0].trim();
+    var name = arr[1].trim();
+
+    if (!BBM.instance().existsId(id))
+      throw 'Invalid book id: ' + id;
+    //logger.info('id: %s,  name: %s', , arr[1].trim());
+
+
+    // ensure name uniquness
+    if (this.getName(name) !== null)
+      throw 'Name already exists: ' + name;
+    this.nameId[name] = id;
+
+    // ensure id uniquness
+    if (this.getId(id) !== null)
+      throw 'Id already exists: ' + id;
+    this.nameId[id] = name;
+  }
+};
+
+NIM.prototype.getId = function(name) {
+  var ref = this.nameId[name];
+  if (ref === void 0)
+    return null;
+  return ref;
+};
+
+NIM.prototype.getName = function(id) {
+  var ref = this.idName[id];
+  if (ref === void 0)
+    return null;
+  return ref;
+};
+
+
 // download the content of the specified uri and fire callback when done
-function getContent(uri, callback) {
+function getContent(uri, callback, retryCount) {
+  var remaining = retryCount || 2;
+  --remaining;
+
+  logger.info('query[%d]: %s', queryNumber++, uri);
   http.get(uri, function(res) {
     var content = '';
     res.setEncoding('utf8');
@@ -46,7 +105,13 @@ function getContent(uri, callback) {
     });
 
   }).on('error', function(err) {
-    callback(err);
+    if (remaining > 0) {
+      logger.warn('Query failed, retrying: %s', uri);
+      getContent(uri, callback, remaining);
+    }
+    else {
+      callback(err);
+    }
   });
 }
 
@@ -59,8 +124,7 @@ function handleBookContent(err, content) {
 
   fs.writeFile(saveFolder + 'ttt.html', content, function(err) {
     if (err) {
-      logger.error('failed to write file: ', file, ', err: ', err);
-      // TODO: do something to retry
+      logger.error('Failed to write file: ', file, ', err: ', err);
     }
   });
 }
@@ -70,23 +134,25 @@ function extractBooks(tocContent, saveFolder, bibleName) {
   var re = /value=\"(.*?)\"\s+title=\"(.*?)\">(.*?)</g;
   var arr = null;
 
-  var output = '';
+  var output  = '';
+  var mapping = new NIM('mapping/' + bibleName + '.txt');
+
   while ((arr = re.exec(tocContent)) !== null) {
     var addr = arr[1];
     var desc = arr[2];
     var name = arr[3];
 
-    output += name + '\n';
-
-    //getContent(rootUri + addr, handleBookContent);
-    //return;
+    output += mapping.getId(name) + ' > ' + name + ' > ' + desc + '\n';
+    getContent(rootUri + addr, handleBookContent);
+    return;
     //logger.info("addr: %s, desc: %s, name: %s", addr, desc, name);
   }
 
-  // fs.writeFile(saveFolder + bibleName + '.txt', output, function(err) {
-  //   if (err) logger.error('failed to write file: ', file);
-  // });
+  fs.writeFile(saveFolder + 'index.txt', output, function(err) {
+    if (err) logger.error('Failed to write file: ', file);
+  });
 }
+
 
 function processToc(toc) {
   var uri = rootUri + toc.addr;
@@ -106,7 +172,7 @@ function processToc(toc) {
 
       fs.writeFile(parent + 'toc.html', content, function(err) {
         if (err) {
-          logger.error('failed to write file: ', file, ', err: ', err);
+          logger.error('Failed to write file: ', file, ', err: ', err);
         }
       });
 
@@ -115,8 +181,11 @@ function processToc(toc) {
   });
 }
 
+
+logger.info('##################### started ###########################');
+
 tocs.forEach(function(toc) {
   processToc(toc);
 });
 
-//processToc(tocs[0]);
+//processToc(tocs[1]);
