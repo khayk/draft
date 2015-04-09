@@ -124,8 +124,11 @@ function processTextBible(file) {
       console.log('ERROR while parsing BOOK: %s', id);
     }
   }).on('close', function() {
-    //cmn.saveBook(destDir, book, on, id);
     cmn.outputResult(destDir, bible, false);
+    bible.books.forEach(function(b) {
+      var id = b.id;
+      cmn.saveBook(destDir, b, BBM.instance().entryById(id).index, id);
+    });
   });
 }
 

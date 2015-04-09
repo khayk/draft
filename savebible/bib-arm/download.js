@@ -16,7 +16,7 @@ var logger = new(winston.Logger)({
       colorize: true
     }),
     new(winston.transports.File)({
-      filename: 'draft.log',
+      filename: 'logs/download.log',
       json: false
     })
   ]
@@ -152,8 +152,6 @@ function extractBooks(tocContent, saveFolder, bibleName) {
     var id = mapping.getId(name);
     output += id + ' > ' + name + ' > ' + desc + '\n';
     getContent(rootUri + addr, bookContentWrap(saveFolder, id));
-    //return;
-    //logger.info("addr: %s, desc: %s, name: %s", addr, desc, name);
   }
 
   fs.writeFile(saveFolder + 'index.txt', output, function(err) {
@@ -190,7 +188,7 @@ function processToc(toc) {
 }
 
 
-logger.info('------------------------ started ------------------------------');
+logger.info('Script launched ...');
 
 tocs.forEach(function(toc) {
   processToc(toc);
