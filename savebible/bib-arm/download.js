@@ -25,7 +25,7 @@ var logger = new(winston.Logger)({
 
 // main variables
 var queryNumber = 0;
-var dstPath = 'result';
+var dstPath = 'downloads';
 var rootUri = 'http://bible.armenia.ru/';
 var tocs = [
   {addr: 'hy/toc/1.html', title:'Синодальный перевод 1876 года', name:'Библия', folder:'synod'},

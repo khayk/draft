@@ -1,5 +1,7 @@
+var argv       = require('minimist')(process.argv.slice(2));
 var winston    = require('winston');
 var fs         = require('fs');
+var dir        = require('node-dir');
 var mkdirp     = require('mkdirp');
 var path       = require('path');
 var bibm       = require('../lib/bible.js');
@@ -17,20 +19,20 @@ var USFMParser = bibm.USFMParser;
 // configure logger
 var logger = new(winston.Logger)({
   transports: [
-    new(winston.transports.Console)({
-      colorize: true
-    }),
-    new(winston.transports.File)({
-      filename: 'logs/parser.log',
-      json: false
-    })
+  new(winston.transports.Console)({
+    colorize: true
+  }),
+  new(winston.transports.File)({
+    filename: 'parser.log',
+    json: false
+  })
   ]
 });
 
 
 var usfmParser = new USFMParser();
-var srcPath    = 'result';
-var dstPath    = 'processed';
+var srcPath    = 'downloads';
+var dstPath    = 'parsed';
 var tocs       = [
   {addr: 'hy/toc/1.html', title:'Синодальный перевод 1876 года', name:'Библия', folder:'synod'},
   {addr: 'hy/toc/2.html', title:'The King James Bible', name:'Bible', folder:'kjv'},
@@ -95,26 +97,53 @@ function recognizeText (bible, file) {
   }
 }
 
-function discoverFiles(toc) {
+// types is an array containing book types
+function discoverFiles(toc, types) {
   var bible = new Bible();
 
   outDir = dstPath + '/' + toc.folder + '/';
   srcDir = srcPath + '/' + toc.folder + '/';
-  mkdirp(outDir, function(err) {
-    var id = 'TIT';
-    recognizeText(bible, srcDir + id + '.html');
 
-    var aaaa = '../utils/uniform/kjv-arm/';
-    cmn.saveBook(aaaa, bible.getBook(id), BBM.instance().entryById(id).index, id);
-    cmn.outputResult(aaaa, bible);
+  // discover files
+  dir.files(srcDir, function(err, files) {
+    if (err)
+      throw err;
+
+    // process each file one by one
+    files.forEach(function(f) {
+      var ext = path.extname(f);
+      var id  = path.basename(f, ext);
+
+      try {
+        if (ext !== '.html') {
+          logger.warn('Skipped: %s', f);
+          return;
+        }
+
+        var entry = BBM.instance().entryById(id);
+        if (entry === null) {
+          logger.error('no entry found for id: %s', id);
+          return;
+        }
+        var type = entry.type;
+        if (types && (types.length === 0 || types.indexOf(type) !== -1)) {
+          recognizeText(bible, f);
+          cmn.saveBook(outDir, bible.getBook(id), BBM.instance().entryById(id).index, id);
+        }
+      }
+      catch (e) {
+        logger.error('ERROR: %s, ID: %s', e, id);
+      }
+    });
+
+    cmn.outputResult(outDir, bible, true);
   });
+
+  //var aaaa = '../utils/uniform/kjv-arm/';
+  //cmn.saveBook(aaaa, bible.getBook(id), BBM.instance().entryById(id).index, id);
+  //cmn.outputResult(aaaa, bible);
 }
 
 
-discoverFiles(tocs[1]);
 
-// var str = '1234567890';
-// while (str.length > 0) {
-//   console.log(str);
-//   str = str.substring(12);
-// }
+discoverFiles(tocs[1], argv._);

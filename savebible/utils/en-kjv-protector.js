@@ -90,7 +90,7 @@ function createUSFMVerse(vstr, vn) {
   return verse;
 }
 
-function processTextBible(file) {
+function processTextBible(file, types) {
   var bible = new Bible();
   var re  = /(.+?)\s(\d+):(\d+)/;
   var arr = null;
@@ -114,17 +114,26 @@ function processTextBible(file) {
         return;
       }
 
-      //console.log("%s %s:%s", arr[1], arr[2], arr[3]);
-      var vstr = line.substring(arr[0].length).trim();
-      var verse = createUSFMVerse(vstr, parseInt(arr[3]));
-      getChapter(bible, arr[1], parseInt(arr[2])).addVerse(verse);
+      var id = abbrToId.getId(arr[1]);
+      var entry = BBM.instance().entryById(id);
+      if (entry === null) {
+        console.error('no entry found for id: %s', id);
+        return;
+      }
+      var type = entry.type;
+      if (types && (types.length === 0 || types.indexOf(type) !== -1)) {
+	      //console.log("%s %s:%s", arr[1], arr[2], arr[3]);
+	      var vstr = line.substring(arr[0].length).trim();
+	      var verse = createUSFMVerse(vstr, parseInt(arr[3]));
+	      getChapter(bible, arr[1], parseInt(arr[2])).addVerse(verse);
+      }
     }
     catch (e) {
       console.log(e);
       console.log('ERROR while parsing BOOK: %s', id);
     }
   }).on('close', function() {
-    cmn.outputResult(destDir, bible, false);
+    cmn.outputResult(destDir, bible, true);
     bible.books.forEach(function(b) {
       var id = b.id;
       cmn.saveBook(destDir, b, BBM.instance().entryById(id).index, id);
@@ -134,4 +143,4 @@ function processTextBible(file) {
 
 var file = srcDir + '/kjvbible protector utf8.txt';
 //convertToUtf8(file);
-processTextBible(file);
+processTextBible(file, argv._);
