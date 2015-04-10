@@ -1,8 +1,8 @@
 var Configs = (function() {
   //var dropboxDir = 'c:/Users/Hayk/Dropbox/';
-  var dropboxDir = '/home/khayk/Downloads/';
+  var dropboxDir = '/home/hayk/Downloads/';
   var dataDir    = 'Data/';
-  var uniformDir = './uniform/';
+  var uniformDir = '../uniform/';
 
   return {
     am_eab_text: function() {

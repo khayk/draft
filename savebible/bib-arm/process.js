@@ -32,7 +32,7 @@ var logger = new(winston.Logger)({
 
 var usfmParser = new USFMParser();
 var srcPath    = 'downloads';
-var dstPath    = 'parsed';
+var dstPath    = '../uniform/';
 var tocs       = [
   {addr: 'hy/toc/1.html', title:'Синодальный перевод 1876 года', name:'Библия', folder:'synod'},
   {addr: 'hy/toc/2.html', title:'The King James Bible', name:'Bible', folder:'kjv'},
@@ -146,4 +146,4 @@ function discoverFiles(toc, types) {
 
 
 
-discoverFiles(tocs[1], argv._);
+discoverFiles(tocs[0], argv._);
