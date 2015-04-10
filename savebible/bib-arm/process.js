@@ -101,7 +101,7 @@ function recognizeText (bible, file) {
 function discoverFiles(toc, types) {
   var bible = new Bible();
 
-  outDir = dstPath + '/' + toc.folder + '/';
+  outDir = dstPath + '/' + toc.folder + '-ba/';
   srcDir = srcPath + '/' + toc.folder + '/';
 
   // discover files
