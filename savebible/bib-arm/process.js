@@ -66,6 +66,7 @@ function getChapter(bible, id, cn) {
 
 function extractVerses(bible, id, cn, content) {
   var re = /<span.*?<sup>(\d+)<\/sup>(.*?)<\/span>/g;
+  //var re = /<span.*?verse\s\{number:(\d+)\}\"><sup>\d+<\/sup>(.*?)<\/span>/g;
   var arr = null, vn = 1, vstr = '';
 
   while ((arr = re.exec(content)) !== null) {
@@ -101,8 +102,8 @@ function recognizeText (bible, file) {
 function discoverFiles(toc, types) {
   var bible = new Bible();
 
-  outDir = dstPath + '/' + toc.folder + '-ba/';
-  srcDir = srcPath + '/' + toc.folder + '/';
+  var outDir = dstPath + '/' + toc.folder + '-ba/';
+  var srcDir = srcPath + '/' + toc.folder + '/';
 
   // discover files
   dir.files(srcDir, function(err, files) {
@@ -144,6 +145,9 @@ function discoverFiles(toc, types) {
   //cmn.outputResult(aaaa, bible);
 }
 
+discoverFiles(tocs[3], argv._);
 
-
-discoverFiles(tocs[0], argv._);
+// tocs.forEach(function(toc) {
+//   logger.info('Parsing: %s - %s', toc.folder, toc.title);
+//   discoverFiles(toc, argv._);
+// });
