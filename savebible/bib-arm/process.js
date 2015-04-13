@@ -116,7 +116,7 @@ function discoverFiles(toc, types) {
       var id  = path.basename(f, ext);
 
       try {
-        if (ext !== '.html') {
+        if (ext !== '.html' || id === 'null') {
           logger.warn('Skipped: %s', f);
           return;
         }

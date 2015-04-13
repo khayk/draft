@@ -551,8 +551,21 @@ Chapter.prototype = {
   // insert verse into chapter, throw exception if something went wrong
   addVerse: function(verse) {
     verse.parent = this;
+    if (verse.number <= this.numVerses()) {
+      console.error('ERROR: Attempt to overwrite existing verse ' + verse.id());
+      return;
+      //throw 'Attempt to overwrite existing verse ' + verse.id();
+    }
+
     if ( verse.number - this.numVerses() !== 1 ) {
-      throw 'detected verse gap while adding verse ' + verse.id();
+      console.error('detected verse gap while adding verse ' + verse.id());
+      while (verse.number - this.numVerses() > 1) {
+        // add empty verses to fill gap
+        var dummy = new Verse();
+        dummy.parent = this;
+        dummy.number = this.numVerses() + 1;
+        this.verses.push(dummy);
+      }
     }
     this.verses.push(verse);
   },
@@ -620,10 +633,10 @@ Book.prototype = {
   },
 
   addChapter: function(chapter) {
-    if ( chapter.number - this.numChapters() !== 1 ) {
-      throw 'detected gap while adding chapter ' + chapter.id();
-    }
     chapter.parent = this;
+    if ( chapter.number - this.numChapters() !== 1 ) {
+      throw 'detected chapter gap while adding ' + chapter.id();
+    }
     this.chapters.push(chapter);
   },
 

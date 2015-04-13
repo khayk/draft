@@ -57,6 +57,4 @@ var Configs = (function() {
   };
 })();
 
-//console.log(Configs.usfm_kjv());
-
 module.exports.Configs = Configs;
