@@ -331,15 +331,15 @@ describe('core modules', function() {
       });
 
       it('exceptions', function() {
-        v2.number = 3;
-        expect(c1.addVerse.bind(c1, v2)).to.throw();
-        c2.number = 3;
+        c2.number = 4;
         expect(b1.addChapter.bind(b1, c2)).to.throw();
 
         v2.number = 2;
         expect(c1.addVerse.bind(c1, v2)).to.not.throw();
         c2.number = 2;
         expect(b1.addChapter.bind(b1, c2)).to.not.throw();
+        v2.number = 2;
+        expect(c1.addVerse.bind(c1, v2)).to.throw();
       });
 
       it('verse', function() {

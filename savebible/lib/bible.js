@@ -552,13 +552,11 @@ Chapter.prototype = {
   addVerse: function(verse) {
     verse.parent = this;
     if (verse.number <= this.numVerses()) {
-      console.error('ERROR: Attempt to overwrite existing verse ' + verse.id());
-      return;
-      //throw 'Attempt to overwrite existing verse ' + verse.id();
+      throw 'Attempt to overwrite existing verse ' + verse.id();
     }
 
     if ( verse.number - this.numVerses() !== 1 ) {
-      console.error('detected verse gap while adding verse ' + verse.id());
+      console.warn('detected verse gap while adding verse ' + verse.id());
       while (verse.number - this.numVerses() > 1) {
         // add empty verses to fill gap
         var dummy = new Verse();
@@ -951,7 +949,7 @@ USFMParser.prototype.parseBible = function(arr, details) {
       bible.addBook(book);
     }
     catch (e) {
-      console.log('"%s" file processing failed. Error: %s', obj.name, e);
+      console.error('"%s" file processing failed. Error: %s', obj.name, e);
     }
   });
 

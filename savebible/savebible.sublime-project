@@ -11,7 +11,6 @@
 			[
 				"node_modules"
 			],
-			"follow_symlinks": true,
 			"path": "."
 		}
 	]

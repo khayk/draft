@@ -75,7 +75,12 @@ function extractVerses(bible, id, cn, content) {
     vstr = vstr.replace(/<br\/>/, '');
     var verse = usfmParser.parseVerse(vstr);
     verse.number = vn;
-    getChapter(bible, id, cn).addVerse(verse);
+    try {
+      getChapter(bible, id, cn).addVerse(verse);
+    }
+    catch (e) {
+      logger.error(e);
+    }
   }
 }
 
