@@ -6,6 +6,7 @@ var _              = require('underscore');
 
 var theBible       = require('./lib/bible.js');
 var helper         = require('./lib/helper.js');
+var common         = require('./lib/common.js');
 
 var BBM            = theBible.BBM;
 var Verse          = theBible.Verse;
@@ -18,49 +19,93 @@ var TextRenderer   = theBible.TextRenderer;
 var USFMRenderer   = theBible.USFMRenderer;
 var Tags           = theBible.Tags;
 var BibleStats     = theBible.BibleStats;
+var encodeRef      = theBible.encodeRef;
+var decodeRef      = theBible.decodeRef;
 
 // utils exports
-var HiResTimer   = helper.HiResTimer;
-
+var HiResTimer     = helper.HiResTimer;
 
 (function() {
 
   'use strict';
 
-  // Pad a number with leading zeros to "pad" places:
-  //
-  // @param number: The number to pad
-  // @param pad: The maximum number of leading zeros
-  //
-  function padNumber(number, pad) {
-    var N = Math.pow(10, pad);
-    return number < N ? ('' + (N + number)).slice(1) : '' + number;
+  function createTestBook() {
+    var parser = new USFMParser(true);
+    var book = new Book();
+    book.id = 'NUM';
+    book.index = BBM.instance().entryById(book.id).index;
+
+    for (var j = 1; j <= 10; ++j) {
+      var chap = new Chapter();
+      chap.number = j;
+
+      for (var i = 1; i < 17; ++i) {
+        var verse = parser.parseVerse(j + ' simple verse' + i);
+        verse.number = i;
+        chap.addVerse(verse);
+      }
+
+      book.addChapter(chap);
+    }
+    return book;
   }
 
-  function getDecodedRef(verse) {
-    return {
-      ix: BBM.instance().onById(verse.bid()),
-      cn: verse.cn(),
-      vn: verse.vn()
-    };
+  function createTestBible() {
+    var bible = new Bible();
+    bible.addBook(createTestBook());
+    return bible;
   }
-
-  function encodeRef(decodedRef) {
-    return padNumber(decodedRef.ix, 2) +
-      padNumber(decodedRef.cn, 3) +
-      padNumber(decodedRef.vn, 3);
-  }
-
-  function decodeRef(encodedRef) {
-    return {
-      ix: parseInt(encodedRef.substr(0, 2)),
-      cn: parseInt(encodedRef.substr(2, 3)),
-      vn: parseInt(encodedRef.substr(5, 3))
-    };
-  }
-
 
   var timer = new HiResTimer();
+
+  function testReferences(count) {
+    var cnt = count || 1;
+    var book = createTestBook();
+    var maxChap = book.numChapters();
+    timer.start();
+
+    console.log(util.inspect(process.memoryUsage()));
+    for (var i = 0; i < cnt; ++i) {
+      var rb = book.ref();
+      if (rb.ix === 0) {
+        console.log('OUCH!');
+      }
+      if (cnt < 10)
+        console.log(rb);
+
+      var chap  = book.getChapter(Math.floor((Math.random() * maxChap) + 1));
+      var rc = chap.ref();
+      if (rc.cn !== chap.number) {
+        console.log('Invalid chapter REF');
+      }
+      if (cnt < 10)
+        console.log(rc);
+
+      var maxVerse = chap.numVerses();
+      var verse = chap.getVerse(Math.floor((Math.random() * maxVerse) + 1));
+      var rv = verse.ref();
+      if (rc.cn !== chap.number || rv.vn !== verse.vn()) {
+        console.log('Invalid verse REF');
+      }
+      if (cnt < 10)
+        console.log(rv);
+
+      var decRef1 = verse.ref();
+      var encRef  = encodeRef(decRef1);
+      var decRef2 = decodeRef(encRef);
+
+      if (!_.isEqual(decRef1, decRef2)) {
+        console.log(decRef1, 'not equal to', decRef2);
+      }
+
+      if (cnt < 10)
+        console.log(encRef);
+    }
+
+    console.log(util.inspect(process.memoryUsage()));
+    timer.stop();
+    timer.report();
+  }
 
   //var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
   var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
@@ -130,36 +175,6 @@ var HiResTimer   = helper.HiResTimer;
       timer.report();
       console.log("PARSING COMPLETED.");
 
-      var xxx = '';
-      //_.each(BBM.instance().ids(), function(val, key) {
-      bible.forEach(function(book) {
-        var chap = book.getChapter(1);
-
-        while (chap !== null) {
-          var verse = chap.getVerse(1);
-          while (verse !== null) {
-            var decRef1 = getDecodedRef(verse);
-            var encRef  = encodeRef(decRef1);
-            var decRef2 = decodeRef(encRef);
-
-            if (!_.isEqual(decRef1, decRef2)) {
-              console.log(decRef1, 'not equal to', decRef2);
-            }
-
-            xxx += verse.id() + ' - ';
-            xxx += encRef;
-            xxx += '\n';
-
-            verse = verse.next();
-          }
-          chap = chap.next();
-        }
-      });
-
-      console.log(util.inspect(process.memoryUsage()));
-      fs.writeFile('./data/raw/ids.txt', xxx);
-
-
       // _.each(BBM.instance().ids(), function(val, key) {
       //   var  found = false;
       //   bible.forEach(function(book) {
@@ -170,7 +185,6 @@ var HiResTimer   = helper.HiResTimer;
       //   if (!found)
       //     console.log(key);
       // });
-
 
       launchRenderTest(bible);
 
@@ -375,7 +389,9 @@ var HiResTimer   = helper.HiResTimer;
   };
 
   function main() {
+
     try {
+      testReferences(8);
 
       // langTest();
 
@@ -396,24 +412,6 @@ var HiResTimer   = helper.HiResTimer;
       //launchStressTest();
       //agent.start();
 
-      var Smth = function(opts) {
-        // if (!options) {
-        //   options = { encoding: null, flag: 'r' };
-        // } else if (typeof options === 'string') {
-        //   options = { encoding: options, flag: 'r' };
-        // } else if (typeof options !== 'object') {
-        //   throw new TypeError('Bad arguments');
-        // }
-        this.t = opts.t || true;
-      };
-      var s1 = new Smth({});
-      var s2 = new Smth({t: false});
-      var s3 = new Smth({t: true});
-
-      console.log(s1, s2, s3);
-      var str  = fs.readFileSync('aaa', {encoding: 'utf8'});
-
-
       //renderTest();
       //packMgr.discover('./data/test/', onDiscovered);
     } catch (e) {
@@ -422,17 +420,25 @@ var HiResTimer   = helper.HiResTimer;
   }
 
   main();
-
 }());
 
+      // var Smth = function(opts) {
+      //   // if (!options) {
+      //   //   options = { encoding: null, flag: 'r' };
+      //   // } else if (typeof options === 'string') {
+      //   //   options = { encoding: options, flag: 'r' };
+      //   // } else if (typeof options !== 'object') {
+      //   //   throw new TypeError('Bad arguments');
+      //   // }
+      //   this.t = opts.t || true;
+      // };
+      // var s1 = new Smth({});
+      // var s2 = new Smth({t: false});
+      // var s3 = new Smth({t: true});
 
+      // console.log(s1, s2, s3);
+      // var str  = fs.readFileSync('aaa', {encoding: 'utf8'});
 /*
-
-Ref(str) {
-    this.id,
-    this.cn,
-    this.vn,
-}
 
 Bible {
     search(query, opt)  // returns an array of references, opt contains

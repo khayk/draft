@@ -1,5 +1,6 @@
 var cfg          = require('../configs.js').Configs;
 var bibm         = require('../lib/bible.js');
+var common       = require('../lib/common.js');
 var mkdirp       = require('mkdirp');
 var fs           = require('fs');
 
@@ -12,28 +13,10 @@ var TextRenderer = bibm.TextRenderer;
 
 
 
-var textRndr     = new TextRenderer({textOnly:false, useAbbr: true});
-
-
-function padNumber(number, pad) {
-  var N = Math.pow(10, pad);
-  return number < N ? ('' + (N + number)).slice(1) : '' + number;
-}
-
-function padString(str, pad, leftPadded) {
-  if (typeof str === 'undefined') return pad;
-  if (leftPadded) {
-    return (pad + str).slice(-pad.length);
-  } else {
-    return (str + pad).substring(0, pad.length);
-  }
-}
-
-function padWithSymbol(n, width, z) {
-  z = z || '0';
-  n = n + '';
-  return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
-}
+var textRndr      = new TextRenderer({textOnly:false, useAbbr: true});
+var padNumber     = common.padNumber;
+var padString     = common.padString;
+var padWithSymbol = common.padWithSymbol;
 
 function fwrite(file, data) {
   fs.writeFile(file, data, function(err) {
@@ -184,8 +167,6 @@ function addVerse(chap, vstr, vn) {
   }
 }
 
-
-exports.padNumber      = padNumber;
 exports.fwrite         = fwrite;
 exports.addVerse       = addVerse;
 exports.summarizeBible = summarizeBible;

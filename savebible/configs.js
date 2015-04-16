@@ -1,6 +1,7 @@
 var Configs = (function() {
-  var dropboxDir = 'c:/Users/Hayk/Dropbox/';
+  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';
   //var dropboxDir = '/home/hayk/Downloads/';
+  var dropboxDir = '/home/khayk/Downloads/';
   var dataDir    = 'Data/';
   var uniformDir = '../uniform/';
 

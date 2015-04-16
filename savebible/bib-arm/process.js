@@ -5,7 +5,7 @@ var dir        = require('node-dir');
 var mkdirp     = require('mkdirp');
 var path       = require('path');
 var bibm       = require('../lib/bible.js');
-var cmn        = require('../utils/common.js');
+var cmn        = require('../utils/utils.js');
 
 
 var BBM        = bibm.BBM;
