@@ -18,7 +18,9 @@ getBibleRequireObj = (function (bibleGlobal) {
 
 var idsmap = require('./idsmap.js');
 var _ = require('underscore');
+var cmn = require('./common.js');
 
+var padNumber = cmn.padNumber;
 
 function extend(child, parent) {
   var FnObj = function() {};
@@ -26,6 +28,24 @@ function extend(child, parent) {
   child.prototype = new FnObj();
   child.prototype.constructor = child;
   child.uber = parent.prototype;
+}
+
+
+// expected input reference is {ix: number, cn: chapter number, vn: verse number}
+// output 8 bytes lenght string of for 'XXCCCVVV'
+function encodeRef(decodedRef) {
+  return padNumber(decodedRef.ix, 2) +
+    padNumber(decodedRef.cn, 3) +
+    padNumber(decodedRef.vn, 3);
+}
+
+// see encodeRef, this function performs opposite job of encodeRef
+function decodeRef(encodedRef) {
+  return {
+    ix: parseInt(encodedRef.substr(0, 2)),
+    cn: parseInt(encodedRef.substr(2, 3)),
+    vn: parseInt(encodedRef.substr(5, 3))
+  };
 }
 
 
@@ -462,6 +482,16 @@ Verse.prototype = {
     return this.parent.id() + ':' + this.number;
   },
 
+  // get reference {ix: book unchangable index, cn: chapter number, vn: verse number}
+  ref: function() {
+    if (this.parent === null) {
+      return {ix: 0, cn: 0, vn: this.vn()};
+    }
+    var t = this.parent.ref();
+    t.vn = this.vn();
+    return t;
+  },
+
   vn: function() {
     return this.number;
   },
@@ -520,6 +550,16 @@ Chapter.prototype = {
     return this.parent.id + ' ' + this.number;
   },
 
+  // get reference {ix: book unchangable index, cn: chapter number, vn: verse number}
+  ref: function() {
+    if (this.parent === null) {
+      return {ix: 0, cn: this.number, vn: 0};
+    }
+    var t = this.parent.ref();
+    t.cn = this.number;
+    return t;
+  },
+
   // return book id containing current verse
   bid: function() {
     if (this.parent) {
@@ -551,14 +591,11 @@ Chapter.prototype = {
   // insert verse into chapter, throw exception if something went wrong
   addVerse: function(verse) {
     verse.parent = this;
-    if (verse.number <= this.numVerses()) {
-      console.error('ERROR: Attempt to overwrite existing verse ' + verse.id());
-      return;
-      //throw 'Attempt to overwrite existing verse ' + verse.id();
-    }
+    if (verse.number <= this.numVerses())
+      throw 'Attempt to overwrite existing verse ' + verse.id();
 
     if ( verse.number - this.numVerses() !== 1 ) {
-      console.error('detected verse gap while adding verse ' + verse.id());
+      console.warn('detected verse gap while adding verse ' + verse.id());
       while (verse.number - this.numVerses() > 1) {
         // add empty verses to fill gap
         var dummy = new Verse();
@@ -595,6 +632,7 @@ Chapter.prototype = {
 // ------------------------------------------------------------------------
 var Book = function() {
   this.parent   = null;
+  this.index    = 0;    // predefined index from idsmap, unchangeble value
   this.id       = '';
   this.abbr     = '';
   this.name     = '';
@@ -605,6 +643,11 @@ var Book = function() {
 };
 
 Book.prototype = {
+
+  // get reference {ix: book unchangable index, cn: chapter number, vn: verse number}
+  ref: function() {
+    return {ix: this.index, cn: 0, vn: 0};
+  },
 
   // return the next book of the bible
   // return null there are no more
@@ -776,10 +819,12 @@ var USFMParser = function(supportedOnly) {
       }
     }
 
+    var tmp = BBM.instance().entryById(book.id);
+    book.index = tmp.index;
     if (!BBM.instance().existsId(book.id))
       throw 'Invalid book id: ' + book.id;
     if (book.abbr === '')
-      book.abbr = BBM.instance().entryById(book.id).abbr;
+      book.abbr = tmp.abbr;
   };
 
   // helps to perform verse parsing
@@ -1307,6 +1352,10 @@ getBibleRequireObj().USFMRenderer   = USFMRenderer;
 getBibleRequireObj().BibleStats     = BibleStats;
 getBibleRequireObj().CompoundNode   = CompoundNode;
 getBibleRequireObj().TextNode       = TextNode;
+
+getBibleRequireObj().encodeRef      = encodeRef;
+getBibleRequireObj().decodeRef      = decodeRef;
+
 
 
 

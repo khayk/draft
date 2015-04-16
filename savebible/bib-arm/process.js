@@ -5,7 +5,7 @@ var dir        = require('node-dir');
 var mkdirp     = require('mkdirp');
 var path       = require('path');
 var bibm       = require('../lib/bible.js');
-var cmn        = require('../utils/common.js');
+var cmn        = require('../utils/utils.js');
 
 
 var BBM        = bibm.BBM;
@@ -75,7 +75,12 @@ function extractVerses(bible, id, cn, content) {
     vstr = vstr.replace(/<br\/>/, '');
     var verse = usfmParser.parseVerse(vstr);
     verse.number = vn;
-    getChapter(bible, id, cn).addVerse(verse);
+    try {
+      getChapter(bible, id, cn).addVerse(verse);
+    }
+    catch (e) {
+      logger.error(e);
+    }
   }
 }
 
