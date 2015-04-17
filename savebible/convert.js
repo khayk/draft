@@ -7,6 +7,7 @@ var _              = require('underscore');
 var theBible       = require('./lib/bible.js');
 var helper         = require('./lib/helper.js');
 var common         = require('./lib/common.js');
+var utils          = require('./utils/utils.js');
 
 var BBM            = theBible.BBM;
 var Verse          = theBible.Verse;
@@ -22,6 +23,9 @@ var BibleStats     = theBible.BibleStats;
 var encodeRef      = theBible.encodeRef;
 var decodeRef      = theBible.decodeRef;
 
+
+var createTestBook = utils.createTestBook;
+
 // utils exports
 var HiResTimer     = helper.HiResTimer;
 
@@ -29,38 +33,24 @@ var HiResTimer     = helper.HiResTimer;
 
   'use strict';
 
-  function createTestBook() {
-    var parser = new USFMParser(true);
-    var book = new Book();
-    book.id = 'NUM';
-    book.index = BBM.instance().entryById(book.id).index;
 
-    for (var j = 1; j <= 10; ++j) {
-      var chap = new Chapter();
-      chap.number = j;
+  var src = {
+    'an apple, an apricot, an ariplane': '04',
+    'Apple is a good fruit.': '01',
+    'Excellent!!!': '05',
+    'How do to do?': '02',
+    'Example of DUMMY text.': '03',
+    'ok, ok ok. ok! ok?': '08',
+    'apple, samsung': '06',
+    'aa': '07'
+  };
 
-      for (var i = 1; i < 17; ++i) {
-        var verse = parser.parseVerse(j + ' simple verse' + i);
-        verse.number = i;
-        chap.addVerse(verse);
-      }
-
-      book.addChapter(chap);
-    }
-    return book;
-  }
-
-  function createTestBible() {
-    var bible = new Bible();
-    bible.addBook(createTestBook());
-    return bible;
-  }
 
   var timer = new HiResTimer();
 
   function testReferences(count) {
     var cnt = count || 1;
-    var book = createTestBook();
+    var book = createTestBook('NUM', 5, 8);
     var maxChap = book.numChapters();
     timer.start();
 
@@ -377,43 +367,10 @@ var HiResTimer     = helper.HiResTimer;
     //console.log(util.inspect(process.memoryUsage()));
   }
 
-  var src = {
-    'an apple, an apricot, an ariplane': '04',
-    'Apple is a good fruit.': '01',
-    'Excellent!!!': '05',
-    'How do to do?': '02',
-    'Example of DUMMY text.': '03',
-    'ok, ok ok. ok! ok?': '08',
-    'apple, samsung': '06',
-    'aa': '07'
-  };
-
   function main() {
 
     try {
       testReferences(8);
-
-      // langTest();
-
-      // _.each(src, function(value, key) {
-      //   var pureWord = Lexical.removePunctuations('en', key);
-      //   pureWord.split(' ').forEach(function(e) {
-      //     dict.addWord(e, value);
-      //   });
-      // });
-
-      // dict.optimize();
-
-      // console.log(dict.getWords());
-      // console.log(dict.getRefs('A'));
-      // console.log(dict.getRefs('kikos'));
-      // console.log('words: %d', dict.getWordsCount());
-
-      //launchStressTest();
-      //agent.start();
-
-      //renderTest();
-      //packMgr.discover('./data/test/', onDiscovered);
     } catch (e) {
       console.error('ERROR:', e);
     }
@@ -422,22 +379,48 @@ var HiResTimer     = helper.HiResTimer;
   main();
 }());
 
-      // var Smth = function(opts) {
-      //   // if (!options) {
-      //   //   options = { encoding: null, flag: 'r' };
-      //   // } else if (typeof options === 'string') {
-      //   //   options = { encoding: options, flag: 'r' };
-      //   // } else if (typeof options !== 'object') {
-      //   //   throw new TypeError('Bad arguments');
-      //   // }
-      //   this.t = opts.t || true;
-      // };
-      // var s1 = new Smth({});
-      // var s2 = new Smth({t: false});
-      // var s3 = new Smth({t: true});
 
-      // console.log(s1, s2, s3);
-      // var str  = fs.readFileSync('aaa', {encoding: 'utf8'});
+// langTest();
+
+// _.each(src, function(value, key) {
+//   var pureWord = Lexical.removePunctuations('en', key);
+//   pureWord.split(' ').forEach(function(e) {
+//     dict.addWord(e, value);
+//   });
+// });
+
+// dict.optimize();
+
+// console.log(dict.getWords());
+// console.log(dict.getRefs('A'));
+// console.log(dict.getRefs('kikos'));
+// console.log('words: %d', dict.getWordsCount());
+
+//launchStressTest();
+//agent.start();
+
+//renderTest();
+//packMgr.discover('./data/test/', onDiscovered);
+
+
+
+// var Smth = function(opts) {
+//   // if (!options) {
+//   //   options = { encoding: null, flag: 'r' };
+//   // } else if (typeof options === 'string') {
+//   //   options = { encoding: options, flag: 'r' };
+//   // } else if (typeof options !== 'object') {
+//   //   throw new TypeError('Bad arguments');
+//   // }
+//   this.t = opts.t || true;
+// };
+// var s1 = new Smth({});
+// var s2 = new Smth({t: false});
+// var s3 = new Smth({t: true});
+
+// console.log(s1, s2, s3);
+// var str  = fs.readFileSync('aaa', {encoding: 'utf8'});
+
 /*
 
 Bible {
@@ -451,12 +434,3 @@ TableOfContent {
   getOne(id) // {}
 }
  */
-
-
-
-// 1 - GEN 1:1
-// 2 - GEN 1:2
-// ...
-// 123 - NUM 2:4
-
-// AA001001

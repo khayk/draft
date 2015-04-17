@@ -1,6 +1,7 @@
 var _              = require('underscore');
 var expect         = require('chai').expect;
 var bibleModule    = require('../lib/bible.js');
+var utils          = require('../utils/utils.js');
 var core           = require('../core.js');
 var dataUSFM       = require('./dataUSFM.js');
 var fs             = require('fs');
@@ -17,6 +18,13 @@ var Verse          = bibleModule.Verse;
 var Chapter        = bibleModule.Chapter;
 var Book           = bibleModule.Book;
 var Bible          = bibleModule.Bible;
+
+// exported functions from bible module
+var encodeRef      = bibleModule.encodeRef;
+var decodeRef      = bibleModule.decodeRef;
+
+// utils exports
+var createTestBook = utils.createTestBook;
 
 describe('module BBM', function() {
   var o = BBM.instance();
@@ -377,6 +385,34 @@ describe('core modules', function() {
         expect(b1.getChapter(c1.number)).to.be.equal(c1);
         expect(b1.getChapter(c2.number)).to.be.equal(c2);
         expect(b2.numChapters()).to.be.equal(0);
+      });
+
+      it('references', function() {
+        var tid = 'REV';
+        var numChaps = 4;
+        var numVerses = 7;
+        var book = createTestBook(tid, numChaps, numVerses);
+        var chap  = book.getChapter(Math.floor((Math.random() * numChaps) + 1));
+        var verse = chap.getVerse(Math.floor((Math.random() * numVerses) + 1));
+
+        var rb = book.ref();
+        expect(rb.ix).to.be.equal(book.index);
+        expect(rb.cn).to.be.equal(0);
+        expect(rb.vn).to.be.equal(0);
+
+        var rc = chap.ref();
+        expect(rc.ix).to.be.equal(book.index);
+        expect(rc.cn).to.be.equal(chap.number);
+        expect(rc.vn).to.be.equal(0);
+
+        var vc = verse.ref();
+        expect(vc.ix).to.be.equal(book.index);
+        expect(vc.cn).to.be.equal(chap.number);
+        expect(vc.vn).to.be.equal(verse.vn());
+
+        var ref = vc;
+        var encRef  = encodeRef(ref);
+        var decRef = decodeRef(encRef);
       });
 
       it('bible', function() {

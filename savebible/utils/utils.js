@@ -9,6 +9,8 @@ var TextNode     = bibm.TextNode;
 var CompoundNode = bibm.CompoundNode;
 var Verse        = bibm.Verse;
 var Book         = bibm.Book;
+var Chapter      = bibm.Chapter;
+var BBM          = bibm.BBM;
 var TextRenderer = bibm.TextRenderer;
 
 
@@ -17,6 +19,7 @@ var textRndr      = new TextRenderer({textOnly:false, useAbbr: true});
 var padNumber     = common.padNumber;
 var padString     = common.padString;
 var padWithSymbol = common.padWithSymbol;
+
 
 function fwrite(file, data) {
   fs.writeFile(file, data, function(err) {
@@ -155,6 +158,11 @@ function parseVerse(vstr) {
   return verse;
 }
 
+function createVerse(vn, vstr) {
+  var verse = parseVerse(vstr);
+  verse.number = vn;
+  return verse;
+}
 
 function addVerse(chap, vstr, vn) {
   var verse = parseVerse(vstr);
@@ -167,8 +175,33 @@ function addVerse(chap, vstr, vn) {
   }
 }
 
+
+function createTestBook(id, numChapters, numVerses) {
+  var ncs  = numChapters || 1;
+  var nvs  = numVerses || 1;
+  var book = new Book();
+  book.id  = id;
+  book.index = BBM.instance().entryById(book.id).index;
+
+  for (var j = 1; j <= ncs; ++j) {
+    var chap = new Chapter();
+    chap.number = j;
+
+    for (var i = 1; i < nvs; ++i) {
+      var verse =  createVerse(i, j + ' simple verse' + i);
+      chap.addVerse(verse);
+    }
+
+    book.addChapter(chap);
+  }
+  return book;
+}
+
+
 exports.fwrite         = fwrite;
 exports.addVerse       = addVerse;
+exports.createVerse    = createVerse;
 exports.summarizeBible = summarizeBible;
 exports.outputResult   = outputResult;
 exports.saveBook       = saveBook;
+exports.createTestBook = createTestBook;
