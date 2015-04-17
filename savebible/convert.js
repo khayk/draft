@@ -47,7 +47,7 @@ var HiResTimer     = helper.HiResTimer;
 
 
   var timer = new HiResTimer();
-
+/*
   function testReferences(count) {
     var cnt = count || 1;
     var book = createTestBook('NUM', 5, 8);
@@ -95,7 +95,7 @@ var HiResTimer     = helper.HiResTimer;
     console.log(util.inspect(process.memoryUsage()));
     timer.stop();
     timer.report();
-  }
+  }*/
 
   //var dropboxDir = 'c:/Users/Hayk/Dropbox (Personal)/'; // WORK
   var dropboxDir = 'c:/Users/Hayk/Dropbox/';            // LENOVO
@@ -370,7 +370,19 @@ var HiResTimer     = helper.HiResTimer;
   function main() {
 
     try {
-      testReferences(8);
+      //testReferences(8);
+      //
+
+      timer.start();
+      var tid = 'REV';
+      var numChaps = 1;
+      var numVerses = 1;
+      var book = createTestBook(tid, numChaps, numVerses);
+
+      //console.log(book);
+      timer.stop();
+      timer.report();
+
     } catch (e) {
       console.error('ERROR:', e);
     }

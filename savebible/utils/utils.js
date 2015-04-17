@@ -187,7 +187,7 @@ function createTestBook(id, numChapters, numVerses) {
     var chap = new Chapter();
     chap.number = j;
 
-    for (var i = 1; i < nvs; ++i) {
+    for (var i = 1; i <= nvs; ++i) {
       var verse =  createVerse(i, j + ' simple verse' + i);
       chap.addVerse(verse);
     }

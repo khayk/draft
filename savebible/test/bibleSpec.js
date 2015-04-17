@@ -389,30 +389,40 @@ describe('core modules', function() {
 
       it('references', function() {
         var tid = 'REV';
-        var numChaps = 4;
+        var numChaps = 3;
         var numVerses = 7;
         var book = createTestBook(tid, numChaps, numVerses);
-        var chap  = book.getChapter(Math.floor((Math.random() * numChaps) + 1));
-        var verse = chap.getVerse(Math.floor((Math.random() * numVerses) + 1));
 
-        var rb = book.ref();
-        expect(rb.ix).to.be.equal(book.index);
-        expect(rb.cn).to.be.equal(0);
-        expect(rb.vn).to.be.equal(0);
+        for (var i = 1; i < numChaps; ++i) {
+          for (var j = 1; j < numVerses; ++j) {
+            var chap  = book.getChapter(i);
+            var verse = chap.getVerse(j);
 
-        var rc = chap.ref();
-        expect(rc.ix).to.be.equal(book.index);
-        expect(rc.cn).to.be.equal(chap.number);
-        expect(rc.vn).to.be.equal(0);
+            var rb = book.ref();
+            expect(rb.ix).to.be.equal(book.index);
+            expect(rb.cn).to.be.equal(0);
+            expect(rb.vn).to.be.equal(0);
 
-        var vc = verse.ref();
-        expect(vc.ix).to.be.equal(book.index);
-        expect(vc.cn).to.be.equal(chap.number);
-        expect(vc.vn).to.be.equal(verse.vn());
+            var rc = chap.ref();
+            expect(rc.ix).to.be.equal(book.index);
+            expect(rc.cn).to.be.equal(chap.number);
+            expect(rc.vn).to.be.equal(0);
 
-        var ref = vc;
-        var encRef  = encodeRef(ref);
-        var decRef = decodeRef(encRef);
+            var vc = verse.ref();
+            expect(vc.ix).to.be.equal(book.index);
+            expect(vc.cn).to.be.equal(chap.number);
+            expect(vc.vn).to.be.equal(verse.vn());
+
+            var ref = verse.ref();
+            var encRef  = encodeRef(ref);
+
+            // references have 8 bytes length
+            expect(encRef.length).to.be.equal(8);
+
+            var decRef = decodeRef(encRef);
+            expect(ref).to.deep.equal(decRef);
+          }
+        }
       });
 
       it('bible', function() {
