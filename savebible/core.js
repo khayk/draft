@@ -13,7 +13,7 @@ var removeComments = function(data) {
   return data.replace(/^(.*?)\/\/(.*?)\r?\n/gm, '');
 };
 
-// Manage bible packages, search, load ...
+// Manage bible packages, search, load
 var PackManager = (function() {
   var packages = [];
 
@@ -26,33 +26,40 @@ var PackManager = (function() {
         packages = [];
 
       dir.files(loc, function(err, files) {
-        if (err) throw err;
+        if (err) {
+          callback(err);
+          return;
+        }
 
         var re = /package\.json/gi;
         files = files.filter(function(f) {
           return f.search(re) != -1;
         });
 
-        // parse discovered packages
-        files.forEach(function(file) {
-          var str = fs.readFileSync(file, 'utf8');
-          str = removeComments(str);
-          var jo = null;
-          try {
-            jo = JSON.parse(str);
-          } catch (e) {
-            console.error('error %s, while parsing file %s', e, file);
-            throw e;
-          }
+        try {
+          // parse discovered packages
+          files.forEach(function(file) {
+            var str = fs.readFileSync(file, 'utf8');
+            str = removeComments(str);
+            var jo = null;
 
-          // create and initialize package
-          var pkg = new Package();
-          pkg.dir = path.dirname(file);
-          pkg.ctx = jo;
-          packages.push(pkg);
-        });
+            try {
+              jo = JSON.parse(str);
+            } catch (e) {
+              console.error('error %s, while parsing file %s', e, file);
+              throw e;
+            }
 
-        callback(null, packages);
+            // create and initialize package
+            var pkg = new Package();
+            pkg.dir = path.dirname(file);
+            pkg.ctx = jo;
+            packages.push(pkg);
+          });
+          callback(null, packages);
+        } catch (e) {
+          callback(e);
+        }
       });
     },
 
@@ -128,6 +135,7 @@ var Loader = (function() {
     }
   };
 })();
+
 
 module.exports.PackManager = PackManager;
 module.exports.Loader      = Loader;

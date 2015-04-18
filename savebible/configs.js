@@ -54,6 +54,10 @@ var Configs = (function() {
 
     combined_name: function() {
       return 'bible.txt';
+    },
+
+    get_dropbox_dir: function() {
+      return dropboxDir;
     }
   };
 })();

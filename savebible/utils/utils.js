@@ -158,11 +158,13 @@ function parseVerse(vstr) {
   return verse;
 }
 
+
 function createVerse(vn, vstr) {
   var verse = parseVerse(vstr);
   verse.number = vn;
   return verse;
 }
+
 
 function addVerse(chap, vstr, vn) {
   var verse = parseVerse(vstr);
@@ -198,6 +200,17 @@ function createTestBook(id, numChapters, numVerses) {
 }
 
 
+function loadUSFMBook(usfmFile) {
+  var str = fs.readFileSync(testBook, 'utf8');
+
+  // supported tags only
+  var parser = new USFMParser(true);
+  var book   = parser.parseBook(str);
+
+  return book;
+}
+
+
 exports.fwrite         = fwrite;
 exports.addVerse       = addVerse;
 exports.createVerse    = createVerse;
@@ -205,3 +218,4 @@ exports.summarizeBible = summarizeBible;
 exports.outputResult   = outputResult;
 exports.saveBook       = saveBook;
 exports.createTestBook = createTestBook;
+exports.loadUSFMBook   = loadUSFMBook;

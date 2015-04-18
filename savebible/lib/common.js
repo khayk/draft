@@ -23,6 +23,6 @@ function padWithSymbol(n, width, z) {
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
 
-exports.padNumber     = padNumber;
-exports.padString     = padString;
-exports.padWithSymbol = padWithSymbol;
+module.exports.padNumber     = padNumber;
+module.exports.padString     = padString;
+module.exports.padWithSymbol = padWithSymbol;
