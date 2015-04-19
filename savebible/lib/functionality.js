@@ -1,3 +1,5 @@
+var fs = require('fs');
+var _  = require('underscore');
 
 // ------------------------------------------------------------------------
 //                             DICTIONARY
@@ -99,6 +101,8 @@ var LexicalCollection = (function() {
   return {
     // initialize lexical collection from lexFile
     init: function(lexFile) {
+      // clean previous call
+      this.clean();
       var that = this;
       var data = fs.readFileSync(lexFile, 'utf8');
       var js = JSON.parse(data);
@@ -108,6 +112,10 @@ var LexicalCollection = (function() {
         var lex = new Lexical(lang, data);
         that.addLexical(lex);
       });
+    },
+
+    clean: function() {
+      langs_ = {};
     },
 
     // add lexical object into collection
@@ -143,6 +151,6 @@ var LexicalCollection = (function() {
 })();
 
 
-module.exports.Dictionary        = Dictionary;
-module.exports.Lexical           = Lexical;
-module.exports.LexicalCollection = LexicalCollection;
+exports.Dictionary        = Dictionary;
+exports.Lexical           = Lexical;
+exports.LexicalCollection = LexicalCollection;

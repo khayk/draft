@@ -10,6 +10,7 @@ var common         = require('./lib/common.js');
 var utils          = require('./utils/utils.js');
 var cfg            = require('./configs.js').Configs;
 var core           = require('./core.js');
+var funcs          = require('./lib/functionality.js');
 
 
 var BBM            = theBible.BBM;
@@ -33,6 +34,9 @@ var Dictionary     = common.Dictionary;
 // utils exports
 var HiResTimer     = helper.HiResTimer;
 var dropboxDir     = cfg.get_dropbox_dir();
+
+var LexicalCollection = funcs.LexicalCollection;
+var Lexical           = funcs.Lexical;
 
 
 (function() {
@@ -76,7 +80,7 @@ var dropboxDir     = cfg.get_dropbox_dir();
 
   function main() {
     try {
-      var dict = new Dictionary();
+      //var dict = new Dictionary();
       LexicalCollection.init('./data/lexical.json');
 
       console.log(LexicalCollection.getLanguages());

@@ -1,6 +1,7 @@
 var _              = require('underscore');
 var expect         = require('chai').expect;
 var bibleModule    = require('../lib/bible.js');
+var funcs          = require('../lib/functionality.js');
 var utils          = require('../utils/utils.js');
 var core           = require('../core.js');
 var dataUSFM       = require('./dataUSFM.js');
@@ -19,12 +20,18 @@ var Chapter        = bibleModule.Chapter;
 var Book           = bibleModule.Book;
 var Bible          = bibleModule.Bible;
 
+
 // exported functions from bible module
 var encodeRef      = bibleModule.encodeRef;
 var decodeRef      = bibleModule.decodeRef;
 
 // utils exports
 var createTestBook = utils.createTestBook;
+
+// lexical collections
+var LexicalCollection = funcs.LexicalCollection;
+var Lexical           = funcs.Lexical;
+
 
 describe('module BBM', function() {
   var o = BBM.instance();
@@ -118,6 +125,75 @@ describe('module BBM', function() {
 
 });
 
+describe('module Lexical', function() {
+
+  var en = '';
+  var ru = '';
+  var hy = '';
+  var puncts = '`!@?\'\",-_«»';
+
+  // initialize language letters
+  before(function() {
+    function insert(str, index, value) {
+      return str.substr(0, index) + value + str.substr(index);
+    }
+
+    var enAlphabet, firstLower, firstUpper, i, lo, hi;
+
+    // english alphabet 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    alphabetLength = 26;
+    firstLower = 0x61;  // english lowercase `a`
+    firstUpper = 0x41;  // english capital `A`
+    lo = hi = '';
+    for (i = 0; i < alphabetLength; ++i) {
+      lo += String.fromCharCode(firstLower + i);
+      hi += String.fromCharCode(firstUpper + i);
+    }
+    en = lo + hi;
+
+
+    //console.log(en);
+    // russian alphabet 'абвгдеёжзийклмнопрстуфхцчшщьъыэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЪЫЭЮЯ';
+    alphabetLength = 32;
+    firstLower = 0x430;  // russian lowercase `a`
+    firstUpper = 0x410;  // russian capital `A`
+    lo = hi = '';
+    for (i = 0; i < alphabetLength; ++i) {
+      lo += String.fromCharCode(firstLower + i);
+      hi += String.fromCharCode(firstUpper + i);
+    }
+    lo = insert(lo, 6, String.fromCharCode(0x451)); // append ё
+    hi = insert(hi, 6, String.fromCharCode(0x401)); // append Ё
+    ru = lo + hi;
+
+
+    // armenian alphabet 'աբգդեզէըթժիլխծկհչղճմյնշոչպջռսվտրցւփքևօֆԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՉՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖ';
+    alphabetLength = 38;
+    firstLower = 0x561;  // armenian lowercase `ա`
+    firstUpper = 0x531;  // armenian capital `Ա`
+    lo = hi = '';
+    for (i = 0; i < alphabetLength; ++i) {
+      lo += String.fromCharCode(firstLower + i);
+      hi += String.fromCharCode(firstUpper + i);
+    }
+    lo = insert(lo, 36, String.fromCharCode(0x587)); // append և
+    hy = lo + hi;
+  });
+
+  it('loading', function() {
+    LexicalCollection.init(__dirname + '/../data/lexical.json');
+
+    var obj = {'ru': ru, 'en': en, 'hy': hy};
+
+    _.each(obj, function(val, key) {
+      var lex = LexicalCollection.getLexical(key);
+      var res = lex.removePunctuations(en + ru + hy);
+      expect(res).to.be.equal(val);
+
+      //console.log('%s -> %s', key, val);
+    });
+  });
+});
 
 describe('module TableOfContent', function() {
 
