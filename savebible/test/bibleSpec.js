@@ -183,6 +183,7 @@ describe('module Lexical', function() {
 
   it('loading', function() {
     LexicalCollection.init(__dirname + '/../data/lexical.json');
+    var languages = LexicalCollection.getLanguages();
 
     var obj = {'ru': ru, 'en': en, 'hy': hy};
 
@@ -190,9 +191,14 @@ describe('module Lexical', function() {
       var lex = LexicalCollection.getLexical(key);
       var res = lex.removePunctuations(en + ru + hy);
       expect(res).to.be.equal(val);
-
-      //console.log('%s -> %s', key, val);
+      expect(languages.indexOf(key)).to.not.be.equal(-1);
     });
+
+    expect(LexicalCollection.getLexical('absent')).to.be.equal(null);
+    expect(LexicalCollection.haveLanguage('not')).to.be.equal(false);
+
+    var lex = LexicalCollection.getLexical(obj.ru);
+    expect(LexicalCollection.addLexical.bind(LexicalCollection, lex)).to.throw();
   });
 });
 
