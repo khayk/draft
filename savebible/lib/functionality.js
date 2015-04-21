@@ -82,12 +82,12 @@ var Lexical = function(lang, data) {
 
   // remove all punctuations and returns resulting string
   this.removePunctuations = function(str) {
-    return str.replace(obj.nonLetters, '').trim();
+    return str.replace(obj.nonLetters, '');
   };
 
   // remove all language related letters and returns resulting string
   this.removeLetters = function(str) {
-    return str.replace(obj.letters, '').trim();
+    return str.replace(obj.letters, '');
   };
 };
 
