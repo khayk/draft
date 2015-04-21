@@ -43,26 +43,17 @@ var Dictionary        = funcs.Dictionary;
 
   'use strict';
 
-  var src = {
-    'an apple, an apricot, an ariplane': '04',
-    'Apple is a good fruit.': '01',
-    'Excellent!!!': '05',
-    'How do to do?': '02',
-    'Example of DUMMY text.': '03',
-    'ok, ok ok. ok! ok?': '08',
-    'apple, samsung': '06',
-    'aa': '07'
-  };
-
 
   var BibleSearch = function() {
     var bible_ = null;
     var dict_  = null;
+    var lexic_ = null;
 
     return {
       initialize: function(bible, dictionary) {
         bible_ = bible;
         dict_  = dictionary;
+        lexic_ = LexicalCollection.getLexical(bible_.lang);
       },
 
       searchText: function(text) {
@@ -91,10 +82,7 @@ var Dictionary        = funcs.Dictionary;
     try {
       LexicalCollection.init('./data/lexical.json');
       var lex = LexicalCollection.getLexical('hy');
-      var dict = new Dictionary();
 
-      //dict.addWord();
-      console.log(randomWords(5));
     } catch (e) {
       console.error('ERROR:', e);
     }

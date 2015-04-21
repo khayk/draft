@@ -10,16 +10,18 @@ function Dictionary() {
   var numWords_  = 0;
   var changed_   = 0;
 
-  this.addWord = function(word, ref) {
-    var lcword = word.toLowerCase();
-    if (_.isUndefined(index_[lcword]))
-      index_[lcword] = {c: 0, refs: []};
-    index_[lcword].refs.push(ref);
-    index_[lcword].c++;
+  // words are case sensitive
+  this.add = function(word, ref) {
+    //var word = word.toLowerCase();
+    if (_.isUndefined(index_[word]))
+      index_[word] = {c: 0, refs: []};
+    index_[word].refs.push(ref);
+    index_[word].c++;
     optimized_ = false;
     changed_   = true;
   };
 
+  // optimize dictionary
   this.optimize = function() {
     _.each(index_, function(value, key) {
 
@@ -27,7 +29,7 @@ function Dictionary() {
         var o = value.refs;
         var n = {}, r = [];
         for (var i = 0; i < o.length; i++) {
-          if (typeof n[o[i] === 'undefined']) {
+          if (typeof n[o[i]] === 'undefined') {
             n[o[i]] = true;
             r.push(o[i]);
           }
@@ -38,26 +40,31 @@ function Dictionary() {
         value.refs.sort();
       });
 
-    numWords_ = Object.keys(index_).length;
-    changed_ = false;
+    numWords_  = Object.keys(index_).length;
+    changed_   = false;
     optimized_ = true;
   };
 
-  this.getRefs = function(word) {
+  // word lookup is case sensitive
+  this.find = function(word) {
     if (!optimized_)
-      console.warn('Dictionary is not optimized. Call optimize!!!');
-    var lcword = word.toLowerCase();
-    var r = index_[lcword];
+      throw 'Dictionary is not optimized. Call optimize!!!';
+    //var lcword = word.toLowerCase();
+    var r = index_[word];
     if (_.isUndefined(r))
-      return [];
+      return null;
     return r.refs;
   };
 
-  this.getWords = function() {
+  // returns array of all words
+  this.words = function() {
     return Object.keys(index_);
   };
 
-  this.getWordsCount = function() {
+  // returns number of words
+  this.count = function() {
+    if (!optimized_)
+      return Object.keys(index_).length;
     return numWords_;
   };
 }

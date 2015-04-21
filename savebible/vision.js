@@ -120,28 +120,6 @@ function search(text, options) {}
 
 
 
-
-
-
-// langTest();
-
-// _.each(src, function(value, key) {
-//   var pureWord = Lexical.removePunctuations('en', key);
-//   pureWord.split(' ').forEach(function(e) {
-//     dict.addWord(e, value);
-//   });
-// });
-
-// dict.optimize();
-
-// console.log(dict.getWords());
-// console.log(dict.getRefs('A'));
-// console.log(dict.getRefs('kikos'));
-// console.log('words: %d', dict.getWordsCount());
-
-//launchStressTest();
-//agent.start();
-
 //renderTest();
 //packMgr.discover('./data/test/', onDiscovered);
 

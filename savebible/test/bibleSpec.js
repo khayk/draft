@@ -31,6 +31,7 @@ var createTestBook = utils.createTestBook;
 // lexical collections
 var LexicalCollection = funcs.LexicalCollection;
 var Lexical           = funcs.Lexical;
+var Dictionary        = funcs.Dictionary;
 
 
 describe('module BBM', function() {
@@ -499,6 +500,42 @@ describe('core modules', function() {
             expect(ref).to.deep.equal(decRef);
           }
         }
+      });
+
+      it('dictionary', function() {
+        var dict = new Dictionary();
+
+        var text = {
+          'a an apple an apricot an ariplane': '01',
+          'apple is a fruit': '02',
+          'ok': '03',
+          'yes no': '04',
+          'no no no': '05',
+          'aaa': '06',
+          'apple': '07'
+        };
+
+        _.each(text, function(value, key) {
+          key.split(' ').forEach(function(e) {
+            dict.add(e, value);
+          });
+        });
+        dict.optimize();
+        expect(dict.count()).to.be.equal(11);
+
+        // each word should be found in the dictionary
+        dict.words().forEach(function(word) {
+          expect(dict.find(word)).is.not.equal(null);
+        });
+
+        // should fail to find
+        expect(dict.find('not exists')).is.equal(null);
+
+        // should succeed to find
+        var ref = dict.find('a');
+        expect(ref.indexOf('01')).is.not.equal(-1);
+        expect(ref.indexOf('02')).is.not.equal(-1);
+        expect(ref.indexOf('07')).is.equal(-1);
       });
 
       it('bible', function() {
