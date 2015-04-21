@@ -2,6 +2,8 @@ var fs             = require('fs');
 var path           = require('path');
 var util           = require('util');
 var _              = require('underscore');
+var randomWords    = require('random-words');
+
 //var agent          = require('webkit-devtools-agent');
 
 var theBible       = require('./lib/bible.js');
@@ -27,9 +29,7 @@ var BibleStats     = theBible.BibleStats;
 var encodeRef      = theBible.encodeRef;
 var decodeRef      = theBible.decodeRef;
 
-
 var createTestBook = utils.createTestBook;
-var Dictionary     = common.Dictionary;
 
 // utils exports
 var HiResTimer     = helper.HiResTimer;
@@ -37,13 +37,11 @@ var dropboxDir     = cfg.get_dropbox_dir();
 
 var LexicalCollection = funcs.LexicalCollection;
 var Lexical           = funcs.Lexical;
-
+var Dictionary        = funcs.Dictionary;
 
 (function() {
 
   'use strict';
-
-
 
   var src = {
     'an apple, an apricot, an ariplane': '04',
@@ -77,23 +75,28 @@ var Lexical           = funcs.Lexical;
     };
   };
 
+  function characterMap(str, map) {
+    map = map || {};
+    for (var i = 0; i < str.length; i++) {
+      var ref = str.charAt(i);
+      if (map[ref] === void 0)
+        map[ref] = 1;
+      else
+        map[ref]++;
+    }
+    return map;
+  }
 
   function main() {
     try {
-      //var dict = new Dictionary();
       LexicalCollection.init('./data/lexical.json');
+      var lex = LexicalCollection.getLexical('hy');
+      var dict = new Dictionary();
 
-      console.log(LexicalCollection.getLanguages());
-
-      var hyLex = LexicalCollection.getLexical('hy');
-      var src = 'Բար՜և!!! Ձեզ, ինչպե՞ս եք';
-
-      console.log(hyLex.removePunctuations(src));
-      console.log(hyLex.removeLetters(src));
-
+      //dict.addWord();
+      console.log(randomWords(5));
     } catch (e) {
       console.error('ERROR:', e);
-      //throw e;
     }
   }
 
