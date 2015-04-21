@@ -197,7 +197,8 @@ describe('module Lexical', function() {
     expect(LexicalCollection.getLexical('absent')).to.be.equal(null);
     expect(LexicalCollection.haveLanguage('not')).to.be.equal(false);
 
-    var lex = LexicalCollection.getLexical(obj.ru);
+    var lex = LexicalCollection.getLexical('ru');
+    expect(lex).to.not.be.equal(null);
     expect(LexicalCollection.addLexical.bind(LexicalCollection, lex)).to.throw();
   });
 });
