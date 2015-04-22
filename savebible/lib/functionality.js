@@ -61,6 +61,15 @@ function Dictionary() {
     return Object.keys(index_);
   };
 
+  // returns how many times the word met in the dictionary
+  // -1 if word absent
+  this.occurrence = function(word) {
+    var r = index_[word];
+    if (_.isUndefined(r))
+      return -1;
+    return r.c;
+  };
+
   // returns number of words
   this.count = function() {
     if (!optimized_)
@@ -102,62 +111,76 @@ var Lexical = function(lang, data) {
 // ------------------------------------------------------------------------
 //                          LEXICAL COLLECTION
 // ------------------------------------------------------------------------
-var LexicalCollection = (function() {
+var LC = (function() {
+  'use strict';
+
+  var instance_; // instance stores a reference to the Singleton
   var langs_ = {};
 
+  function init() {
+    return {
+      // load lexical collections from specified `file`
+      load: function(file) {
+        // clean previous call
+        this.clean();
+        var that = this;
+        var data = fs.readFileSync(file, 'utf8');
+        var js = JSON.parse(data);
+        js.forEach(function(x) {
+          var lang = x.lang;
+          var data  = x.data;
+          var lex = new Lexical(lang, data);
+          that.addLexical(lex);
+        });
+      },
+
+      clean: function() {
+        langs_ = {};
+      },
+
+      // add lexical object into collection
+      addLexical: function(lex) {
+        var lang = lex.getLanguage();
+        if (_.isUndefined(langs_[lang])) {
+          langs_[lang] = lex;
+        }
+        else {
+          throw 'Language \"' + lang + '\" is already exists';
+        }
+      },
+
+      // get lexical object for specified `lang`, or null if not found
+      getLexical: function(lang) {
+        var ref = langs_[lang];
+        if (_.isUndefined(ref))
+          return null;
+        return ref;
+      },
+
+      // returns true if the specified language is found in the collection,
+      // otherwise false
+      haveLexical: function(lang) {
+        return !_.isUndefined(langs_[lang]);
+      },
+
+      // get array of availalbe languages
+      getLanguages: function() {
+        return Object.keys(langs_);
+      }
+    };
+  }
+
   return {
-    // initialize lexical collection from lexFile
-    init: function(lexFile) {
-      // clean previous call
-      this.clean();
-      var that = this;
-      var data = fs.readFileSync(lexFile, 'utf8');
-      var js = JSON.parse(data);
-      js.forEach(function(x) {
-        var lang = x.lang;
-        var data  = x.data;
-        var lex = new Lexical(lang, data);
-        that.addLexical(lex);
-      });
-    },
-
-    clean: function() {
-      langs_ = {};
-    },
-
-    // add lexical object into collection
-    addLexical: function(lex) {
-      var lang = lex.getLanguage();
-      if (_.isUndefined(langs_[lang])) {
-        langs_[lang] = lex;
+    instance: function() {
+      if (!instance_) {
+        instance_ = init();
       }
-      else {
-        throw 'Language \"' + lang + '\" is already exists';
-      }
-    },
-
-    // get lexical object for specified `lang`, or null if not found
-    getLexical: function(lang) {
-      var ref = langs_[lang];
-      if (_.isUndefined(ref))
-        return null;
-      return ref;
-    },
-
-    // get array of availalbe languages
-    getLanguages: function() {
-      return Object.keys(langs_);
-    },
-
-    // returns true if the specified language is found in the collection,
-    // otherwise false
-    haveLanguage: function(lang) {
-      return !_.isUndefined(langs_[lang]);
-    },
+      return instance_;
+    }
   };
 })();
 
 
-exports.Dictionary        = Dictionary;
-exports.Lexical           = Lexical;
-exports.LexicalCollection = LexicalCollection;
+exports.Dictionary = Dictionary;
+exports.Lexical    = Lexical;
+exports.LC         = LC;

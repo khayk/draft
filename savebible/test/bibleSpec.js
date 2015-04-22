@@ -29,9 +29,9 @@ var decodeRef      = bibleModule.decodeRef;
 var createTestBook = utils.createTestBook;
 
 // lexical collections
-var LexicalCollection = funcs.LexicalCollection;
-var Lexical           = funcs.Lexical;
-var Dictionary        = funcs.Dictionary;
+var LC         = funcs.LC;
+var Lexical    = funcs.Lexical;
+var Dictionary = funcs.Dictionary;
 
 
 describe('module BBM', function() {
@@ -182,24 +182,25 @@ describe('module Lexical', function() {
   });
 
   it('loading', function() {
-    LexicalCollection.init(__dirname + '/../data/lexical.json');
-    var languages = LexicalCollection.getLanguages();
+    var LCO = LC.instance();
+    LCO.load(__dirname + '/../data/lexical.json');
+    var languages = LCO.getLanguages();
 
     var obj = {'ru': ru, 'en': en, 'hy': hy};
 
     _.each(obj, function(val, key) {
-      var lex = LexicalCollection.getLexical(key);
+      var lex = LCO.getLexical(key);
       var res = lex.removePunctuations(en + ru + hy);
       expect(res).to.be.equal(val);
       expect(languages.indexOf(key)).to.not.be.equal(-1);
     });
 
-    expect(LexicalCollection.getLexical('absent')).to.be.equal(null);
-    expect(LexicalCollection.haveLanguage('not')).to.be.equal(false);
+    expect(LCO.getLexical('absent')).to.be.equal(null);
+    expect(LCO.haveLexical('not')).to.be.equal(false);
 
-    var lex = LexicalCollection.getLexical('ru');
+    var lex = LCO.getLexical('ru');
     expect(lex).to.not.be.equal(null);
-    expect(LexicalCollection.addLexical.bind(LexicalCollection, lex)).to.throw();
+    expect(LCO.addLexical.bind(LCO, lex)).to.throw();
   });
 });
 

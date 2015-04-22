@@ -35,36 +35,14 @@ var createTestBook = utils.createTestBook;
 var HiResTimer     = helper.HiResTimer;
 var dropboxDir     = cfg.get_dropbox_dir();
 
-var LexicalCollection = funcs.LexicalCollection;
-var Lexical           = funcs.Lexical;
-var Dictionary        = funcs.Dictionary;
+var LC         = funcs.LC;
+var Lexical    = funcs.Lexical;
+var Dictionary = funcs.Dictionary;
 
 (function() {
 
   'use strict';
 
-
-  var BibleSearch = function() {
-    var bible_ = null;
-    var dict_  = null;
-    var lexic_ = null;
-
-    return {
-      initialize: function(bible, dictionary) {
-        bible_ = bible;
-        dict_  = dictionary;
-        lexic_ = LexicalCollection.getLexical(bible_.lang);
-      },
-
-      searchText: function(text) {
-        var refs = [];
-        return refs;
-      },
-
-      navigate: function(query) {
-      }
-    };
-  };
 
   function characterMap(str, map) {
     map = map || {};
@@ -78,15 +56,150 @@ var Dictionary        = funcs.Dictionary;
     return map;
   }
 
-  function main() {
-    try {
-      LexicalCollection.init('./data/lexical.json');
-      var lex = LexicalCollection.getLexical('hy');
 
-    } catch (e) {
-      console.error('ERROR:', e);
+
+  var BibleSearch = function() {
+    var bible_ = null;
+    var dict_  = null;
+    var lexic_ = null;
+
+    function initDictionary() {
+      var renderer = new TextRenderer();
+      var toc = bible_.getToc();
+      var ti = toc.firstItem();
+      var ref = '';
+
+      function addWord(word) {
+        dict_.add(word, ref);
+      }
+
+      while (ti !== null) {
+        var book = bible_.getBook(ti.id);
+        if (book !== null) {
+          var chap = book.getChapter(1);
+          while (chap !== null) {
+            var verse = chap.getVerse(1);
+            while (verse !== null) {
+              var text = verse.render(renderer);
+              ref = encodeRef(verse.ref());
+              text = lexic_.removePunctuations(text);
+              text = text.toLowerCase();
+
+              // process every single word
+              text.split(' ').forEach(addWord);
+              verse = verse.next();
+            }
+            chap = chap.next();
+          }
+        }
+        ti = toc.nextItem(ti.id);
+      }
+      //console.log(toc.numItems());
+      dict_.optimize();
     }
+
+    return {
+      initialize: function(bible) {
+        lexic_ = LC.instance().getLexical(bible.lang);
+        if (lexic_ === null)
+          throw 'Bible language is not specified or supported: ' + lang;
+        bible_ = bible;
+        dict_  = new Dictionary();
+        initDictionary();
+        console.log('WORDs count: %d', dict_.count());
+
+        // var words = dict_.words();
+        // var inds = [1, 2, 3, 5, 7, 11, 13, 17];
+        // for (var i = 0; i < inds.length; ++i) {
+        //   var w = words[inds[i]];
+        //   console.log(w, dict_.occurrence(w));
+        // }
+      },
+
+      searchText: function(text) {
+        if (!text)
+          return [];
+
+        // if one of the words in the text is absent from the dictionary
+        // it indicates that we should return empty set
+        var noResult = false;
+
+        text = lexic_.removePunctuations(text);
+        var wm = {}; // contains unique words
+        var wa = []; // contains all words in an order they appeared in the text
+        text.split(' ').forEach(function(word) {
+          var obj = {w: word, r: null};
+          wm[word] = obj;
+          wa.push(obj);
+        });
+
+        if (wm.length === 0)
+          return [];
+
+        var refArrays = [];
+        _.each(wm, function(value, key) {
+          // do not search if overall outcome determined to be empty
+          if (noResult)
+            return;
+
+          // value represents references
+          value.r = dict_.find(key);
+          if (value.r === null) {
+            noResult = true;
+            return;
+          }
+
+          refArrays.push(value.r);
+          //console.log('%s -> %j', key, value);
+        });
+
+        if (noResult)
+          return [];
+
+        // combine results into one array
+        var result = refArrays[0];
+        // for (var i = 1; i < refArrays.length; ++i) {
+        //   result = _.intersection(result, refArrays[i]);
+        // }
+        return result;
+      },
+
+      navigate: function(query) {
+      }
+    };
+  };
+
+  function onDiscovered(err, packs) {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    // all packages are discovered at this point
+    core.PackManager.display();
+
+    var lid = 'en';
+    var abbr = 'tkjv';
+    var pack = core.PackManager.getPackage(lid, abbr);
+    if (pack === null) {
+      console.warn('package [%s, %s] not found', lid, abbr);
+      return;
+    }
+
+    var bible = core.Loader.loadBible(pack);
+    var search = new BibleSearch();
+
+    search.initialize(bible);
+    var text = 'inn god earth';
+    for (var i = 0; i < 200000; ++i)
+      search.searchText(text);
+    console.log(search.searchText(text));
   }
 
-  main();
+  var LCO = LC.instance();
+  LCO.load('./data/lexical.json');
+  core.PackManager.scan('./data/test/', true, onDiscovered);
 }());
+
+
+

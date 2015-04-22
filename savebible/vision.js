@@ -245,25 +245,3 @@ TableOfContent {
 
 
 // USAGE: core.PackManager.scan('./data/test/', true, onDiscovered);
-function onDiscovered(err, packs) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-
-  // all packages are discovered at this point
-  packMgr.display();
-
-  var lid = 'en';
-  var abbr = 'tkjv';
-  var pack = core.PackManager.getPackage(lid, abbr);
-  if (pack === null) {
-    console.warn('package [%s, %s] not found', lid, abbr);
-    return;
-  }
-
-  var bible = core.Loader.loadBible(pack);
-
-  // var renderer = new USFMRenderer();
-  // console.log(bible.render(renderer));
-}
