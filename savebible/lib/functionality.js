@@ -49,7 +49,6 @@ function Dictionary() {
   this.find = function(word) {
     if (!optimized_)
       throw 'Dictionary is not optimized. Call optimize!!!';
-    //var lcword = word.toLowerCase();
     var r = index_[word];
     if (_.isUndefined(r))
       return null;

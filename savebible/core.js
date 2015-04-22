@@ -64,9 +64,9 @@ var PackManager = (function() {
     },
 
     display: function() {
-      console.log('found %d packages', packages.length);
+      //console.log('found %d packages', packages.length);
       packages.forEach(function(p) {
-        console.log(p.dir);
+        //console.log(p.dir);
       });
     },
 
