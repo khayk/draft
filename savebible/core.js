@@ -56,10 +56,11 @@ var PackManager = (function() {
             pkg.ctx = jo;
             packages.push(pkg);
           });
-          callback(null, packages);
         } catch (e) {
           callback(e);
+          return 
         }
+        callback(null, packages);
       });
     },
 

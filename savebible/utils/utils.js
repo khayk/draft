@@ -3,19 +3,22 @@ var bibm         = require('../lib/bible.js');
 var common       = require('../lib/common.js');
 var mkdirp       = require('mkdirp');
 var fs           = require('fs');
+var path         = require('path');
 
 
 var TextNode     = bibm.TextNode;
 var CompoundNode = bibm.CompoundNode;
 var Verse        = bibm.Verse;
+var Bible        = bibm.Bible;
 var Book         = bibm.Book;
 var Chapter      = bibm.Chapter;
 var BBM          = bibm.BBM;
 var TextRenderer = bibm.TextRenderer;
-
-
+var USFMRenderer = bibm.USFMRenderer;
+var USFMParser   = bibm.USFMParser;
 
 var textRndr      = new TextRenderer({textOnly:false, useAbbr: true});
+var usfmRndr      = new USFMRenderer();
 var padNumber     = common.padNumber;
 var padString     = common.padString;
 var padWithSymbol = common.padWithSymbol;
@@ -98,8 +101,13 @@ function summarizeBible(bible, file) {
 }
 
 
-function saveBook(dstDir, book, on, id) {
-  var rbook = book.render(textRndr);
+function saveBook(dstDir, book, on, id, format) {
+  var renderer = textRndr;
+  if (format && format === 'usfm')
+    renderer = usfmRndr;
+
+  // render with selected renderer
+  var rbook = book.render(renderer);
   mkdirp(dstDir, function(err) {
     if (err) {
       console.error('mkdirp failed on dstDir: %s, err: %s', dstDir, err);
@@ -190,7 +198,7 @@ function createTestBook(id, numChapters, numVerses) {
     chap.number = j;
 
     for (var i = 1; i <= nvs; ++i) {
-      var verse =  createVerse(i, j + ' simple verse' + i);
+      var verse =  createVerse(i, 'simple verse text');
       chap.addVerse(verse);
     }
 
@@ -199,9 +207,20 @@ function createTestBook(id, numChapters, numVerses) {
   return book;
 }
 
+function createTestBible() {
+  var ids = ['GEN', 'REV'];
+  var bible = new Bible();
+  var numChaps = 1;
+  var numVerses = 1;
+  ids.forEach(function(id) {
+    bible.addBook(createTestBook(id, numChaps, numVerses));
+  });
+  bible.lang = 'en';
+  return bible;
+}
 
 function loadUSFMBook(usfmFile) {
-  var str = fs.readFileSync(testBook, 'utf8');
+  var str = fs.readFileSync(usfmFile, 'utf8');
 
   // supported tags only
   var parser = new USFMParser(true);
@@ -211,11 +230,26 @@ function loadUSFMBook(usfmFile) {
 }
 
 
-exports.fwrite         = fwrite;
-exports.addVerse       = addVerse;
-exports.createVerse    = createVerse;
-exports.summarizeBible = summarizeBible;
-exports.outputResult   = outputResult;
-exports.saveBook       = saveBook;
-exports.createTestBook = createTestBook;
-exports.loadUSFMBook   = loadUSFMBook;
+function loadUSFMBible(usfmFilesDir) {
+  var files = fs.readdirSync(usfmFilesDir);
+  var bible = new Bible();
+  files.forEach(function(file) {
+    if ( path.extname(file) !== '.usfm' )
+      return;
+    var book = loadUSFMBook(usfmFilesDir + file);
+    bible.addBook(book);
+  });
+  return bible;
+}
+
+
+exports.fwrite          = fwrite;
+exports.addVerse        = addVerse;
+exports.createVerse     = createVerse;
+exports.summarizeBible  = summarizeBible;
+exports.outputResult    = outputResult;
+exports.saveBook        = saveBook;
+exports.createTestBook  = createTestBook;
+exports.createTestBible = createTestBible;
+exports.loadUSFMBook    = loadUSFMBook;
+exports.loadUSFMBible   = loadUSFMBible;

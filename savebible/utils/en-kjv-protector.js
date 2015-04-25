@@ -136,7 +136,7 @@ function processTextBible(file, types) {
     cmn.outputResult(destDir, bible, true);
     bible.books.forEach(function(b) {
       var id = b.id;
-      cmn.saveBook(destDir, b, BBM.instance().entryById(id).index, id);
+      cmn.saveBook(destDir, b, BBM.instance().entryById(id).index, id, argv.format);
     });
   });
 }

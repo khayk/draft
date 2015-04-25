@@ -1,5 +1,6 @@
-var fs = require('fs');
-var _  = require('underscore');
+var fs  = require('fs');
+var _   = require('underscore');
+var cmn = require('./common.js');
 
 // ------------------------------------------------------------------------
 //                             DICTIONARY
@@ -24,21 +25,20 @@ function Dictionary() {
   // optimize dictionary
   this.optimize = function() {
     _.each(index_, function(value, key) {
-
-        // we need to sort refs and make them unique
-        var o = value.refs;
-        var n = {}, r = [];
-        for (var i = 0; i < o.length; i++) {
-          if (typeof n[o[i]] === 'undefined') {
-            n[o[i]] = true;
-            r.push(o[i]);
-          }
+      // we need to sort refs and make them unique
+      var o = value.refs;
+      var n = {}, r = [];
+      for (var i = 0; i < o.length; i++) {
+        if (typeof n[o[i]] === 'undefined') {
+          n[o[i]] = true;
+          r.push(o[i]);
         }
+      }
 
-        // r is now unique
-        value.refs = r;
-        value.refs.sort();
-      });
+      // r is now unique
+      value.refs = r;
+      value.refs.sort();
+    });
 
     numWords_  = Object.keys(index_).length;
     changed_   = false;
@@ -74,6 +74,31 @@ function Dictionary() {
     if (!optimized_)
       return Object.keys(index_).length;
     return numWords_;
+  };
+
+  this.stat = function(top) {
+    // calculate and return statistics for a dictionary
+    var statistics = {};
+    var freqIndex = {};
+    var totalWords = 0;
+    _.each(index_, function(value, key) {
+      var o = value.c;
+      if (_.isUndefined(freqIndex[o]))
+        freqIndex[o] = [];
+      freqIndex[o].push(key);
+      totalWords += o;
+    });
+
+    var fk = Object.keys(freqIndex);
+
+    top = top || 10;
+    // print top `top` words
+    for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
+      var t = fk[i];
+      console.log('%s : %j', cmn.padWithSymbol(t, 6, ' '), freqIndex[t]);
+    }
+
+    return {total: totalWords, freq: freqIndex};
   };
 }
 

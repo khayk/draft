@@ -1,4 +1,5 @@
-var argv         = require('minimist')(process.argv.slice(2));
+var colors         = require('colors');
+var argv           = require('minimist')(process.argv.slice(2));
 var fs             = require('fs');
 var path           = require('path');
 var util           = require('util');
@@ -30,7 +31,9 @@ var BibleStats     = theBible.BibleStats;
 var encodeRef      = theBible.encodeRef;
 var decodeRef      = theBible.decodeRef;
 
-var createTestBook = utils.createTestBook;
+var createTestBook  = utils.createTestBook;
+var createTestBible = utils.createTestBible;
+var loadUSFMBible   = utils.loadUSFMBible;
 
 // utils exports
 var HiResTimer     = helper.HiResTimer;
@@ -39,6 +42,8 @@ var dropboxDir     = cfg.get_dropbox_dir();
 var LC         = funcs.LC;
 var Lexical    = funcs.Lexical;
 var Dictionary = funcs.Dictionary;
+
+timer = new HiResTimer();
 
 (function() {
 
@@ -57,6 +62,22 @@ var Dictionary = funcs.Dictionary;
     return map;
   }
 
+  function mergeArrays(left, right) {
+    var result = [],
+      il = 0,
+      ir = 0;
+
+    while (il < left.length && ir < right.length) {
+      if (left[il] < right[ir]) {
+        result.push(left[il++]);
+      }
+      else {
+        result.push(right[ir++]);
+      }
+    }
+
+    return result.concat(left.slice(il)).concat(right.slice(ir));
+  }
 
   // {refs: [], words: [], cs: true}
 
@@ -64,12 +85,22 @@ var Dictionary = funcs.Dictionary;
 //                             BIBLE SEARCH
 // ------------------------------------------------------------------------
 var BibleSearch = function() {
-  var bible_  = null;
-  var dict_   = null;  // lowercase words
-  var dictCS_ = null;  // case sensitive words
-  var lexic_  = null;
+  var wtwm_     = {};    // word to word map
 
+
+  var bible_   = null;
+  var dict_    = null;  // lowercase words
+  var lexic_   = null;
   var renderer = null;
+
+  // word contains an object of the full words
+  var wparts_ = {};
+
+  // helper function to create internal metadata
+  function addWordParts(word) {
+    if (word.length < 4)
+      return;
+  }
 
   // initialize dictionary
   function initDictionary() {
@@ -78,8 +109,20 @@ var BibleSearch = function() {
     var ref = '';
 
     function addWord(word) {
-      dict_.add(word.toLowerCase(), ref);
-      dictCS_.add(word, ref);
+      word = word.trim();
+
+      // ignore empty strings
+      if (word.length === 0)
+        return;
+
+      dict_.add(word, ref);
+
+      var ciWord = word.toLowerCase();
+      var obj = wtwm_[ciWord];
+      if (_.isUndefined(obj)) {
+        wtwm_[ciWord] = {};
+      }
+      wtwm_[ciWord][word] = null;
     }
 
     while (ti !== null) {
@@ -104,7 +147,6 @@ var BibleSearch = function() {
     }
 
     dict_.optimize();
-    dictCS_.optimize();
   }
 
   return {
@@ -116,26 +158,68 @@ var BibleSearch = function() {
         throw 'Bible language is not specified or supported: ' + lang;
       bible_   = bible;
       dict_    = new Dictionary();
-      dictCS_  = new Dictionary();
       renderer = new TextRenderer();
 
       initDictionary();
-      console.log('WORDs count: %d', dict_.count());
+      console.log('Case   sensitive words count: %d', dict_.count());
+      console.log('Case insensitive words count: %d', Object.keys(wtwm_).length);
+      dict_.stat(150);
     },
 
     // search a single word and return array of references if succeeded,
     // otherwise returns null
-    searchWord: function(word, caseSensitive) {
-      if (caseSensitive === void 0)
-        caseSensitive = true;
-      caseSensitive = caseSensitive ? true : false;
+    // {cs: bool, ww: bool}
+    // cs -> case sensitive
+    // ww -> whole word
+    searchWord: function(word, opts) {
+      if (!_.isString(word))
+        throw new TypeError('Bad arguments');
 
-      if ( typeof word !== 'string')
+      if (!opts) {
+        opts = { cs: true, ww: true };
+      }
+      else if (!_.isObject(opts)) {
+        throw new TypeError('Bad arguments');
+      }
+      else {
+        if (typeof opts.cs !== 'boolean')
+          opts.cs = true;
+        if (typeof opts.ww !== 'boolean')
+          opts.ww = true;
+      }
+
+      console.log(opts);
+      opts = opts;
+      var caseSensitive = opts.cs;
+      var wholeWord     = opts.ww;
+
+      if (caseSensitive) {
+        if (wholeWord)
+          return dict_.find(word);
+        else {
+          // try to find any word that starts with 'word'
+          // TODO: implement later
+          return null;
+        }
+      }
+
+      var ciWord = word.toLowerCase();
+      var csWords = wtwm_[ciWord];
+      if (_.isUndefined(csWords))
         return null;
 
-      if (caseSensitive)
-        return dictCS_.find(word);
-      return dict_.find(word.toLowerCase());
+      var result = [];
+      _.each(csWords, function(value, key) {
+        var tmp = dict_.find(key);
+        if (tmp !== null) {
+          console.log('%s -> %j', key, tmp);
+          result = _.union(result, tmp);
+        }
+      });
+
+      result.sort();
+      console.log('%s -> %j', ciWord, result);
+      return result;
     },
 
     // search words in a text occording to rules in opts object
@@ -230,44 +314,65 @@ var BibleSearch = function() {
   };
 };
 
-  function onDiscovered(err, packs) {
-    if (err) {
-      console.error(err);
-      return;
-    }
+  // function onDiscovered(err, packs) {
+  //   if (err) {
+  //     console.error(err);
+  //     return;
+  //   }
 
-    // all packages are discovered at this point
-    core.PackManager.display();
+  //   // all packages are discovered at this point
+  //   core.PackManager.display();
 
-    var lid = 'en';
-    var abbr = 'tkjv';
-    var pack = core.PackManager.getPackage(lid, abbr);
-    if (pack === null) {
-      console.warn('package [%s, %s] not found', lid, abbr);
-      return;
-    }
+  //   var lid = 'en';
+  //   var abbr = 'tkjv';
+  //   var pack = core.PackManager.getPackage(lid, abbr);
+  //   if (pack === null) {
+  //     console.warn('package [%s, %s] not found', lid, abbr);
+  //     return;
+  //   }
 
-    var bible = core.Loader.loadBible(pack);
-    var search = new BibleSearch();
+  //   var bible = core.Loader.loadBible(pack);
+  //   var search = new BibleSearch();
+  //   search.initialize(bible);
 
-    search.initialize(bible);
+  //   var word = argv.word;
+  //   var opts = {};
+  //   if (argv.cs === 'false') {
+  //     opts.cs = false;
+  //   }
+  //   if (argv.ww === 'false')
+  //     opts.ww = false;
 
-    var word = argv.word;
-    var caseSensitive;
-    if (argv.cs)
-      caseSensitive = true;
-    else
-      caseSensitive = false;
-    console.log('Case sensitive: ', caseSensitive);
+  //   var result = search.searchWord(word, opts);
+  //   //console.log(result);
+  //   search.expend(word, result);
+  // }
 
-
-    var result = search.searchWord(word, caseSensitive);
-    search.expend(word, result, caseSensitive);
-  }
-
+  console.log(argv);
   var LCO = LC.instance();
   LCO.load('./data/lexical.json');
-  core.PackManager.scan('./data/test/', true, onDiscovered);
+  //core.PackManager.scan('./data/test/', true, onDiscovered);
+
+  timer.start();
+  console.log(util.inspect(process.memoryUsage()));
+
+  //var bible = createTestBible();
+  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/en-kjv-usfm+/');
+  bible.lang = 'en';
+  var search = new BibleSearch();
+
+  timer.stop();
+  timer.report();
+
+  for (var i = 0; i < 1; ++i) {
+    console.log(util.inspect(process.memoryUsage()));
+    timer.start();
+    search.initialize(bible);
+    timer.stop();
+    timer.report();
+    console.log(util.inspect(process.memoryUsage()));
+  }
+
 }());
 
 
