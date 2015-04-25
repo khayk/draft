@@ -76,30 +76,34 @@ function Dictionary() {
     return numWords_;
   };
 
-  this.stat = function(top) {
-    // calculate and return statistics for a dictionary
-    var statistics = {};
-    var freqIndex = {};
-    var totalWords = 0;
-    _.each(index_, function(value, key) {
-      var o = value.c;
-      if (_.isUndefined(freqIndex[o]))
-        freqIndex[o] = [];
-      freqIndex[o].push(key);
-      totalWords += o;
-    });
-
-    var fk = Object.keys(freqIndex);
-
-    top = top || 10;
-    // print top `top` words
-    for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
-      var t = fk[i];
-      console.log('%s : %j', cmn.padWithSymbol(t, 6, ' '), freqIndex[t]);
-    }
-
-    return {total: totalWords, freq: freqIndex};
+  this.index = function() {
+    return index_;
   };
+
+  // this.stat = function(top) {
+  //   // calculate and return statistics for a dictionary
+  //   var statistics = {};
+  //   var freqIndex = {};
+  //   var totalWords = 0;
+  //   _.each(index_, function(value, key) {
+  //     var o = value.c;
+  //     if (_.isUndefined(freqIndex[o]))
+  //       freqIndex[o] = [];
+  //     freqIndex[o].push(key);
+  //     totalWords += o;
+  //   });
+
+  //   var fk = Object.keys(freqIndex);
+
+  //   top = top || 10;
+  //   // print top `top` words
+  //   for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
+  //     var t = fk[i];
+  //     console.log('%s : %j', cmn.padWithSymbol(t, 6, ' '), freqIndex[t]);
+  //   }
+
+  //   return {total: totalWords, freq: freqIndex};
+  // };
 }
 
 

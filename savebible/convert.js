@@ -79,7 +79,33 @@ timer = new HiResTimer();
     return result.concat(left.slice(il)).concat(right.slice(ir));
   }
 
-  // {refs: [], words: [], cs: true}
+  function dumpStats(index, file, top) {
+    var statistics = {};
+    var freqIndex = {};
+    var totalWords = 0;
+
+    _.each(index, function(value, key) {
+      var o = value.c;
+      if (_.isUndefined(freqIndex[o]))
+        freqIndex[o] = [];
+      freqIndex[o].push(key);
+      totalWords += o;
+    });
+
+    var fk = Object.keys(freqIndex);
+
+    var wstream = fs.createWriteStream(file);
+
+    top = top || 10;
+    // print top `top` words
+    for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
+      var t = fk[i];
+      wstream.write(util.format('%s : %j',
+                    common.padWithSymbol(t, 6, ' '),
+                    freqIndex[t]) + '\r\n');
+    }
+    wstream.end();
+  }
 
 // ------------------------------------------------------------------------
 //                             BIBLE SEARCH
@@ -98,8 +124,18 @@ var BibleSearch = function() {
 
   // helper function to create internal metadata
   function addWordParts(word) {
-    if (word.length < 4)
-      return;
+    var len = word.length - 1;
+    while (len > 2) {
+      var wp = word.substr(0, len);
+      var ref = wparts_[wp];
+      if (_.isUndefined(ref)) {
+        wparts_[wp] = {c: 0, links: {}};
+        ref = wparts_[wp];
+      }
+      ref.c++;
+      ref.links[word] = null;
+      --len;
+    }
   }
 
   // initialize dictionary
@@ -116,6 +152,7 @@ var BibleSearch = function() {
         return;
 
       dict_.add(word, ref);
+      addWordParts(word);
 
       var ciWord = word.toLowerCase();
       var obj = wtwm_[ciWord];
@@ -123,6 +160,11 @@ var BibleSearch = function() {
         wtwm_[ciWord] = {};
       }
       wtwm_[ciWord][word] = null;
+
+      // skip adding word parts, if there are no differenct between
+      // case sensitive and insensitive versions
+      if (ciWord !== word)
+        addWordParts(word);
     }
 
     while (ti !== null) {
@@ -163,7 +205,11 @@ var BibleSearch = function() {
       initDictionary();
       console.log('Case   sensitive words count: %d', dict_.count());
       console.log('Case insensitive words count: %d', Object.keys(wtwm_).length);
-      dict_.stat(150);
+      //dict_.stat(10);
+
+      dumpStats(dict_.index(), 'dict.txt',      100000);
+      dumpStats(wparts_,       'dictWpars.txt', 10000000);
+      //dumpStats(wparts_, 'dump.txt');
     },
 
     // search a single word and return array of references if succeeded,
