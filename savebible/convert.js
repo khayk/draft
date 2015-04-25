@@ -4,7 +4,6 @@ var fs             = require('fs');
 var path           = require('path');
 var util           = require('util');
 var _              = require('underscore');
-var randomWords    = require('random-words');
 
 //var agent          = require('webkit-devtools-agent');
 
@@ -90,21 +89,22 @@ timer = new HiResTimer();
         freqIndex[o] = [];
       freqIndex[o].push(key);
       totalWords += o;
+
+      //console.log('%s -> %j', key, value);
     });
 
-    var fk = Object.keys(freqIndex);
+    // var fk = Object.keys(freqIndex);
 
-    var wstream = fs.createWriteStream(file);
-
-    top = top || 10;
-    // print top `top` words
-    for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
-      var t = fk[i];
-      wstream.write(util.format('%s : %j',
-                    common.padWithSymbol(t, 6, ' '),
-                    freqIndex[t]) + '\r\n');
-    }
-    wstream.end();
+    // var wstream = fs.createWriteStream(file);
+    // top = top || 10;
+    // // print top `top` words
+    // for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
+    //   var t = fk[i];
+    //   wstream.write(util.format('%s : %j',
+    //                 common.padWithSymbol(t, 6, ' '),
+    //                 freqIndex[t]) + '\r\n');
+    // }
+    // wstream.end();
   }
 
 // ------------------------------------------------------------------------
@@ -161,7 +161,7 @@ var BibleSearch = function() {
       }
       wtwm_[ciWord][word] = null;
 
-      // skip adding word parts, if there are no differenct between
+      // skip adding word parts, if there are no differences between
       // case sensitive and insensitive versions
       if (ciWord !== word)
         addWordParts(word);
@@ -205,11 +205,12 @@ var BibleSearch = function() {
       initDictionary();
       console.log('Case   sensitive words count: %d', dict_.count());
       console.log('Case insensitive words count: %d', Object.keys(wtwm_).length);
-      //dict_.stat(10);
 
-      dumpStats(dict_.index(), 'dict.txt',      100000);
+      var stat = dict_.stat(true, 100);
+      console.log('Total words count: ', stat.total);
+
+      // dumpStats(dict_.index(), 'dict.txt',      100000);
       dumpStats(wparts_,       'dictWpars.txt', 10000000);
-      //dumpStats(wparts_, 'dump.txt');
     },
 
     // search a single word and return array of references if succeeded,
@@ -400,10 +401,8 @@ var BibleSearch = function() {
   //core.PackManager.scan('./data/test/', true, onDiscovered);
 
   timer.start();
-  console.log(util.inspect(process.memoryUsage()));
-
   //var bible = createTestBible();
-  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/en-kjv-usfm+/');
+  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/zed/');
   bible.lang = 'en';
   var search = new BibleSearch();
 
@@ -411,12 +410,10 @@ var BibleSearch = function() {
   timer.report();
 
   for (var i = 0; i < 1; ++i) {
-    console.log(util.inspect(process.memoryUsage()));
     timer.start();
     search.initialize(bible);
     timer.stop();
     timer.report();
-    console.log(util.inspect(process.memoryUsage()));
   }
 
 }());
