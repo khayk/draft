@@ -119,26 +119,22 @@ var BibleSearch = function() {
   // ref: array of references to bible verses
   var dict_    = new Dictionary('original words');
 
+  // here we keep only those keys from dict_ where lowercase(key) != key
   // key: lowercase word from key of `dict_`
-  // ref: array of references its original words
-  var wtw_     = new Dictionary('lowercase words');
+  // ref: array of words containing in dict as keys
+  var cim_     = new Dictionary('lowercase words');
 
-  // key: sub word of each unique word presented either in `dict_` or `wtw_`
-  // ref: array of references to the base word
-  var swtw_    = new Dictionary('partial words');
+  // key: sub word of each unique word presented in `dict_`
+  // ref: array of words from `dict_` keys
+  var swm_     = new Dictionary('partial words');
 
-  // helper function to create internal metadata
-/*  function addWordParts(word) {
 
-    }
-  }*/
-
-  function updateSubWordDict(word) {
+  function updateSubWordDict(word, ref) {
     //return;
     var len = word.length - 1;
     while (len > 2) {
       var wp = word.substr(0, len);
-      swtw_.add(wp, word);
+      swm_.add(wp, ref);
       --len;
     }
 
@@ -153,15 +149,14 @@ var BibleSearch = function() {
   }
 
   function updateCaseInsensitiveDict(word) {
-    updateSubWordDict(word);
-
     var ciWord = word.toLowerCase();
-    wtw_.add(ciWord, word);
 
-    // skip adding word parts, if there are no differences between
+    // skip adding word, if there are no differences between
     // case sensitive and insensitive versions
-    if (ciWord !== word)
-      updateSubWordDict(ciWord);
+    if (ciWord !== word) {
+      cim_.add(ciWord, word);
+      updateSubWordDict(ciWord, word);
+    }
   }
 
 
@@ -173,6 +168,7 @@ var BibleSearch = function() {
       return;
 
     dict_.add(word, ref);
+    updateSubWordDict(word, word);
     updateCaseInsensitiveDict(word);
   }
 
@@ -207,18 +203,19 @@ var BibleSearch = function() {
     dict_.optimize();
     dict_.verify();
 
-    wtw_.optimize();
-    wtw_.verify();
+    cim_.optimize();
+    cim_.verify();
 
-    swtw_.optimize();
-    swtw_.verify();
+    swm_.optimize();
+    swm_.verify();
   }
 
   function resultLogger(desc, word, result) {
     if (result !== null)
       console.log(desc + ' [%d]: %s -> %j', result.length, word, result);
     else
-      console.log(desc + ': NO RESULT for %s', word);
+      console.log(desc + ': NO RESULT `%s`', word);
+    console.log('');
   }
 
   return {
@@ -235,19 +232,24 @@ var BibleSearch = function() {
       initializeDictionaries();
 
       console.log('CS words: %d', dict_.count());
-      console.log('CI words: %d', wtw_.count());
-      console.log('SUB words: %d', swtw_.count());
+      console.log('CI words: %d', cim_.count());
+      console.log('SUB words: %d', swm_.count());
 
       var stat = dict_.stat(false, 100);
       console.log('MAIN total count: ', stat.total);
+      console.log('MAIN index: ', stat.index, '\n');
 
-      stat = wtw_.stat(false, 100);
-      console.log('WTW total count: ', stat.total);
-      console.log('WTW index: ', stat.index);
+      stat = cim_.stat(false, 100);
+      console.log('CIM total count: ', stat.total);
+      console.log('CIM index: ', stat.index, '\n');
 
-      stat = swtw_.stat(false, 100);
-      console.log('SWTW total count: ', stat.total);
-      console.log('SWTW index: ', stat.index);
+      stat = swm_.stat(false, 100);
+      console.log('SWM total count: ', stat.total);
+      console.log('SWM index: ', stat.index, '\n');
+
+      // console.log('SWM index: ',
+      //             util.inspect(stat.index, false, 2, true),
+      //             '\n');
     },
 
 
@@ -287,29 +289,34 @@ var BibleSearch = function() {
         }
         else {
           // try to find any word that starts with 'word'
-          // TODO: implement later
+
+          // condidates = swm_.find(word);
+          // if (condidates.indexof(word) === -1)
+          //   condidates.push(word);
 
           console.log('CS: %s -> %j', word, result);
           return null;
         }
       }
 
+      return;
+
       // requested case insensitive words
       var ciWord = word.toLowerCase();
       if (wholeWord) {
-        var csWords = wtw_.find(ciWord);
-        result = this.getResultsHelper(csWords, dict_);
+        var csWords = cim_.find(ciWord);
+        result = this.getResultsHelper(csWords);
         resultLogger('WW', ciWord, result);
       }
       else {
 
-        var allPossibleWords = swtw_.find(ciWord);
+        var allPossibleWords = swm_.find(ciWord);
         result = [];
         allPossibleWords.forEach(function(subword) {
           if (result === null)
             return;
 
-          var csWords = wtw_.find(ciWord);
+          var csWords = cim_.find(ciWord);
           var tmp = this.getResultsHelper(csWords, dict_);
           if (tmp !== null) {
             result.concat(tmp);
@@ -326,13 +333,13 @@ var BibleSearch = function() {
       return result;
     },
 
-    getResultsHelper: function(words, dict) {
+    getResultsHelper: function(words) {
       if (words === null)
         return null;
 
       var result = [];
       words.forEach(function(w) {
-        var tmp = dict.find(w);
+        var tmp = dict_.find(w);
         if (tmp !== null) {
           result = _.union(result, tmp);
         }
@@ -455,14 +462,6 @@ var BibleSearch = function() {
   //   var search = new BibleSearch();
   //   search.initialize(bible);
 
-  //   var word = argv.word;
-  //   var opts = {};
-  //   if (argv.cs === 'false') {
-  //     opts.cs = false;
-  //   }
-  //   if (argv.ww === 'false')
-  //     opts.ww = false;
-
   //   var result = search.searchWord(word, opts);
   //   //console.log(result);
   //   search.expend(word, result);
@@ -489,6 +488,27 @@ var BibleSearch = function() {
     timer.report();
   }
 
+
+  var word = argv.word;
+  var opts = {};
+  if (argv.cs === 'false') {
+    opts.cs = false;
+  }
+  if (argv.ww === 'false')
+    opts.ww = false;
+
+  // search.searchWord('SIMPLE', {cs: true,  ww: true});
+  // search.searchWord('Simple', {cs: true,  ww: true});
+  // search.searchWord('simple', {cs: true,  ww: true});
+
+  search.searchWord('SIMPLE', {cs: true,  ww: false});
+  search.searchWord('Simple', {cs: true,  ww: false});
+  search.searchWord('simple', {cs: true,  ww: false});
+
+
+  // search.searchWord(word, {cs: true,  ww: false});
+  // search.searchWord(word, {cs: false, ww: true});
+  // search.searchWord(word, {cs: false, ww: false});
 }());
 
 
