@@ -5,15 +5,16 @@ var cmn = require('./common.js');
 // ------------------------------------------------------------------------
 //                             DICTIONARY
 // ------------------------------------------------------------------------
-function Dictionary() {
+function Dictionary(desc) {
+  // optional description of the dictionary
+  var desc_      = desc;
   var optimized_ = false;
+  var changed_   = false;
   var index_     = {};
   var numWords_  = 0;
-  var changed_   = 0;
 
   // words are case sensitive
   this.add = function(word, ref) {
-    //var word = word.toLowerCase();
     if (_.isUndefined(index_[word]))
       index_[word] = {c: 0, refs: []};
     index_[word].refs.push(ref);
@@ -57,6 +58,8 @@ function Dictionary() {
 
   // returns array of all words
   this.words = function() {
+    if (!optimized_)
+      throw 'Dictionary is not optimized. Call optimize!!!';
     return Object.keys(index_);
   };
 
@@ -69,6 +72,14 @@ function Dictionary() {
     return r.c;
   };
 
+  // cleanup all internal data of dictionary
+  this.clear = function() {
+    optimized_ = false;
+    changed_   = false;
+    index_     = {};
+    numWords_  = 0;
+  };
+
   // returns number of words
   this.count = function() {
     if (!optimized_)
@@ -76,10 +87,24 @@ function Dictionary() {
     return numWords_;
   };
 
+  // verify that the internal state of dictionary is correct
+  // throw exception if correction condition is not met
+  this.verify = function() {
+    _.each(index_, function(value, key) {
+      var o = value.refs;
+      for (var i = o.length - 1; i > 0; i--) {
+        if (o[i] < o[i - 1]) {
+          throw 'Verification failed for dictionary: ' + desc_;
+        }
+      }
+    });
+  };
+
   this.stat = function(display, top) {
     // calculate and return statistics for a dictionary
     var statistics = {};
     var freqIndex = {};
+    var maxRefs = {};
     var totalWords = 0;
     _.each(index_, function(value, key) {
       var o = value.c;
@@ -101,7 +126,7 @@ function Dictionary() {
       }
     }
 
-    return {total: totalWords, freq: freqIndex};
+    return {total: totalWords, freq: freqIndex, index: index_};
   };
 }
 

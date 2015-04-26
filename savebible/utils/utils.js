@@ -198,7 +198,7 @@ function createTestBook(id, numChapters, numVerses) {
     chap.number = j;
 
     for (var i = 1; i <= nvs; ++i) {
-      var verse =  createVerse(i, 'simple verse text');
+      var verse =  createVerse(i, 'Simple');
       chap.addVerse(verse);
     }
 
@@ -208,7 +208,7 @@ function createTestBook(id, numChapters, numVerses) {
 }
 
 function createTestBible() {
-  var ids = ['GEN', 'REV'];
+  var ids = ['GEN'];
   var bible = new Bible();
   var numChaps = 1;
   var numVerses = 1;
