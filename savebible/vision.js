@@ -78,6 +78,32 @@ console.log('ub: %d', ub);
 //renderTest();
 //packMgr.discover('./data/test/', onDiscovered);
 
+  // function onDiscovered(err, packs) {
+  //   if (err) {
+  //     console.error(err);
+  //     return;
+  //   }
+
+  //   // all packages are discovered at this point
+  //   core.PackManager.display();
+
+  //   var lid = 'en';
+  //   var abbr = 'tkjv';
+  //   var pack = core.PackManager.getPackage(lid, abbr);
+  //   if (pack === null) {
+  //     console.warn('package [%s, %s] not found', lid, abbr);
+  //     return;
+  //   }
+
+  //   var bible = core.Loader.loadBible(pack);
+  //   var search = new BibleSearch();
+  //   search.initialize(bible);
+
+  //   var result = search.searchWord(word, opts);
+  //   //console.log(result);
+  //   search.expend(word, result);
+  // }
+  //
 
 
 // var Smth = function(opts) {
