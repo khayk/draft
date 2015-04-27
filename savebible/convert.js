@@ -137,15 +137,6 @@ var BibleSearch = function() {
       swm_.add(wp, ref);
       --len;
     }
-
-      // var ref = wparts_[wp];
-      // if (_.isUndefined(ref)) {
-      //   wparts_[wp] = {c: 0, links: {}};
-      //   ref = wparts_[wp];
-      // }
-      // ref.c++;
-      // ref.links[word] = null;
-      // --len;
   }
 
   function updateCaseInsensitiveDict(word) {
@@ -218,6 +209,37 @@ var BibleSearch = function() {
     console.log('');
   }
 
+  function unify(arr) {
+    arr = arr.sort();
+    arr = _.unique(arr);
+    return arr;
+  }
+
+  function runQuery(arr, dict) {
+    if (_.isArray(arr) ) {
+      //console.log('combine array: ', arr);
+
+      var result = [];
+      arr.forEach(function(w) {
+        var tmp = dict.find(w);
+        if (tmp !== null)
+          result = result.concat(tmp);
+      });
+
+      return unify(result);
+    }
+    else
+      throw 'wrong usage';
+  }
+
+  function selectCondidates(word, dict) {
+    var tmp = dict.find(word);
+    var condidates = [];
+    if (tmp !== null)
+      condidates = tmp.concat(word);
+    return condidates;
+  }
+
   return {
 
     // initialize bible search module
@@ -279,7 +301,7 @@ var BibleSearch = function() {
       opts = opts;
       var caseSensitive = opts.cs;
       var wholeWord     = opts.ww;
-      var result;
+      var result, condidates;
 
       if (caseSensitive) {
         if (wholeWord) {
@@ -288,25 +310,31 @@ var BibleSearch = function() {
           return result;
         }
         else {
-          // try to find any word that starts with 'word'
+          condidates = selectCondidates(word, swm_);
+          condidates.push(word);
+          unify(condidates);
 
-          // condidates = swm_.find(word);
-          // if (condidates.indexof(word) === -1)
-          //   condidates.push(word);
+          //console.log('condidates: ', condidates);
 
-          console.log('CS: %s -> %j', word, result);
-          return null;
+          // now condidates contains all possible words that we
+          // should lookup in the main dicitonary and merge results
+          result = runQuery(condidates, dict_);
+          resultLogger('CS', word, result);
+          return result;
         }
       }
-
-      return;
 
       // requested case insensitive words
       var ciWord = word.toLowerCase();
       if (wholeWord) {
-        var csWords = cim_.find(ciWord);
-        result = this.getResultsHelper(csWords);
-        resultLogger('WW', ciWord, result);
+        condidates = selectCondidates(ciWord, cim_);
+        console.log(condidates);
+        //condidates.push(word);
+        unify(condidates);
+
+        result = runQuery(condidates, dict_);
+        resultLogger('WW', word, result);
+        return result;
       }
       else {
 
@@ -501,9 +529,13 @@ var BibleSearch = function() {
   // search.searchWord('Simple', {cs: true,  ww: true});
   // search.searchWord('simple', {cs: true,  ww: true});
 
-  search.searchWord('SIMPLE', {cs: true,  ww: false});
-  search.searchWord('Simple', {cs: true,  ww: false});
-  search.searchWord('simple', {cs: true,  ww: false});
+  // search.searchWord('SIMPLE', {cs: true,  ww: false});
+  // search.searchWord('Simple', {cs: true,  ww: false});
+  // search.searchWord('simple', {cs: true,  ww: false});
+
+  search.searchWord('siMple', {cs: false,  ww: true});
+  search.searchWord('Simple', {cs: false,  ww: true});
+  search.searchWord('simple', {cs: false,  ww: true});
 
 
   // search.searchWord(word, {cs: true,  ww: false});
