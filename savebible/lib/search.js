@@ -5,23 +5,21 @@ var Dictionary = funcs.Dictionary;
 
 // helper function for search module
 function resultLogger(desc, word, result) {
+  return;
   if (result !== null)
     console.log(desc + ' [%d]: %s -> %j', result.length, word, result);
   else
-    console.log(desc + ': NO RESULT `%s`', word);
-  console.log('');
+    console.log(desc + ' [0]: %s', word);
+  //console.log('');
 }
 
 function unify(arr) {
-  arr = arr.sort();
-  arr = _.unique(arr);
-  return arr;
+  arr.sort();
+  return _.unique(arr);
 }
 
 function runQuery(arr, dict) {
   if (_.isArray(arr) ) {
-    //console.log('combine array: ', arr);
-
     var result = [];
     arr.forEach(function(w) {
       var tmp = dict.find(w);
@@ -35,7 +33,7 @@ function runQuery(arr, dict) {
     return result;
   }
   else
-    throw 'wrong usage';
+    throw 'Expected Array as an argument';
 }
 
 function selectCondidates(word, dict) {
@@ -49,7 +47,7 @@ function selectCondidates(word, dict) {
 
 // Search functionality
 var Search = function() {
-    // key: original word from bible,
+  // key: original word from bible,
   // ref: array of references to bible verses
   var dict_    = new Dictionary('original words');
 
@@ -62,26 +60,23 @@ var Search = function() {
   // ref: array of words from `dict_` keys
   var swm_     = new Dictionary('partial words');
 
+  // the same usage as the `swm_` with the differenct that all keys are
+  // lowercase
+  var ciswm_   = new Dictionary('lowercase partial words');
 
-  function updateSubWordDict(word, ref) {
-    //return;
+  function updateSubWordDict(word, ref, dict) {
     var len = word.length - 1;
     while (len > 2) {
       var wp = word.substr(0, len);
-      swm_.add(wp, ref);
+      dict.add(wp, ref);
       --len;
     }
   }
 
   function updateCaseInsensitiveDict(word) {
     var ciWord = word.toLowerCase();
-
-    // skip adding word, if there are no differences between
-    // case sensitive and insensitive versions
-    if (ciWord !== word) {
-      cim_.add(ciWord, word);
-      updateSubWordDict(ciWord, word);
-    }
+    cim_.add(ciWord, word);
+    updateSubWordDict(ciWord, word, ciswm_);
   }
 
 
@@ -96,7 +91,7 @@ var Search = function() {
         return;
 
       dict_.add(word, ref);
-      updateSubWordDict(word, word);
+      updateSubWordDict(word, word, swm_);
       updateCaseInsensitiveDict(word);
     },
 
@@ -110,25 +105,37 @@ var Search = function() {
 
       swm_.optimize();
       swm_.verify();
+
+      ciswm_.optimize();
+      ciswm_.verify();
     },
 
+    getDictionary: function() {
+      return dict_;
+    },
 
+    // show internal state of dicitonaries
     displayStatistics: function() {
-      console.log('CS  words: %d', dict_.count());
-      console.log('CI  words: %d', cim_.count());
-      console.log('SUB words: %d', swm_.count());
+      console.log('CS    words: %d', dict_.count());
+      console.log('CI    words: %d', cim_.count());
+      console.log('SUB   words: %d', swm_.count());
+      console.log('CISUB words: %d', ciswm_.count());
 
       var stat = dict_.stat(false, 100);
       console.log('MAIN total count: ', stat.total);
-      console.log('MAIN index: ', stat.index, '\n');
+      //console.log('MAIN index: ', stat.index, '\n');
 
       stat = cim_.stat(false, 100);
       console.log('CIM total count: ', stat.total);
-      console.log('CIM index: ', stat.index, '\n');
+      //console.log('CIM index: ', stat.index, '\n');
 
       stat = swm_.stat(false, 100);
       console.log('SWM total count: ', stat.total);
-      console.log('SWM index: ', stat.index, '\n');
+      //console.log('SWM index: ', stat.index, '\n');
+
+      stat = ciswm_.stat(false, 100);
+      console.log('CISWM total count: ', stat.total);
+      //console.log('CISWM index: ', stat.index, '\n');
     },
 
     // search specifed word and return array of references
@@ -152,7 +159,7 @@ var Search = function() {
         if (typeof opts.ww !== 'boolean')
           opts.ww = true;
       }
-      console.log(opts);
+
       var caseSensitive = opts.cs;
       var wholeWord     = opts.ww;
       var result, condidates;
@@ -166,7 +173,7 @@ var Search = function() {
         else {
           condidates = selectCondidates(word, swm_);
           condidates.push(word);
-          unify(condidates);
+          condidates = unify(condidates);
 
           //console.log('condidates: ', condidates);
 
@@ -182,34 +189,20 @@ var Search = function() {
       var ciWord = word.toLowerCase();
       if (wholeWord) {
         condidates = selectCondidates(ciWord, cim_);
-        console.log(condidates);
-        unify(condidates);
+        //console.log(condidates);
+        //condidates = unify(condidates);
 
         result = runQuery(condidates, dict_);
         resultLogger('WW', word, result);
-        return result;
       }
       else {
-        var c1 = selectCondidates(ciWord, cim_);
-
-        var allPossibleWords = swm_.find(ciWord);
-        result = [];
-        allPossibleWords.forEach(function(subword) {
-          if (result === null)
-            return;
-
-          var csWords = cim_.find(ciWord);
-          var tmp = this.getResultsHelper(csWords, dict_);
-          if (tmp !== null) {
-            result.concat(tmp);
-          }
-          else {
-            result = null;
-          }
-        });
-
-        result.sort();
-        result = _.unique(result);
+        condidates = selectCondidates(ciWord, ciswm_);
+        condidates = condidates.concat(selectCondidates(ciWord, cim_));
+        if (ciWord !== word) {
+          condidates.push(word);
+        }
+        condidates = unify(condidates);
+        result = runQuery(condidates, dict_);
         resultLogger('', word, result);
       }
       return result;

@@ -150,7 +150,7 @@ var BibleSearch = function() {
     }
 
     search_.buildIndex();
-    //search_.displayStatistics();
+    search_.displayStatistics();
   }
 
 
@@ -172,23 +172,7 @@ var BibleSearch = function() {
 
 
     searchWord: function(word, opts) {
-
-    },
-
-    getResultsHelper: function(words) {
-      if (words === null)
-        return null;
-
-      var result = [];
-      words.forEach(function(w) {
-        var tmp = dict_.find(w);
-        if (tmp !== null) {
-          result = _.union(result, tmp);
-        }
-      });
-      result.sort();
-      result = _.unique(result, true);
-      return result;
+      return search_.searchWord(word, opts);
     },
 
     // search words in a text occording to rules in opts object
@@ -245,6 +229,19 @@ var BibleSearch = function() {
     navigate: function(query) {
     },
 
+    searchAllWords: function() {
+      var maxLength = 0;
+      var resWord;
+      search_.getDictionary().words().forEach(function(w) {
+        var res = search_.searchWord(w, {cs:true, ww:true});
+        if (maxLength < res.length) {
+          maxLength = res.length;
+          resWord = w;
+        }
+      });
+
+      console.log("Max lenght: %d, word: %s", maxLength, resWord);
+    },
 
     // TODO: TEMPORARY PLACE
     expend: function(word, refs, cs) {
@@ -276,7 +273,7 @@ var BibleSearch = function() {
             console.error('--> NO MATCHES FOUND <--  %s', res);
             return;
           }
-          //console.log('%s(%d) -> %s', word, matches.length, res);
+          console.log('%s(%d) -> %s', word, matches.length, res);
         }
       });
     }
@@ -287,27 +284,67 @@ var BibleSearch = function() {
 
 console.log(argv);
 
-/*
+
 var LCO = LC.instance();
 LCO.load('./data/lexical.json');
 //core.PackManager.scan('./data/test/', true, onDiscovered);
 
 timer.start();
-var bible = createTestBible();
-//var bible = loadUSFMBible(dropboxDir + '/' + 'Data/zed/');
+//var bible = createTestBible();
+var bible = loadUSFMBible(dropboxDir + '/' + 'Data/en-kjv-usfm+/');
 bible.lang = 'en';
 var search = new BibleSearch();
 
 timer.stop();
 timer.report();
 
+console.log(util.inspect(process.memoryUsage()));
 for (var i = 0; i < 1; ++i) {
   timer.start();
   search.initialize(bible);
   timer.stop();
   timer.report();
 }
-*/
+console.log(util.inspect(process.memoryUsage()));
+
+console.log("Searching all words...");
+timer.start();
+search.searchAllWords();
+timer.stop();
+timer.report();
+console.log(util.inspect(process.memoryUsage()));
+
+var opts = {};
+if (argv.cs === 'false') {
+  opts.cs = false;
+}
+if (argv.ww === 'false')
+  opts.ww = false;
+
+
+// var readline = require('readline'),
+//     rl = readline.createInterface(process.stdin, process.stdout);
+
+
+// rl.setPrompt('OHAI> ');
+// rl.prompt();
+
+// rl.on('line', function(line) {
+//   var istr = line.trim();
+//   if (istr === 'EXIT')
+//     process.exit(0);
+
+//   var res = search.searchWord(istr, opts);
+//   //console.log(res);
+//   search.expend(istr, res, opts.cs);
+
+//   rl.prompt();
+// }).on('close', function() {
+//   console.log('Have a great day!');
+//   process.exit(0);
+// });
+
+
 
 function toTitleCase(str)
 {
@@ -317,7 +354,9 @@ function toTitleCase(str)
                              });
 }
 
+/*
 function verify(res, refs) {
+  return;
   if (res === null && refs === null)
     return;
 
@@ -348,61 +387,118 @@ if (argv.ww === 'false')
 
 
 var search = new Search();
-var words = ['EARTH', ''];
+var words = [
+  {w: 'EARTH', r: '1'},
+  {w: 'temp', r: '2'},
+  {w: 'HELLO', r: '3'},
+  {w: 'Help', r: '4'},
+  {w: 'helper', r: '5'},
+  {w: 'at', r: '6'},
+  {w: 'a', r: '7'}];
+
 var xref  = '01001001';
 var axref = [xref];
 
 
 words.forEach(function(w) {
-  search.add(w, xref);
+  search.add(w.w, w.r);
 });
 
 search.buildIndex();
+search.displayStatistics();
 
-
-
-var orig = words[0];
+var orig = words[6].w;
 var tcase = toTitleCase(orig);
 var lcase = orig.toLowerCase();
 var ucase = orig.toUpperCase();
 
+var res, i, opt;
+
 
 // cs & ww -------------------------------------------------------
-var res;
-var opt  = {cs: true,  ww: true};
+opt = {cs: true,  ww: true};
+console.log('\n----- OPTIONS CHANGED: ', opt);
 
 res = search.searchWord(orig, opt);
 verify(res, axref);
+for (i = 3; i < orig.length; ++i) {
+  res = search.searchWord(orig.substr(0, i), opt);
+  verify(res, null);
+}
+
 res = search.searchWord(tcase, opt);
-verify(res, null);
+if (orig.indexOf(tcase) !== -1)
+  verify(res, axref);
+else
+  verify(res, null);
+
 res = search.searchWord(lcase, opt);
-verify(res, null);
+if (lcase !== orig)
+  verify(res, null);
+else
+  verify(res, axref);
 
 
-// cs & ww -------------------------------------------------------
+
+// cs -----------------------------------------------------------
 opt  = {cs: true,  ww: false};
+console.log('\n----- OPTIONS CHANGED: ', opt);
 
 res = search.searchWord(orig, opt);
 verify(res, axref);
+for (i = 3; i < orig.length; ++i) {
+  res = search.searchWord(orig.substr(0, i), opt);
+  verify(res, axref);
+}
 res = search.searchWord(tcase, opt);
-verify(res, null);
+if (orig.indexOf(tcase) !== -1)
+  verify(res, axref);
+else
+  verify(res, null);
+
 res = search.searchWord(lcase, opt);
-verify(res, null);
+if (orig.indexOf(lcase) !== -1)
+  verify(res, axref);
+else
+  verify(res, null);
 
 
-// search.searchWord('SIMPLE', {cs: true,  ww: false});
-// search.searchWord('Simple', {cs: true,  ww: false});
-// search.searchWord('simple', {cs: true,  ww: false});
+// ww -----------------------------------------------------------
+opt  = {cs: false,  ww: true};
+console.log('\n----- OPTIONS CHANGED: ', opt);
+res = search.searchWord(orig, opt);
+verify(res, axref);
+for (i = 3; i < orig.length; ++i) {
+  res = search.searchWord(orig.substr(0, i), opt);
+  verify(res, null);
+}
+res = search.searchWord(tcase, opt);
+verify(res, axref);
+res = search.searchWord(lcase, opt);
+verify(res, axref);
 
-// search.searchWord('siMple', {cs: false,  ww: true});
-// search.searchWord('Simple', {cs: false,  ww: true});
-// search.searchWord('simple', {cs: false,  ww: true});
 
+// --------------------------------------------------------------
+opt  = {cs: false,  ww: false};
+console.log('\n----- OPTIONS CHANGED: ', opt);
+res = search.searchWord(orig, opt);
+verify(res, axref);
+for (i = 3; i < orig.length; ++i) {
+  res = search.searchWord(orig.substr(0, i), opt);
+  verify(res, axref);
+}
 
-// search.searchWord(word, {cs: true,  ww: false});
-// search.searchWord(word, {cs: false, ww: true});
-// search.searchWord(word, {cs: false, ww: false});
+orig = orig.toLowerCase();
+for (i = 3; i < orig.length; ++i) {
+  res = search.searchWord(orig.substr(0, i), opt);
+  verify(res, axref);
+}
+
+res = search.searchWord(tcase, opt);
+verify(res, axref);
+res = search.searchWord(lcase, opt);
+verify(res, axref);
+*/
+
 }());
-
-
 
