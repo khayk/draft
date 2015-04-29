@@ -102,9 +102,9 @@ function Dictionary(desc) {
 
   this.stat = function(display, top) {
     // calculate and return statistics for a dictionary
-    var statistics = {};
+    //var statistics = {};
     var freqIndex = {};
-    var maxRefs = {};
+    //var maxRefs = {};
     var totalWords = 0;
     _.each(index_, function(value, key) {
       var o = value.c;

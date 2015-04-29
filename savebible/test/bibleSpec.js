@@ -1,7 +1,11 @@
+/// <reference path="../typings/mocha/mocha.d.ts"/>
+/// <reference path="../typings/node/node.d.ts"/>
 var _              = require('underscore');
 var expect         = require('chai').expect;
 var bibleModule    = require('../lib/bible.js');
 var funcs          = require('../lib/functionality.js');
+var search         = require('../lib/search.js');
+var cmn            = require('../lib/common.js');
 var utils          = require('../utils/utils.js');
 var core           = require('../core.js');
 var dataUSFM       = require('./dataUSFM.js');
@@ -32,6 +36,8 @@ var createTestBook = utils.createTestBook;
 var LC         = funcs.LC;
 var Lexical    = funcs.Lexical;
 var Dictionary = funcs.Dictionary;
+
+var Search     = search.Search;
 
 
 describe('module BBM', function() {
@@ -115,8 +121,8 @@ describe('module BBM', function() {
   });
 
   it('performance', function() {
-    var id, count;
-    for (var i = 0; i < 1000; ++i) {
+    var id, count = 1000;
+    for (var i = 0; i < count; ++i) {
       id = 'GEN';
       while (id !== null) {
         id = BBM.instance().nextId(id);
@@ -131,7 +137,7 @@ describe('module Lexical', function() {
   var en = '';
   var ru = '';
   var hy = '';
-  var puncts = '`!@?\'\",-_«»';
+  // TODO: var puncts = '`!@?\'\",-_«»';
 
   // initialize language letters
   before(function() {
@@ -139,7 +145,7 @@ describe('module Lexical', function() {
       return str.substr(0, index) + value + str.substr(index);
     }
 
-    var enAlphabet, firstLower, firstUpper, i, lo, hi;
+    var alphabetLength, firstLower, firstUpper, i, lo, hi;
 
     // english alphabet 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     alphabetLength = 26;
@@ -510,42 +516,6 @@ describe('core modules', function() {
         }
       });
 
-      it('dictionary', function() {
-        var dict = new Dictionary();
-
-        var text = {
-          'a an apple an apricot an ariplane': '01',
-          'apple is a fruit': '02',
-          'ok': '03',
-          'yes no': '04',
-          'no no no': '05',
-          'aaa': '06',
-          'apple': '07'
-        };
-
-        _.each(text, function(value, key) {
-          key.split(' ').forEach(function(e) {
-            dict.add(e, value);
-          });
-        });
-        dict.optimize();
-        expect(dict.count()).to.be.equal(11);
-
-        // each word should be found in the dictionary
-        dict.words().forEach(function(word) {
-          expect(dict.find(word)).is.not.equal(null);
-        });
-
-        // should fail to find
-        expect(dict.find('not exists')).is.equal(null);
-
-        // should succeed to find
-        var ref = dict.find('a');
-        expect(ref.indexOf('01')).is.not.equal(-1);
-        expect(ref.indexOf('02')).is.not.equal(-1);
-        expect(ref.indexOf('07')).is.equal(-1);
-      });
-
       it('bible', function() {
         bb.sort();
       });
@@ -582,19 +552,109 @@ describe('core modules', function() {
         var samples = 500;
         it('usfm performance', function() {
           var usfmRndr = new USFMRenderer();
-          var str = null;
           for (var i = 0; i < samples; ++i)
             bible.render(usfmRndr);
         });
 
         it('text performance', function() {
           var textRndr = new TextRenderer();
-          var str = null;
           for (var i = 0; i < samples; ++i)
             bible.render(textRndr);
         });
 
       });
     });
+  });
+});
+
+
+describe('functionality', function() {
+  it('dictionary', function() {
+    var dict = new Dictionary();
+
+    var text = {
+      'a an apple an apricot an ariplane': '01',
+      'apple is a fruit': '02',
+      'ok': '03',
+      'yes no': '04',
+      'no no no': '05',
+      'aaa': '06',
+      'apple': '07'
+    };
+
+    _.each(text, function(value, key) {
+      key.split(' ').forEach(function(e) {
+        dict.add(e, value);
+      });
+    });
+    dict.optimize();
+    expect(dict.count()).to.be.equal(11);
+
+    // each word should be found in the dictionary
+    dict.words().forEach(function(word) {
+      expect(dict.find(word)).is.not.equal(null);
+    });
+
+    // should fail to find
+    expect(dict.find('not exists')).is.equal(null);
+
+    // should succeed to find
+    var ref = dict.find('a');
+    expect(ref.indexOf('01')).is.not.equal(-1);
+    expect(ref.indexOf('02')).is.not.equal(-1);
+    expect(ref.indexOf('07')).is.equal(-1);
+  });
+
+  describe('search', function() {
+    var srch = new Search();
+    var words = [
+      {w: 'EARTH', r: '1'},
+      {w: 'temp',  r: '2'}
+    ];
+    var opts, res, xref;
+    var orig, tcase, lcase, ucase;
+
+    // add some words into dictionary
+    before(function(){
+      words.forEach(function(w) {
+        srch.add(w.w, w.r);
+      });
+    });
+
+    function prepareWords(orig) {
+      tcase = cmn.toTitleCase(orig);
+      lcase = orig.toLowerCase();
+      ucase = orig.toUpperCase();
+    }
+
+    // selected word EARTH
+    orig = words[0].w;
+    xref = words[0].r;
+    prepareWords(orig);
+
+    it('remind to optimize', function() {
+      // expect to throw
+      srch.searchWord('dont mind');
+    });
+
+    it('case sensitive && whole word', function() {
+      // search with case sensitive and whole word options
+      opts = {cs: true,  ww: true};
+      res = srch.searchWord(orig, opts);
+      expect(res[0]).to.be.equal(xref);
+    });
+  });
+});
+
+
+describe('object BibleSearch', function() {
+  it('word searching', function() {
+  });
+
+  it('text searching', function() {
+  });
+
+  it('navigation', function() {
+
   });
 });

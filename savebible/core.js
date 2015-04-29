@@ -58,7 +58,7 @@ var PackManager = (function() {
           });
         } catch (e) {
           callback(e);
-          return 
+          return
         }
         callback(null, packages);
       });
@@ -138,5 +138,5 @@ var Loader = (function() {
 })();
 
 
-module.exports.PackManager = PackManager;
-module.exports.Loader      = Loader;
+exports.PackManager = PackManager;
+exports.Loader      = Loader;

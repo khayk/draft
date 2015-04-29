@@ -1,3 +1,4 @@
+/// <reference path="typings/node/node.d.ts"/>
 var argv            = require('minimist')(process.argv.slice(2));
 var fs              = require('fs');
 var path            = require('path');
@@ -44,7 +45,7 @@ var Dictionary      = funcs.Dictionary;
 
 var Search          = search.Search;
 
-timer               = new HiResTimer();
+var timer           = new HiResTimer();
 
 (function() {
 
@@ -138,9 +139,9 @@ var BibleSearch = function() {
             text = lexic_.removePunctuations(text);
 
             // process every single word
-            text.split(' ').forEach(function (word) {
-              search_.add(word, ref);
-            });
+            var wordsArray = text.split(' ');
+            for (var i = 0; i < wordsArray.length; ++i)
+              search_.add(wordsArray[i], ref);
             verse = verse.next();
           }
           chap = chap.next();
@@ -161,7 +162,7 @@ var BibleSearch = function() {
     initialize: function(bible) {
       lexic_ = LC.instance().getLexical(bible.lang);
       if (lexic_ === null)
-        throw 'Bible language is not specified or supported: ' + lang;
+        throw 'Bible language is not specified or supported: ' + bible.lang;
       bible_    = bible;
       initializeInternals();
 
@@ -205,7 +206,7 @@ var BibleSearch = function() {
           return;
 
         // value represents references
-        value.r = dict_.find(key);
+        value.r = this.searchWord(key);
         if (value.r === null) {
           noResult = true;
           return;
@@ -233,7 +234,7 @@ var BibleSearch = function() {
       var maxLength = 0;
       var resWord;
       search_.getDictionary().words().forEach(function(w) {
-        var res = search_.searchWord(w, {cs:true, ww:true});
+        var res = search_.searchWord(w, {cs:false, ww:false});
         if (maxLength < res.length) {
           maxLength = res.length;
           resWord = w;
@@ -291,7 +292,7 @@ LCO.load('./data/lexical.json');
 
 timer.start();
 //var bible = createTestBible();
-var bible = loadUSFMBible(dropboxDir + '/' + 'Data/en-kjv-usfm+/');
+var bible = loadUSFMBible(dropboxDir + '/' + 'Data/zed/');
 bible.lang = 'en';
 var search = new BibleSearch();
 
@@ -345,14 +346,6 @@ if (argv.ww === 'false')
 // });
 
 
-
-function toTitleCase(str)
-{
-  return str.replace(/\w\S*/g, function(txt) {
-                        return txt.charAt(0).toUpperCase() +
-                               txt.substr(1).toLowerCase();
-                             });
-}
 
 /*
 function verify(res, refs) {

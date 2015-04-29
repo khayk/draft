@@ -1,20 +1,3 @@
-helperRequire = (function (helperGlobal) {
-  var helperRequire;
-
-  if (typeof module !== 'undefined' && module.exports) {
-    helperGlobal  = global;
-    helperRequire = exports;
-  } else {
-    helperRequire = helperGlobal.helperRequire = helperGlobal.helperRequire || {};
-  }
-
-  function getHelperRequire() {
-    return helperRequire;
-  }
-
-  return getHelperRequire;
-})(this);
-
 /// Hi resolution timer wrapper
 var HiResTimer = function() {
   var startTime = null;
@@ -53,4 +36,4 @@ var HiResTimer = function() {
 //   return obj === void 0;
 // };
 
-helperRequire().HiResTimer     = HiResTimer;
+exports.HiResTimer     = HiResTimer;

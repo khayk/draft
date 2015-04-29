@@ -1,21 +1,3 @@
-getBibleRequireObj = (function (bibleGlobal) {
-  var bibleRequire;
-
-  if (typeof module !== 'undefined' && module.exports) {
-    bibleGlobal  = global;
-    bibleRequire = exports;
-  } else {
-    bibleRequire = bibleGlobal.bibleRequire = bibleGlobal.bibleRequire || {};
-  }
-
-  function getBibleRequire() {
-    return bibleRequire;
-  }
-
-  return getBibleRequire;
-})(this);
-
-
 var idsmap = require('./idsmap.js');
 var _ = require('underscore');
 var cmn = require('./common.js');
@@ -347,9 +329,9 @@ var TAG = {
 //                         TAG manipulation
 // ------------------------------------------------------------------------
 var Tags = (function() {
-  supported  = /add|wj|nd|qt/;
-  translator = /add/;
-  jesusWord  = /wj/;
+  var supported  = /add|wj|nd|qt/;
+  var translator = /add/;
+  var jesusWord  = /wj/;
 
   return {
     isSupported: function(tag) {
@@ -737,7 +719,7 @@ Bible.prototype.numBooks = function() {
 Bible.prototype.addBook = function(book) {
   // make sure that the new book is not exist in the instance of bible
   if (!_.isUndefined(this.ids[book.id]))
-    throw 'book ' + id + ' is already exist in the bible';
+    throw 'book ' + book.id + ' is already exist in the bible';
 
   book.parent = this;
   this.books.push(book);
@@ -876,7 +858,7 @@ var USFMParser = function(supportedOnly) {
   this.parseChapterHelper = function(str, chap) {
     var re = /((\\p)[\s\S]+?)?(\\v)(\s+)(\d+)/gm;
     var arr = null;
-    var verseStart = 0, vstr = '', vn = 0;
+    var verseStart = 0, vstr = '', vn = '';
     var np = false;
 
     // find verses
@@ -914,7 +896,7 @@ var USFMParser = function(supportedOnly) {
   this.parseBookHelper = function(str, book) {
     var re = /\\c\s+(\d+)/gm;
     var arr = re.exec(str);
-    var lastIndex = 0, cstr = '', cn = 0;
+    var lastIndex = 0, cstr = '', cn = '';
     if (arr !== null) {
       var header = str.substring(0, arr.index);
       extractHeader(header, book);
@@ -1048,7 +1030,7 @@ var ParserFactory = (function() {
 
       if (format === 'txt') {
         if (txtParser === null)
-          txtParser = new TextParser(true);
+          txtParser = new TextParser();
         return txtParser;
       } else if (format === 'usfm') {
         if (usfmParser === null)
@@ -1312,9 +1294,9 @@ var BibleStats = function() {
     var tag  = '';
     var baseNode = new Node(null);
 
-    var n = new Node(baseNode);
-    var tn = new TextNode(text, n);
-    var cn = new CompoundNode(tag, n);
+//    var n = new Node(baseNode);
+//    var tn = new TextNode(text, n);
+//    var cn = new CompoundNode(tag, n);
   };
 
   return {
@@ -1331,30 +1313,30 @@ var BibleStats = function() {
 //                           EXPORTING
 // ------------------------------------------------------------------------
 
-getBibleRequireObj().BBM            = BBM;
-getBibleRequireObj().Tags           = Tags;
-getBibleRequireObj().TableOfContent = TableOfContent;
-getBibleRequireObj().TocItem        = TocItem;
+exports.BBM            = BBM;
+exports.Tags           = Tags;
+exports.TableOfContent = TableOfContent;
+exports.TocItem        = TocItem;
 
-getBibleRequireObj().Verse          = Verse;
-getBibleRequireObj().Chapter        = Chapter;
-getBibleRequireObj().Book           = Book;
-getBibleRequireObj().Bible          = Bible;
+exports.Verse          = Verse;
+exports.Chapter        = Chapter;
+exports.Book           = Book;
+exports.Bible          = Bible;
 
-getBibleRequireObj().Parser         = Parser;
-getBibleRequireObj().USFMParser     = USFMParser;
-getBibleRequireObj().ParserFactory  = ParserFactory;
+exports.Parser         = Parser;
+exports.USFMParser     = USFMParser;
+exports.ParserFactory  = ParserFactory;
 
-getBibleRequireObj().Renderer       = Renderer;
-getBibleRequireObj().TextRenderer   = TextRenderer;
-getBibleRequireObj().USFMRenderer   = USFMRenderer;
+exports.Renderer       = Renderer;
+exports.TextRenderer   = TextRenderer;
+exports.USFMRenderer   = USFMRenderer;
 
-getBibleRequireObj().BibleStats     = BibleStats;
-getBibleRequireObj().CompoundNode   = CompoundNode;
-getBibleRequireObj().TextNode       = TextNode;
+exports.BibleStats     = BibleStats;
+exports.CompoundNode   = CompoundNode;
+exports.TextNode       = TextNode;
 
-getBibleRequireObj().encodeRef      = encodeRef;
-getBibleRequireObj().decodeRef      = decodeRef;
+exports.encodeRef      = encodeRef;
+exports.decodeRef      = decodeRef;
 
 
 
