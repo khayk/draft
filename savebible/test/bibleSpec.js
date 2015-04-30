@@ -609,9 +609,10 @@ describe('functionality', function() {
     var srch = new Search();
     var words = [
       {w: 'EARTH', r: '1'},
-      {w: 'temp',  r: '2'}
+      {w: 'temp',  r: '2'},
+      {w: 'Other', r: '3'}
     ];
-    var opts, res, xref;
+    var opts, res, xref, axref, i;
     var orig, tcase, lcase, ucase;
 
     // add some words into dictionary
@@ -621,27 +622,117 @@ describe('functionality', function() {
       });
     });
 
-    function prepareWords(orig) {
+    function prepareResults(item) {
+      orig  = item.w;
+      xref  = item.r;
+      axref = [xref];
       tcase = cmn.toTitleCase(orig);
       lcase = orig.toLowerCase();
       ucase = orig.toUpperCase();
     }
 
-    // selected word EARTH
-    orig = words[0].w;
-    xref = words[0].r;
-    prepareWords(orig);
-
-    it('remind to optimize', function() {
+    it('remind to build index', function() {
       // expect to throw
-      srch.searchWord('dont mind');
+      expect(srch.searchWord.bind(srch, 'dont mind')).to.throw();
+      srch.buildIndex();
+      srch.searchWord('dont mind 2');
     });
 
     it('case sensitive && whole word', function() {
-      // search with case sensitive and whole word options
-      opts = {cs: true,  ww: true};
-      res = srch.searchWord(orig, opts);
-      expect(res[0]).to.be.equal(xref);
+      words.forEach(function(item) {
+        prepareResults(item);
+
+        // search with case sensitive and whole word options
+        opts = {cs: true,  ww: true};
+        res = srch.searchWord(orig, opts);
+        expect(res).to.deep.equal(axref);
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.searchWord(orig.substr(0, i), opts);
+          expect(res).to.be.equal(null);
+        }
+        if (lcase !== orig)
+          expect(srch.searchWord(lcase, opts)).to.be.equal(null);
+        else
+          expect(srch.searchWord(lcase, opts)).to.deep.equal(axref);
+        if (tcase !== orig)
+          expect(srch.searchWord(tcase, opts)).to.be.equal(null);
+        else
+          expect(srch.searchWord(tcase, opts)).to.deep.equal(axref);
+        if (ucase !== orig)
+          expect(srch.searchWord(ucase, opts)).to.be.equal(null);
+        else
+          expect(srch.searchWord(ucase, opts)).to.deep.equal(axref);
+      });
+    });
+
+    it('case sensitive', function() {
+      words.forEach(function(item) {
+        prepareResults(item);
+
+        // search with case sensitive options only
+        opts = {cs: true,  ww: false};
+        res = srch.searchWord(orig, opts);
+        expect(res).to.deep.equal(axref);
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.searchWord(orig.substr(0, i), opts);
+          expect(res).to.deep.equal(axref);
+        }
+        if (lcase !== orig)
+          expect(srch.searchWord(lcase, opts)).to.be.equal(null);
+        else
+          expect(srch.searchWord(lcase, opts)).to.deep.equal(axref);
+        if (tcase !== orig)
+          expect(srch.searchWord(tcase, opts)).to.be.equal(null);
+        else
+          expect(srch.searchWord(tcase, opts)).to.deep.equal(axref);
+        if (ucase !== orig)
+          expect(srch.searchWord(ucase, opts)).to.be.equal(null);
+        else
+          expect(srch.searchWord(ucase, opts)).to.deep.equal(axref);
+      });
+    });
+
+    it('whole word', function() {
+      words.forEach(function(item) {
+        prepareResults(item);
+
+        // search with whole word option only
+        opts = {cs: false,  ww: true};
+        res = srch.searchWord(orig, opts);
+        expect(res).to.deep.equal(axref);
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.searchWord(orig.substr(0, i), opts);
+          expect(res).to.be.equal(null);
+        }
+        expect(srch.searchWord(lcase, opts)).to.deep.equal(axref);
+        expect(srch.searchWord(tcase, opts)).to.deep.equal(axref);
+        expect(srch.searchWord(ucase, opts)).to.deep.equal(axref);
+      });
+    });
+
+    it('options turned off', function() {
+      words.forEach(function(item) {
+        prepareResults(item);
+
+        // search with whole word option only
+        opts = {cs: false,  ww: false};
+        res = srch.searchWord(orig, opts);
+        expect(res).to.deep.equal(axref);
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.searchWord(orig.substr(0, i), opts);
+          expect(res).to.deep.equal(axref);
+        }
+
+        orig = orig.toLowerCase();
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.searchWord(orig.substr(0, i), opts);
+          expect(res).to.deep.equal(axref);
+        }
+
+        expect(srch.searchWord(lcase, opts)).to.deep.equal(axref);
+        expect(srch.searchWord(tcase, opts)).to.deep.equal(axref);
+        expect(srch.searchWord(ucase, opts)).to.deep.equal(axref);
+      });
     });
   });
 });
@@ -655,6 +746,5 @@ describe('object BibleSearch', function() {
   });
 
   it('navigation', function() {
-
   });
 });
