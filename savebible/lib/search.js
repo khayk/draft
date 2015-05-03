@@ -10,7 +10,6 @@ function resultLogger(desc, word, result) {
     console.log(desc + ' [%d]: %s -> %j', result.length, word, result);
   else
     console.log(desc + ' [0]: %s', word);
-  //console.log('');
 }
 
 function unify(arr) {

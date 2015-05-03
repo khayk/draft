@@ -25,6 +25,9 @@ function Dictionary(desc) {
 
   // optimize dictionary
   this.optimize = function() {
+    if (_.isUndefined(index_))
+      return null;
+
     _.each(index_, function(value, key) {
       // we need to sort refs and make them unique
       var o = value.refs;

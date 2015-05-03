@@ -639,11 +639,12 @@ describe('functionality', function() {
     });
 
     it('case sensitive && whole word', function() {
+      // search with case sensitive and whole word options
+      opts = {cs: true,  ww: true};
+
       words.forEach(function(item) {
         prepareResults(item);
 
-        // search with case sensitive and whole word options
-        opts = {cs: true,  ww: true};
         res = srch.searchWord(orig, opts);
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
@@ -666,11 +667,12 @@ describe('functionality', function() {
     });
 
     it('case sensitive', function() {
+      // search with case sensitive options only
+      opts = {cs: true,  ww: false};
+
       words.forEach(function(item) {
         prepareResults(item);
 
-        // search with case sensitive options only
-        opts = {cs: true,  ww: false};
         res = srch.searchWord(orig, opts);
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
@@ -693,11 +695,12 @@ describe('functionality', function() {
     });
 
     it('whole word', function() {
+      // search with whole word option only
+      opts = {cs: false,  ww: true};
+
       words.forEach(function(item) {
         prepareResults(item);
 
-        // search with whole word option only
-        opts = {cs: false,  ww: true};
         res = srch.searchWord(orig, opts);
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
@@ -711,11 +714,12 @@ describe('functionality', function() {
     });
 
     it('options turned off', function() {
+      // search with whole word option only
+      opts = {cs: false,  ww: false};
+
       words.forEach(function(item) {
         prepareResults(item);
 
-        // search with whole word option only
-        opts = {cs: false,  ww: false};
         res = srch.searchWord(orig, opts);
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
@@ -737,6 +741,48 @@ describe('functionality', function() {
   });
 });
 
+
+describe('search advanced', function() {
+  var srch = new Search();
+  var text = [
+    {s: 'In the beginning God created the heaven and the earth', r: '1'},
+    {s: 'And the serpent said unto the woman Ye shall not surely die', r: '2'},
+    {s: 'And to rule over the day and over the night', r: '3'},
+    {s: 'And the evening and the morning were the third day', r: '4'}
+  ];
+
+  var opts, res, xref, axref, i, orig, tcase, lcase, ucase;
+
+  // add some words into dictionary
+  before(function() {
+    text.forEach(function(ti) {
+      ti.s.split(' ').forEach(function(w) {
+        srch.add(w, ti.r);
+      });
+    });
+    srch.buildIndex();
+  });
+
+  function initWordVariations(word) {
+    tcase = cmn.toTitleCase(word);
+    lcase = word.toLowerCase();
+    ucase = word.toUpperCase();
+  }
+
+  it('cs && ww', function() {
+    opts = {cs: true,  ww: true};
+    // expect(srch.searchWord('and', opts)).to.deep.equal(['1', '3', '4']);
+    // expect(srch.searchWord('third', opts)).to.deep.equal(['4']);
+    // expect(srch.searchWord('And', opts)).to.deep.equal(['2', '3', '4']);
+    // expect(srch.searchWord('the', opts)).to.deep.equal(['1', '2', '3', '4']);
+    // expect(srch.searchWord('The', opts)).to.deep.equal(null);
+
+//    console.log(srch.searchWord('the'));
+    // console.log(srch.searchWord('a'));
+    // console.log(srch.searchWord('a'));
+    // console.log(srch.searchWord('a'));
+  });
+});
 
 describe('object BibleSearch', function() {
   it('word searching', function() {
