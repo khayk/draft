@@ -95,13 +95,13 @@ var timer           = new HiResTimer();
             var ref = encodeRef(verse.ref());
             text = lexic.removePunctuations(text);
 
-            idx.add({'verse': text, 'id': ref});
+            //idx.add({'verse': text, 'id': ref});
 
             // process every single word
-            // var wordsArray = text.split(' ');
-            // for (var i = 0; i < wordsArray.length; ++i) {
-            //   dict.add(wordsArray[i], ref);
-            // }
+            var wordsArray = text.split(' ');
+            for (var i = 0; i < wordsArray.length; ++i) {
+              dict.add(wordsArray[i], ref);
+            }
             verse = verse.next();
           }
           chap = chap.next();
@@ -118,12 +118,20 @@ var timer           = new HiResTimer();
 
   var d1 = new Dictionary();
   fillDictionary(d1);
+  d1.optimize();
   measure('dictionary initialization');
+
+  // var res = '';
+  // d1.words().forEach(function(w) {
+  //   res += w + '\n';
+  // });
+  // utils.fwrite('all_words.txt', res);
+  // return;
 
   var readline = require('readline'),
     rl = readline.createInterface(process.stdin, process.stdout);
 
-  rl.setPrompt('OHAI> ');
+  rl.setPrompt('ENTER> ');
   rl.prompt();
 
   rl.on('line', function(line) {
@@ -139,47 +147,11 @@ var timer           = new HiResTimer();
     // search.expend(istr, res, opts.cs);
 
     rl.prompt();
+
   }).on('close', function() {
     console.log('Have a great day!');
     process.exit(0);
   });
-
-  //idx.add({'verse': 'hello friend this is very very very interesting', 'id': '01001001'});
-
-  // idx.add({'verse': '', 'ref': 2});
-  // idx.add({'verse': '', 'ref': 3});
-  // idx.add({'verse': '', 'ref': 4});
-  // idx.add({'verse': '', 'ref': 5});
-
-  //console.log(idx.search('hello'));
-  //console.log(idx.search('very'));
-
-  // var d1 = new Dictionary();
-
-  // fillDictionary(d1);
-  // measure('dictionary initialization');
-  // d1.optimize();
-  // measure('dictionary optimization');
-
-  // var nd = new Dictionary();
-
-  // var toc = bible.getToc();
-  // console.log(toc.numItems());
-  // var ti = toc.firstItem();
-  // while (ti !== null) {
-  //   var ref = bible.getBook(ti.id).ref();
-  //   nd.add(ti.abbr, ref);
-  //   ti = toc.nextItem(ti.id);
-  // }
-  // nd.optimize();
-
-  // var matches = fuzzyMatch(nd.words(), 'm');
-  // console.log(matches);
-  //console.log(abbrs);
-
-  // d1.stat(true, 100);
-  // bibleStat.bibleTags(bible);
-  // bibleStat.report();
 
 }());
 

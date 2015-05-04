@@ -437,3 +437,39 @@ verify(res, axref);
 res = search.searchWord(lcase, opt);
 verify(res, axref);
 */
+
+
+  // idx.add({'verse': '', 'ref': 2});
+  // idx.add({'verse': '', 'ref': 3});
+  // idx.add({'verse': '', 'ref': 4});
+  // idx.add({'verse': '', 'ref': 5});
+
+  //console.log(idx.search('hello'));
+  //console.log(idx.search('very'));
+
+  // var d1 = new Dictionary();
+
+  // fillDictionary(d1);
+  // measure('dictionary initialization');
+  // d1.optimize();
+  // measure('dictionary optimization');
+
+  // var nd = new Dictionary();
+
+  // var toc = bible.getToc();
+  // console.log(toc.numItems());
+  // var ti = toc.firstItem();
+  // while (ti !== null) {
+  //   var ref = bible.getBook(ti.id).ref();
+  //   nd.add(ti.abbr, ref);
+  //   ti = toc.nextItem(ti.id);
+  // }
+  // nd.optimize();
+
+  // var matches = fuzzyMatch(nd.words(), 'm');
+  // console.log(matches);
+  //console.log(abbrs);
+
+  // d1.stat(true, 100);
+  // bibleStat.bibleTags(bible);
+  // bibleStat.report();
