@@ -1,6 +1,8 @@
+var util            = require('util');
+
 /// Hi resolution timer wrapper
 var HiResTimer = function() {
-  var startTime = null;
+  var startTime = process.hrtime();
   var elapsed = null;
 
   this.start = function() {
@@ -13,6 +15,10 @@ var HiResTimer = function() {
   };
 
   this.report = function() {
+    console.log(this.str());
+  };
+
+  this.str = function() {
     if (elapsed === null) {
       this.stop();
     }
@@ -20,9 +26,8 @@ var HiResTimer = function() {
     var ms = elapsed[1] / 1000000;
     ms = Math.round(ms);
     if (elapsed[0] > 0)
-      console.log('%ds, %dms', elapsed[0], ms);
-    else
-      console.log('%dms', ms);
+      return util.format('%ds, %dms', elapsed[0], ms);
+    return util.format('%dms', ms);
   };
 
   this.elapsed = function() {

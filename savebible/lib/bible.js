@@ -781,21 +781,21 @@ var USFMParser = function(supportedOnly) {
         book.name = arr[2];
       }
       else {
-        if (tag === TAG.MT || tag === TAG.TOC1) {
-          book.desc = str;
+        if (tag.indexOf(TAG.MT) !== -1 || tag === TAG.TOC1) {
+          book.desc = str.trim();
         }
         else if (tag === TAG.TOC2 || tag === TAG.H) {
-          book.name = str;
+          book.name = str.trim();
         }
         else if (tag === TAG.TOC3) {
-          book.abbr = str;
+          book.abbr = str.trim();
         }
         else if (tag === TAG.IDE) {
           if (str !== 'UTF-8')
             console.warn('unknown encoding %s in %s book.', str, book.id);
         }
         else {
-          if (tag !== TAG.IS)
+          if (tag.indexOf(TAG.IS) === -1)
             console.warn('unknown tag \"%s\" in \"%s\" book.', tag, book.id);
         }
       }
@@ -1220,7 +1220,6 @@ TextRenderer.prototype.renderBook = function(book) {
 
 var BibleStats = function() {
   var tags = {};
-  var totalBytes = 0;
   var nodesCount = 0;
   var verseCount = 0;
   var chapterCount = 0;
@@ -1228,7 +1227,6 @@ var BibleStats = function() {
 
   var clearMetrics = function() {
     tags = {};
-    totalBytes = 0;
     nodesCount = 0;
     verseCount = 0;
     chapterCount = 0;
@@ -1249,7 +1247,6 @@ var BibleStats = function() {
       if (_.isUndefined(tags[ref]))
         tags[ref] = 0;
       tags[ref]++;
-      //totalBytes += ref.length;
     }
   };
 
@@ -1279,7 +1276,7 @@ var BibleStats = function() {
   };
 
   var reportResult = function() {
-    console.log("\n\nDicovered %d tags", Object.keys(tags).length);
+    console.log("\n\nDicovered %d tag(s)", Object.keys(tags).length);
     _.each(tags, function(val, key) {
       console.log("%s: %d", key, val);
     });
@@ -1287,8 +1284,6 @@ var BibleStats = function() {
     console.log("Verses: %d", verseCount);
     console.log("Chapters: %d", chapterCount);
     console.log("Books: %d\n\n", bookCount);
-
-    console.log("Bytes: %d\n\n", totalBytes);
 
     var text = 'hello';
     var tag  = '';

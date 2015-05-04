@@ -100,10 +100,10 @@ describe('module BBM', function() {
       id = BBM.instance().nextId(id);
       ++count;
     }
-    expect(count).to.equal(75);
+    expect(count).to.equal(BBM.instance().numEntries());
 
     // move backward
-    id = 'REV';
+    id = '2ES';
     while (id !== null) {
       id = BBM.instance().prevId(id);
       --count;

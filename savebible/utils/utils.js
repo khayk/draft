@@ -32,7 +32,6 @@ function fwrite(file, data) {
   });
 }
 
-
 function briefInfo(bible) {
   var res = '';
   var prePadded = '      ';
@@ -186,6 +185,49 @@ function addVerse(chap, vstr, vn) {
 }
 
 
+function highlight(string) {
+    return '<span class="highlight">' + string + '</span>';
+}
+
+function fuzzyMatch(searchSet, query) {
+  var tokens = query.toLowerCase().split(''),
+    matches = [];
+
+  searchSet.forEach(function(string) {
+    var tokenIndex = 0,
+      stringIndex = 0,
+      matchWithHighlights = '',
+      matchedPositions = [];
+
+    string = string.toLowerCase();
+
+    while (stringIndex < string.length) {
+      if (string[stringIndex] === tokens[tokenIndex]) {
+        matchWithHighlights += highlight(string[stringIndex]);
+        matchedPositions.push(stringIndex);
+        tokenIndex++;
+
+        if (tokenIndex >= tokens.length) {
+          matches.push({
+            match: string,
+            highlighted: matchWithHighlights + string.slice(stringIndex + 1),
+            positions: matchedPositions
+          });
+
+          break;
+        }
+      } else {
+        matchWithHighlights += string[stringIndex];
+      }
+
+      stringIndex++;
+    }
+  });
+
+  return matches;
+}
+
+
 function createTestBook(id, numChapters, numVerses) {
   var ncs  = numChapters || 1;
   var nvs  = numVerses || 1;
@@ -236,8 +278,13 @@ function loadUSFMBible(usfmFilesDir) {
   files.forEach(function(file) {
     if ( path.extname(file) !== '.usfm' )
       return;
-    var book = loadUSFMBook(usfmFilesDir + file);
-    bible.addBook(book);
+    try {
+      var book = loadUSFMBook(usfmFilesDir + file);
+      bible.addBook(book);
+    }
+    catch (e) {
+      console.error(e);
+    }
   });
   return bible;
 }

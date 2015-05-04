@@ -75,12 +75,12 @@
     {"id":"3JN", "index":73, "abbr":"3Jo",  "type":2},
     {"id":"JUD", "index":74, "abbr":"Jude", "type":2},
     {"id":"REV", "index":75, "abbr":"Re",   "type":2},
-    {"id":"ESG", "index":80, "abbr":"Esg",  "type":4},
-    {"id":"LJE", "index":81, "abbr":"Lje",  "type":4},
-    {"id":"S3Y", "index":82, "abbr":"S3y",  "type":4},
-    {"id":"SUS", "index":83, "abbr":"Sus",  "type":4},
-    {"id":"BEL", "index":84, "abbr":"Bel",  "type":4},
-    {"id":"MAN", "index":85, "abbr":"Man",  "type":4},
-    {"id":"2ES", "index":86, "abbr":"2Es",  "type":4}
+    {"id":"ESG", "index":76, "abbr":"Esg",  "type":4},
+    {"id":"LJE", "index":77, "abbr":"Lje",  "type":4},
+    {"id":"S3Y", "index":78, "abbr":"S3y",  "type":4},
+    {"id":"SUS", "index":79, "abbr":"Sus",  "type":4},
+    {"id":"BEL", "index":80, "abbr":"Bel",  "type":4},
+    {"id":"MAN", "index":81, "abbr":"Man",  "type":4},
+    {"id":"2ES", "index":82, "abbr":"2Es",  "type":4}
   ];
 })(typeof exports === 'undefined' ? this.idsmap = {} : exports);
