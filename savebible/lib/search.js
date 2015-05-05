@@ -3,6 +3,76 @@ var funcs = require('./functionality.js');
 
 var Dictionary = funcs.Dictionary;
 
+
+var algo = (function() {
+  var cacheSize = 8;
+  var cache = new Array(cacheSize);
+
+  // increase cache size if neccessary
+  function ensureCache(nsize) {
+    if (cacheSize < nsize) {
+      cacheSize *= 2;
+      cacheSize = cacheSize < nsize ? nsize : cacheSize;
+      cache = new Array(cacheSize);
+      console.log('cache size increased to: %d', cacheSize);
+    }
+  }
+
+  return {
+    // combine 2 sorted unique arrays into one sorted unique array
+    combineSortedUniqueArrays: function(a, b) {
+      if (a.length === 0)
+        return b.slice();
+      else if (b.length === 0)
+        return a.slice();
+
+      var smax = a.length + b.length;
+      ensureCache(smax);
+      var big = a, small = b, si = 0, bi = 0, nv, ov = '', sz = 0;
+      if (a.length < b.length) {
+        big   = b;
+        small = a;
+      }
+
+      // start copying into cache
+      while (si < small.length && bi < big.length) {
+        nv = small[si];
+        if (nv < big[bi]) {
+          si++;
+        }
+        else {
+          nv = big[bi];
+          bi++;
+        }
+
+        if (ov != nv) {
+          cache[sz++] = nv;
+          ov = nv;
+        }
+      }
+
+      // select the remaining array
+      var arr = small, idx = si;
+      // change selection if it was wrong
+      if (small.length === si) {
+        arr = big;
+        idx = bi;
+      }
+
+      // copy the tails
+      for (var j = idx; j < arr.length; ++j) {
+        nv = arr[j];
+        if (ov != nv) {
+          cache[sz++] = nv;
+        }
+      }
+      return cache.slice(0, sz);
+    }
+  };
+})();
+
+
+
 // helper function for search module
 function resultLogger(desc, word, result) {
   return;
@@ -17,23 +87,46 @@ function unify(arr) {
   return _.unique(arr);
 }
 
-function runQuery(arr, dict) {
-  if (_.isArray(arr) ) {
-    var result = [];
-    arr.forEach(function(w) {
-      var tmp = dict.find(w);
-      if (tmp !== null)
-        result = result.concat(tmp);
-    });
 
-    result = unify(result);
-    if (result.length === 0)
-      return null;
-    return result;
+function runQuery(arr, dict) {
+  if (arr === null)
+    return null;
+  var refs = [];
+  arr.forEach(function(w) {
+    var tmp = dict.find(w);
+    if (tmp !== null)
+      refs.push(tmp);
+  });
+
+  if (refs.length === 0)
+    return null;
+  if (refs.length === 1)
+    return refs[0];
+
+  var res = algo.combineSortedUniqueArrays(refs[0], refs[1]);
+  for (var i = 2; i < refs.length; ++i) {
+    res = algo.combineSortedUniqueArrays(res, refs[i]);
   }
-  else
-    throw 'Expected Array as an argument';
+  return res;
 }
+
+// function runQuery(arr, dict) {
+//   if (_.isArray(arr) ) {
+//     var result = [];
+//     arr.forEach(function(w) {
+//       var tmp = dict.find(w);
+//       if (tmp !== null)
+//         result = result.concat(tmp);
+//     });
+
+//     result = unify(result);
+//     if (result.length === 0)
+//       return null;
+//     return result;
+//   }
+//   else
+//     throw 'Expected Array as an argument';
+// }
 
 function selectCondidates(word, dict) {
   var tmp = dict.find(word);
@@ -187,10 +280,10 @@ var Search = function() {
       // requested case insensitive words
       var ciWord = word.toLowerCase();
       if (wholeWord) {
-        condidates = selectCondidates(ciWord, cim_);
+        //condidates = selectCondidates(ciWord, cim_);
         //console.log(condidates);
         //condidates = unify(condidates);
-
+        condidates = cim_.find(ciWord);
         result = runQuery(condidates, dict_);
         resultLogger('WW', word, result);
       }

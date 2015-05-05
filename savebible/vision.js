@@ -1,5 +1,20 @@
 var _              = require('underscore');
 var bounds         = require('binary-search-bounds');
+var search         = require('./lib/search.js');
+
+var a = [1, 2, 4, 6, 7, 8, 99];
+var b = [3, 4, 5, 6, 7, 20, 24, 27];
+
+for (var i = 0; i < 1000000; i++) {
+  algos.combineSortedUniqueArrays(a, b);
+}
+console.log('algos.combineSortedUniqueArrays');
+//console.log(algos.combineSortedUniqueArrays(a, b));
+
+
+return;
+
+
 
 
 var arr = [1, 1, 1, 4, 5, 6, 6, 10];
@@ -31,6 +46,7 @@ console.log('ub: %d', ub);
 
 // console.log(lb);
 // console.log(ub);
+
 
 
 
@@ -71,6 +87,39 @@ console.log('ub: %d', ub);
 // }
 
 // SearchResultManager = refList;
+
+
+
+// function merge(left, right){
+//     var result  = [],
+//         il      = 0,
+//         ir      = 0;
+
+//     while (il < left.length && ir < right.length){
+//         if (left[il] < right[ir]){
+//             result.push(left[il++]);
+//         } else {
+//             result.push(right[ir++]);
+//         }
+//     }
+
+//     return result.concat(left.slice(il)).concat(right.slice(ir));
+// }
+//
+function sortNumber(a,b) {
+    return a - b;
+}
+
+var x;
+for (var i = 0; i < 1000000; i++) {
+  x = merge(a, b);
+  x.sort(sortNumber);
+  x = _.unique(x, true);
+}
+console.log(x);
+console.log(x.length);
+
+
 
 
 

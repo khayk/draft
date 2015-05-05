@@ -5,6 +5,8 @@ var path            = require('path');
 var util            = require('util');
 var _               = require('underscore');
 var lunr            = require('lunr');
+var colors          = require('colors/safe');
+var readline        = require('readline');
 
 //var agent         = require('webkit-devtools-agent');
 
@@ -47,14 +49,16 @@ var Dictionary      = funcs.Dictionary;
 var Search          = search.Search;
 var timer           = new HiResTimer();
 
-
 (function() {
-  'use strict';
+'use strict';
 
+  var search = new Search();
 
+  var renderer = new TextRenderer();
   var bibleStat = new BibleStats();
   var LCO = LC.instance();
-  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/en-kjv-usfm/');
+  // en-kjv-usfm+
+  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/zed/');
   measure('bible loading');
   bible.lang = 'en';
   LCO.load('./data/lexical.json');
@@ -72,13 +76,63 @@ var timer           = new HiResTimer();
   }
 
 
+
+    // TODO: TEMPORARY PLACE
+    function expend(word, refs, cs) {
+      if (refs === null) {
+        console.warn('word `%s` is not found.', word);
+        return;
+      }
+      else {
+        console.log('Found %d verses containing "%s"', refs.length, word);
+      }
+
+      var flags = 'gmi';
+      if (cs === true) {
+        flags = 'gm';
+      }
+
+      var re = new RegExp('\\b' + word + '\\b', flags);
+
+      refs.forEach(function(ref) {
+        var dref = decodeRef(ref);
+        var book = bible.getBook(BBM.instance().idByOn(dref.ix));
+        var chap = book ? book.getChapter(dref.cn) : null;
+        var verse = chap ? chap.getVerse(dref.vn) : null;
+
+        if (verse) {
+          var res = renderer.renderVerse(verse);
+          var arr = re.exec(res);
+
+          var str = '';
+          var prevIndex = 0;
+          var match = '';
+          while (arr !== null) {
+            match = arr[0];
+            if (str.length === 0)
+              str += res.substring(0, arr.index);
+            else
+              str += res.substring(prevIndex + match.length, arr.index);
+            str += colors.green(match);
+            prevIndex = arr.index;
+            arr = re.exec(res);
+            if (arr === null) {
+              str += res.substr(prevIndex + match.length);
+            }
+          }
+          console.log('%s: %s', verse.id(), str);
+        }
+      });
+    }
+
+
+
   var idx = lunr(function () {
     this.field('verse');
   });
 
 
   function fillDictionary(dict) {
-    var renderer = new TextRenderer();
     var lexic = LC.instance().getLexical(bible.lang);
 
     var toc = bible.getToc();
@@ -95,12 +149,15 @@ var timer           = new HiResTimer();
             var ref = encodeRef(verse.ref());
             text = lexic.removePunctuations(text);
 
+            //search.index(text, ref);
+
             //idx.add({'verse': text, 'id': ref});
 
             // process every single word
             var wordsArray = text.split(' ');
             for (var i = 0; i < wordsArray.length; ++i) {
-              dict.add(wordsArray[i], ref);
+              search.add(wordsArray[i], ref);
+              //dict.add(wordsArray[i], ref);
             }
             verse = verse.next();
           }
@@ -116,42 +173,54 @@ var timer           = new HiResTimer();
 
   //console.log(idx);
 
-  var d1 = new Dictionary();
-  fillDictionary(d1);
-  d1.optimize();
-  measure('dictionary initialization');
+  // var d1 = new Dictionary();
+  fillDictionary();
+  search.buildIndex();
+
+  // d1.optimize();
+  // measure('dictionary initialization');
+
+  //return;
 
   // var res = '';
   // d1.words().forEach(function(w) {
   //   res += w + '\n';
   // });
   // utils.fwrite('all_words.txt', res);
-  // return;
 
-  var readline = require('readline'),
-    rl = readline.createInterface(process.stdin, process.stdout);
+var opts = {cs: false, ww: true};
 
-  rl.setPrompt('ENTER> ');
+var rl = readline.createInterface(process.stdin, process.stdout);
+rl.setPrompt('ENTER> ');
+rl.prompt();
+
+rl.on('line', function(line) {
+  var istr = line.trim();
+  if (istr === 'EXIT')
+    process.exit(0);
+
+
+  // var res = idx.search(istr);
+  // console.log(res.length);
+
+  var res = search.searchWord(istr, opts);
+  if (res !== null) {
+    console.log(res.length);
+    if (res.length < 20) {
+      console.log(res);
+      expend(istr, res, opts.cs);
+    }
+  } else {
+    console.log('No matches found for:', istr);
+  }
+
   rl.prompt();
 
-  rl.on('line', function(line) {
-    var istr = line.trim();
-    if (istr === 'EXIT')
-      process.exit(0);
+}).on('close', function() {
+  console.log('Have a great day!');
+  process.exit(0);
+});
 
-    var res = idx.search(istr);
-    console.log(res.length);
-
-    // var res = search.searchWord(istr, opts);
-    // console.log(res);
-    // search.expend(istr, res, opts.cs);
-
-    rl.prompt();
-
-  }).on('close', function() {
-    console.log('Have a great day!');
-    process.exit(0);
-  });
 
 }());
 
