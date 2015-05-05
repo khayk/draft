@@ -57,8 +57,9 @@ var timer           = new HiResTimer();
   var renderer = new TextRenderer();
   var bibleStat = new BibleStats();
   var LCO = LC.instance();
-  // en-kjv-usfm+
-  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/zed/');
+
+  // en-kjv-usfm+, zed
+  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/en-kjv-usfm+/');
   measure('bible loading');
   bible.lang = 'en';
   LCO.load('./data/lexical.json');
@@ -76,54 +77,53 @@ var timer           = new HiResTimer();
   }
 
 
-
-    // TODO: TEMPORARY PLACE
-    function expend(word, refs, cs) {
-      if (refs === null) {
-        console.warn('word `%s` is not found.', word);
-        return;
-      }
-      else {
-        console.log('Found %d verses containing "%s"', refs.length, word);
-      }
-
-      var flags = 'gmi';
-      if (cs === true) {
-        flags = 'gm';
-      }
-
-      var re = new RegExp('\\b' + word + '\\b', flags);
-
-      refs.forEach(function(ref) {
-        var dref = decodeRef(ref);
-        var book = bible.getBook(BBM.instance().idByOn(dref.ix));
-        var chap = book ? book.getChapter(dref.cn) : null;
-        var verse = chap ? chap.getVerse(dref.vn) : null;
-
-        if (verse) {
-          var res = renderer.renderVerse(verse);
-          var arr = re.exec(res);
-
-          var str = '';
-          var prevIndex = 0;
-          var match = '';
-          while (arr !== null) {
-            match = arr[0];
-            if (str.length === 0)
-              str += res.substring(0, arr.index);
-            else
-              str += res.substring(prevIndex + match.length, arr.index);
-            str += colors.green(match);
-            prevIndex = arr.index;
-            arr = re.exec(res);
-            if (arr === null) {
-              str += res.substr(prevIndex + match.length);
-            }
-          }
-          console.log('%s: %s', verse.id(), str);
-        }
-      });
+  // TODO: TEMPORARY PLACE
+  function expend(word, refs, cs) {
+    if (refs === null) {
+      console.warn('word `%s` is not found.', word);
+      return;
     }
+    else {
+      console.log('Found %d verses containing "%s"', refs.length, word);
+    }
+
+    var flags = 'gmi';
+    if (cs === true) {
+      flags = 'gm';
+    }
+
+    var re = new RegExp('\\b' + word + '\\b', flags);
+
+    refs.forEach(function(ref) {
+      var dref = decodeRef(ref);
+      var book = bible.getBook(BBM.instance().idByOn(dref.ix));
+      var chap = book ? book.getChapter(dref.cn) : null;
+      var verse = chap ? chap.getVerse(dref.vn) : null;
+
+      if (verse) {
+        var res = renderer.renderVerse(verse);
+        var arr = re.exec(res);
+
+        var str = '';
+        var prevIndex = 0;
+        var match = '';
+        while (arr !== null) {
+          match = arr[0];
+          if (str.length === 0)
+            str += res.substring(0, arr.index);
+          else
+            str += res.substring(prevIndex + match.length, arr.index);
+          str += colors.green(match);
+          prevIndex = arr.index;
+          arr = re.exec(res);
+          if (arr === null) {
+            str += res.substr(prevIndex + match.length);
+          }
+        }
+        console.log('%s: %s', verse.id(), str);
+      }
+    });
+  }
 
 
 
@@ -175,20 +175,19 @@ var timer           = new HiResTimer();
 
   // var d1 = new Dictionary();
   fillDictionary();
+  measure('initialization');
   search.buildIndex();
+  measure('index build');
 
-  // d1.optimize();
-  // measure('dictionary initialization');
+  var opts = {cs: false, ww: false};
+  //search.query('the', opts);
+  measure('word search');
 
-  //return;
 
-  // var res = '';
-  // d1.words().forEach(function(w) {
-  //   res += w + '\n';
-  // });
-  // utils.fwrite('all_words.txt', res);
 
-var opts = {cs: false, ww: true};
+
+
+
 
 var rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('ENTER> ');
@@ -203,7 +202,11 @@ rl.on('line', function(line) {
   // var res = idx.search(istr);
   // console.log(res.length);
 
-  var res = search.searchWord(istr, opts);
+  timer.stop();
+  timer.start();
+  var res = search.query(istr, opts);
+  measure('querying: %s', istr);
+
   if (res !== null) {
     console.log(res.length);
     if (res.length < 20) {

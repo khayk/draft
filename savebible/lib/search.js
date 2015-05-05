@@ -75,22 +75,29 @@ var algo = (function() {
 
 // helper function for search module
 function resultLogger(desc, word, result) {
-  return;
-  if (result !== null)
-    console.log(desc + ' [%d]: %s -> %j', result.length, word, result);
+  //return;
+  if (result !== null) {
+    //console.log(desc + ' [%d]: %s -> %j', result.length, word, result);
+    console.log(desc + ' [%d]: %s', result.length, word);
+  }
   else
     console.log(desc + ' [0]: %s', word);
 }
 
-function unify(arr) {
-  arr.sort();
-  return _.unique(arr);
-}
+
+// function unify(arr) {
+//   arr.sort();
+//   return _.unique(arr);
+// }
 
 
+// search each word from array `arr` inside the dictionary
+// `dict` and combine resulted into single array
+// that is sorted and contains unique elements
 function runQuery(arr, dict) {
   if (arr === null)
     return null;
+
   var refs = [];
   arr.forEach(function(w) {
     var tmp = dict.find(w);
@@ -107,6 +114,8 @@ function runQuery(arr, dict) {
   for (var i = 2; i < refs.length; ++i) {
     res = algo.combineSortedUniqueArrays(res, refs[i]);
   }
+
+  console.log('merging %d results', refs.length);
   return res;
 }
 
@@ -128,13 +137,13 @@ function runQuery(arr, dict) {
 //     throw 'Expected Array as an argument';
 // }
 
-function selectCondidates(word, dict) {
-  var tmp = dict.find(word);
-  var condidates = [];
-  if (tmp !== null)
-    condidates = tmp.concat(word);
-  return condidates;
-}
+// function selectCondidates(word, dict) {
+//   var tmp = dict.find(word);
+//   var condidates = [];
+//   if (tmp !== null)
+//     condidates = tmp.concat(word);
+//   return condidates;
+// }
 
 
 // Search functionality
@@ -156,6 +165,9 @@ var Search = function() {
   // lowercase
   var ciswm_   = new Dictionary('lowercase partial words');
 
+  // some temporary variables
+  var result, condidates;
+
   function updateSubWordDict(word, ref, dict) {
     var len = word.length - 1;
     while (len > 2) {
@@ -171,6 +183,53 @@ var Search = function() {
     updateSubWordDict(ciWord, word, ciswm_);
   }
 
+
+  function queryCS_WW(word) {
+    result = dict_.find(word);
+    resultLogger('CS && WW', word, result);
+    return result;
+  }
+
+  function queryCS(word) {
+    condidates = selectCondidates(word, swm_);
+    condidates.push(word);
+    condidates = unify(condidates);
+
+    //console.log('condidates: ', condidates);
+
+    // now condidates contains all possible words that we
+    // should lookup in the main dicitonary and merge results
+    result = runQuery(condidates, dict_);
+    resultLogger('CS', word, result);
+    return result;
+  }
+
+  function queryWW(ciWord, word) {
+    condidates = cim_.find(ciWord);
+    result = runQuery(condidates, dict_);
+    resultLogger('WW', word, result);
+    return result;
+  }
+
+  function queryAll(ciWord, word) {
+    var wordsGroup1 = ciswm_.find(ciWord);
+    var wordsGroup2 = cim_.find(ciWord);
+    if (wordsGroup1 === null) wordsGroup1 = [];
+    if (wordsGroup2 === null) wordsGroup2 = [];
+
+    condidates = algo.combineSortedUniqueArrays(wordsGroup1, wordsGroup2);
+    console.log('condidates: ', condidates);
+
+    return null;
+
+    if (ciWord !== word) {
+      condidates.push(word);
+    }
+    condidates = unify(condidates);
+    result = runQuery(condidates, dict_);
+    resultLogger('', word, result);
+    return result;
+  }
 
   return {
     // add specified `word` into dictionary
@@ -235,7 +294,8 @@ var Search = function() {
     // {cs: bool, ww: bool}
     // cs -> case sensitive
     // ww -> whole word
-    searchWord: function(word, opts) {
+    query: function(word, opts) {
+
       if (!_.isString(word))
         throw new TypeError('Bad arguments');
 
@@ -254,50 +314,19 @@ var Search = function() {
 
       var caseSensitive = opts.cs;
       var wholeWord     = opts.ww;
-      var result, condidates;
 
       if (caseSensitive) {
-        if (wholeWord) {
-          result = dict_.find(word);
-          resultLogger('CS && WW', word, result);
-          return result;
-        }
-        else {
-          condidates = selectCondidates(word, swm_);
-          condidates.push(word);
-          condidates = unify(condidates);
-
-          //console.log('condidates: ', condidates);
-
-          // now condidates contains all possible words that we
-          // should lookup in the main dicitonary and merge results
-          result = runQuery(condidates, dict_);
-          resultLogger('CS', word, result);
-          return result;
-        }
+        if (wholeWord)
+          return queryCS_WW(word);
+        else
+          return queryCS(word);
       }
 
       // requested case insensitive words
       var ciWord = word.toLowerCase();
-      if (wholeWord) {
-        //condidates = selectCondidates(ciWord, cim_);
-        //console.log(condidates);
-        //condidates = unify(condidates);
-        condidates = cim_.find(ciWord);
-        result = runQuery(condidates, dict_);
-        resultLogger('WW', word, result);
-      }
-      else {
-        condidates = selectCondidates(ciWord, ciswm_);
-        condidates = condidates.concat(selectCondidates(ciWord, cim_));
-        if (ciWord !== word) {
-          condidates.push(word);
-        }
-        condidates = unify(condidates);
-        result = runQuery(condidates, dict_);
-        resultLogger('', word, result);
-      }
-      return result;
+      if (wholeWord)
+        return queryWW(ciWord, word);
+      return queryAll(ciWord, word);
     }
   };
 };
