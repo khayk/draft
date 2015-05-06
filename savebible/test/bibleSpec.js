@@ -633,9 +633,9 @@ describe('functionality', function() {
 
     it('remind to build index', function() {
       // expect to throw
-      expect(srch.searchWord.bind(srch, 'dont mind')).to.throw();
+      expect(srch.query.bind(srch, 'dont mind')).to.throw();
       srch.buildIndex();
-      srch.searchWord('dont mind 2');
+      srch.query('dont mind 2');
     });
 
     it('case sensitive && whole word', function() {
@@ -645,24 +645,24 @@ describe('functionality', function() {
       words.forEach(function(item) {
         prepareResults(item);
 
-        res = srch.searchWord(orig, opts);
+        res = srch.query(orig, opts);
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
-          res = srch.searchWord(orig.substr(0, i), opts);
+          res = srch.query(orig.substr(0, i), opts);
           expect(res).to.be.equal(null);
         }
         if (lcase !== orig)
-          expect(srch.searchWord(lcase, opts)).to.be.equal(null);
+          expect(srch.query(lcase, opts)).to.be.equal(null);
         else
-          expect(srch.searchWord(lcase, opts)).to.deep.equal(axref);
+          expect(srch.query(lcase, opts)).to.deep.equal(axref);
         if (tcase !== orig)
-          expect(srch.searchWord(tcase, opts)).to.be.equal(null);
+          expect(srch.query(tcase, opts)).to.be.equal(null);
         else
-          expect(srch.searchWord(tcase, opts)).to.deep.equal(axref);
+          expect(srch.query(tcase, opts)).to.deep.equal(axref);
         if (ucase !== orig)
-          expect(srch.searchWord(ucase, opts)).to.be.equal(null);
+          expect(srch.query(ucase, opts)).to.be.equal(null);
         else
-          expect(srch.searchWord(ucase, opts)).to.deep.equal(axref);
+          expect(srch.query(ucase, opts)).to.deep.equal(axref);
       });
     });
 
@@ -673,24 +673,24 @@ describe('functionality', function() {
       words.forEach(function(item) {
         prepareResults(item);
 
-        res = srch.searchWord(orig, opts);
+        res = srch.query(orig, opts);
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
-          res = srch.searchWord(orig.substr(0, i), opts);
+          res = srch.query(orig.substr(0, i), opts);
           expect(res).to.deep.equal(axref);
         }
         if (lcase !== orig)
-          expect(srch.searchWord(lcase, opts)).to.be.equal(null);
+          expect(srch.query(lcase, opts)).to.be.equal(null);
         else
-          expect(srch.searchWord(lcase, opts)).to.deep.equal(axref);
+          expect(srch.query(lcase, opts)).to.deep.equal(axref);
         if (tcase !== orig)
-          expect(srch.searchWord(tcase, opts)).to.be.equal(null);
+          expect(srch.query(tcase, opts)).to.be.equal(null);
         else
-          expect(srch.searchWord(tcase, opts)).to.deep.equal(axref);
+          expect(srch.query(tcase, opts)).to.deep.equal(axref);
         if (ucase !== orig)
-          expect(srch.searchWord(ucase, opts)).to.be.equal(null);
+          expect(srch.query(ucase, opts)).to.be.equal(null);
         else
-          expect(srch.searchWord(ucase, opts)).to.deep.equal(axref);
+          expect(srch.query(ucase, opts)).to.deep.equal(axref);
       });
     });
 
@@ -701,15 +701,15 @@ describe('functionality', function() {
       words.forEach(function(item) {
         prepareResults(item);
 
-        res = srch.searchWord(orig, opts);
+        res = srch.query(orig, opts);
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
-          res = srch.searchWord(orig.substr(0, i), opts);
+          res = srch.query(orig.substr(0, i), opts);
           expect(res).to.be.equal(null);
         }
-        expect(srch.searchWord(lcase, opts)).to.deep.equal(axref);
-        expect(srch.searchWord(tcase, opts)).to.deep.equal(axref);
-        expect(srch.searchWord(ucase, opts)).to.deep.equal(axref);
+        expect(srch.query(lcase, opts)).to.deep.equal(axref);
+        expect(srch.query(tcase, opts)).to.deep.equal(axref);
+        expect(srch.query(ucase, opts)).to.deep.equal(axref);
       });
     });
 
@@ -720,22 +720,22 @@ describe('functionality', function() {
       words.forEach(function(item) {
         prepareResults(item);
 
-        res = srch.searchWord(orig, opts);
+        res = srch.query(orig, opts);
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
-          res = srch.searchWord(orig.substr(0, i), opts);
+          res = srch.query(orig.substr(0, i), opts);
           expect(res).to.deep.equal(axref);
         }
 
         orig = orig.toLowerCase();
         for (i = 3; i < orig.length; ++i) {
-          res = srch.searchWord(orig.substr(0, i), opts);
+          res = srch.query(orig.substr(0, i), opts);
           expect(res).to.deep.equal(axref);
         }
 
-        expect(srch.searchWord(lcase, opts)).to.deep.equal(axref);
-        expect(srch.searchWord(tcase, opts)).to.deep.equal(axref);
-        expect(srch.searchWord(ucase, opts)).to.deep.equal(axref);
+        expect(srch.query(lcase, opts)).to.deep.equal(axref);
+        expect(srch.query(tcase, opts)).to.deep.equal(axref);
+        expect(srch.query(ucase, opts)).to.deep.equal(axref);
       });
     });
   });
@@ -771,16 +771,16 @@ describe('search advanced', function() {
 
   it('cs && ww', function() {
     opts = {cs: true,  ww: true};
-    // expect(srch.searchWord('and', opts)).to.deep.equal(['1', '3', '4']);
-    // expect(srch.searchWord('third', opts)).to.deep.equal(['4']);
-    // expect(srch.searchWord('And', opts)).to.deep.equal(['2', '3', '4']);
-    // expect(srch.searchWord('the', opts)).to.deep.equal(['1', '2', '3', '4']);
-    // expect(srch.searchWord('The', opts)).to.deep.equal(null);
+    // expect(srch.query('and', opts)).to.deep.equal(['1', '3', '4']);
+    // expect(srch.query('third', opts)).to.deep.equal(['4']);
+    // expect(srch.query('And', opts)).to.deep.equal(['2', '3', '4']);
+    // expect(srch.query('the', opts)).to.deep.equal(['1', '2', '3', '4']);
+    // expect(srch.query('The', opts)).to.deep.equal(null);
 
-//    console.log(srch.searchWord('the'));
-    // console.log(srch.searchWord('a'));
-    // console.log(srch.searchWord('a'));
-    // console.log(srch.searchWord('a'));
+//    console.log(srch.query('the'));
+    // console.log(srch.query('a'));
+    // console.log(srch.query('a'));
+    // console.log(srch.query('a'));
   });
 });
 
