@@ -104,6 +104,9 @@ function saveBook(dstDir, book, on, id, format) {
   var renderer = textRndr;
   if (format && format === 'usfm')
     renderer = usfmRndr;
+  else
+    format = 'txt';
+
 
   // render with selected renderer
   var rbook = book.render(renderer);
@@ -112,7 +115,7 @@ function saveBook(dstDir, book, on, id, format) {
       console.error('mkdirp failed on dstDir: %s, err: %s', dstDir, err);
       return;
     }
-    var fname = dstDir + padNumber(on, 2) + '-' + id + '.txt';
+    var fname = dstDir + padNumber(on, 2) + '-' + id + '.' + format;
     fwrite(fname, rbook);
   });
 }

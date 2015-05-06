@@ -58,10 +58,18 @@ var timer           = new HiResTimer();
   var bibleStat = new BibleStats();
   var LCO = LC.instance();
 
+  var inputs = [
+    ['ru-synod-usfm-from-text', 'ru'],
+    ['en-kjv-usfm+', 'en'],
+    ['zed', 'en']
+  ];
+
+  var input = inputs[0];
+
   // en-kjv-usfm+, zed
-  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/en-kjv-usfm+/');
+  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/' + input[0] + '/');
   measure('bible loading');
-  bible.lang = 'en';
+  bible.lang = input[1];
   LCO.load('./data/lexical.json');
 
   function measure(msg) {
@@ -92,7 +100,8 @@ var timer           = new HiResTimer();
       flags = 'gm';
     }
 
-    var re = new RegExp('\\b' + word + '\\b', flags);
+    //var re = new RegExp('\\b' + word + '\\b', flags);
+    var re = new RegExp(word, flags);
 
     refs.forEach(function(ref) {
       var dref = decodeRef(ref);
@@ -120,7 +129,7 @@ var timer           = new HiResTimer();
             str += res.substr(prevIndex + match.length);
           }
         }
-        console.log('%s: %s', verse.id(), str);
+        console.log('%s.  %s', verse.id(), str);
       }
     });
   }
@@ -184,8 +193,27 @@ var timer           = new HiResTimer();
   measure('word search');
 
 
+function benchmarkSearch() {
+  var options = [
+    {cs: true, ww: true},
+    {cs: true, ww: false},
+    {cs: false, ww: true},
+    {cs: false, ww: false}
+  ];
 
+  options.forEach(function(opt) {
 
+    console.log('Lookup all words in the bible with options: ', opt);
+
+    var words = search.getDictionary().words();
+
+    // iterate over all words
+    words.forEach(function(word) {
+      search.query(word, opt);
+    });
+    measure('total ' + words.length + ' words: ');
+  });
+}
 
 
 
@@ -198,10 +226,6 @@ rl.on('line', function(line) {
   if (istr === 'EXIT')
     process.exit(0);
 
-
-  // var res = idx.search(istr);
-  // console.log(res.length);
-
   timer.stop();
   timer.start();
   var res = search.query(istr, opts);
@@ -209,7 +233,7 @@ rl.on('line', function(line) {
 
   if (res !== null) {
     console.log(res.length);
-    if (res.length < 20) {
+    if (res.length < 40) {
       console.log(res);
       expend(istr, res, opts.cs);
     }

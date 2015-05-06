@@ -75,7 +75,7 @@ var algo = (function() {
 
 // helper function for search module
 function resultLogger(desc, word, result) {
-  //return;
+  return;
   if (result !== null) {
     //console.log(desc + ' [%d]: %s -> %j', result.length, word, result);
     console.log(desc + ' [%d]: %s', result.length, word);
@@ -84,11 +84,6 @@ function resultLogger(desc, word, result) {
     console.log(desc + ' [0]: %s', word);
 }
 
-
-// function unify(arr) {
-//   arr.sort();
-//   return _.unique(arr);
-// }
 
 
 // search each word from array `arr` inside the dictionary
@@ -110,23 +105,14 @@ function runQuery(arr, dict) {
   if (refs.length === 1)
     return refs[0];
 
-  console.log('merging %d results...', refs.length);
+  //console.log('merging %d results...', refs.length);
   var res = algo.combineSortedUniqueArrays(refs[0], refs[1]);
   for (var i = 2; i < refs.length; ++i) {
     res = algo.combineSortedUniqueArrays(res, refs[i]);
   }
-  console.log('merge completed.');
+  //console.log('merge completed.');
   return res;
 }
-
-
-// function selectCondidates(word, dict) {
-//   var tmp = dict.find(word);
-//   var condidates = [];
-//   if (tmp !== null)
-//     condidates = tmp.concat(word);
-//   return condidates;
-// }
 
 
 // Search functionality
@@ -238,6 +224,7 @@ var Search = function() {
       updateCaseInsensitiveDict(word);
     },
 
+
     // build index should be call if words addition is completed
     buildIndex: function() {
       dict_.optimize();
@@ -253,9 +240,13 @@ var Search = function() {
       ciswm_.verify();
     },
 
+
+    // get main dictionary, here we store all cases sensitive
+    // unique words. i.e. no duplicate are presented
     getDictionary: function() {
       return dict_;
     },
+
 
     // show internal state of dicitonaries
     displayStatistics: function() {
@@ -280,6 +271,7 @@ var Search = function() {
       console.log('CISWM total count: ', stat.total);
       //console.log('CISWM index: ', stat.index, '\n');
     },
+
 
     // search specifed word and return array of references
     // if succeeded, otherwise returns null

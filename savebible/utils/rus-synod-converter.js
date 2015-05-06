@@ -102,7 +102,7 @@ function parseBook(f, bible, id, on) {
   }
 
   bible.addBook(book);
-  cmn.saveBook(destDir, book, on, id);
+  cmn.saveBook(destDir, book, on, id, 'usfm');
 }
 
 function convertToUtf8(f) {
