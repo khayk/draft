@@ -14,6 +14,7 @@ var Book       = bibm.Book;
 var Chapter    = bibm.Chapter;
 var USFMParser = bibm.USFMParser;
 
+var NIM        = require('./nim.js').NIM;
 
 
 // configure logger
@@ -30,6 +31,7 @@ var logger = new(winston.Logger)({
 });
 
 
+var mapping = null;
 var usfmParser = new USFMParser();
 var srcPath    = 'downloads';
 var dstPath    = '../uniform/';
@@ -47,6 +49,9 @@ function getBook(bible, id) {
     book = new Book();
     book.id = id;
     book.abbr = BBM.instance().entryById(id).abbr;
+    book.name = mapping.getName(id);
+    //console.log(mapping.getName(id));
+
     bible.addBook(book);
   }
   return book;
@@ -110,6 +115,8 @@ function discoverFiles(toc, types) {
   var outDir = dstPath + '/' + toc.folder + '-ba/';
   var srcDir = srcPath + '/' + toc.folder + '/';
 
+  mapping = new NIM('mapping/' + toc.folder + '.txt');
+
   // discover files
   dir.files(srcDir, function(err, files) {
     if (err)
@@ -134,7 +141,7 @@ function discoverFiles(toc, types) {
         var type = entry.type;
         if (types && (types.length === 0 || types.indexOf(type) !== -1)) {
           recognizeText(bible, f);
-          cmn.saveBook(outDir, bible.getBook(id), BBM.instance().entryById(id).index, id);
+          cmn.saveBook(outDir, bible.getBook(id), BBM.instance().entryById(id).index, id, 'usfm');
         }
       }
       catch (e) {
@@ -150,7 +157,7 @@ function discoverFiles(toc, types) {
   //cmn.outputResult(aaaa, bible);
 }
 
-discoverFiles(tocs[3], argv._);
+discoverFiles(tocs[2], argv._);
 
 // tocs.forEach(function(toc) {
 //   logger.info('Parsing: %s - %s', toc.folder, toc.title);

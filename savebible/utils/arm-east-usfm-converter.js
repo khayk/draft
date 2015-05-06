@@ -24,18 +24,26 @@ function parseChapter(chap, cstr) {
   var arr  = nums.exec(cstr);
   var vn   = 1;
 
-  var prevIndex = 0;
+  var prevIndex = 0, vstr;
   if (arr !== null) {
     chap.number = parseInt(arr[0]);
     prevIndex = nums.lastIndex;
   }
 
   while ((arr = nums.exec(cstr)) !== null) {
-    addVerse(chap, cstr.substring(prevIndex, arr.index), vn);
+    vstr = cstr.substring(prevIndex, arr.index);
+    vstr = vstr.replace(/\[/, '\\add ');
+    vstr = vstr.replace(/\]/, '\\add*');
+
+    addVerse(chap, vstr, vn);
     vn = parseInt(arr[0]);
     prevIndex = nums.lastIndex;
   }
-  addVerse(chap, cstr.substring(prevIndex), vn);
+
+  vstr = cstr.substring(prevIndex);
+  vstr = vstr.replace(/\[/, '\\add ');
+  vstr = vstr.replace(/\]/, '\\add*');
+  addVerse(chap, vstr, vn);
 
   return chap;
 }
@@ -76,7 +84,7 @@ function parseBook(f, bible, id, on) {
 
   }).on('close', function() {
     bible.addBook(book);
-    cmn.saveBook(destDir, book, on, id);
+    cmn.saveBook(destDir, book, on, id, 'usfm');
     --remainingBooks;
     if (remainingBooks === 0) {
       cmn.outputResult(destDir, bible);

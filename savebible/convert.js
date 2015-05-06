@@ -61,10 +61,11 @@ var timer           = new HiResTimer();
   var inputs = [
     ['ru-synod-usfm-from-text', 'ru'],
     ['en-kjv-usfm+', 'en'],
+    ['am-eab-usfm-from-text', 'hy'],
     ['zed', 'en']
   ];
 
-  var input = inputs[0];
+  var input = inputs[2];
 
   // en-kjv-usfm+, zed
   var bible = loadUSFMBible(dropboxDir + '/' + 'Data/' + input[0] + '/');
@@ -188,10 +189,11 @@ var timer           = new HiResTimer();
   search.buildIndex();
   measure('index build');
 
-  var opts = {cs: false, ww: false};
-  //search.query('the', opts);
-  measure('word search');
 
+  search.displayStatistics();
+
+
+  var opts = {cs: false, ww: false};
 
 function benchmarkSearch() {
   var options = [
@@ -233,7 +235,7 @@ rl.on('line', function(line) {
 
   if (res !== null) {
     console.log(res.length);
-    if (res.length < 40) {
+    if (res.length < 50) {
       console.log(res);
       expend(istr, res, opts.cs);
     }
