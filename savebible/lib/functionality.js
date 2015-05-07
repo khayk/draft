@@ -15,10 +15,13 @@ function Dictionary(desc) {
 
   // words are case sensitive
   this.add = function(word, ref) {
-    if (_.isUndefined(index_[word]))
-      index_[word] = {c: 0, refs: []};
-    index_[word].refs.push(ref);
-    index_[word].c++;
+    var o = index_[word];
+    if (_.isUndefined(o)) {
+      o = {c: 0, refs: []};
+      index_[word] = o;
+    }
+    o.refs.push(ref);
+    o.c++;
     optimized_ = false;
     changed_   = true;
   };
@@ -31,17 +34,12 @@ function Dictionary(desc) {
     _.each(index_, function(value, key) {
       // we need to sort refs and make them unique
       var o = value.refs;
-      var n = {}, r = [];
-      for (var i = 0; i < o.length; i++) {
-        if (typeof n[o[i]] === 'undefined') {
-          n[o[i]] = true;
-          r.push(o[i]);
-        }
-      }
 
-      // r is now unique
-      value.refs = r;
-      value.refs.sort();
+      // arrays with length 1 stay intact
+      if (o.length > 1) {
+        value.refs.sort();
+        value.refs = _.unique(value.refs, true);
+      }
     });
 
     numWords_  = Object.keys(index_).length;
@@ -53,10 +51,10 @@ function Dictionary(desc) {
   this.find = function(word) {
     if (!optimized_)
       throw 'Dictionary is not optimized. Call optimize!!!';
-    var r = index_[word];
-    if (_.isUndefined(r))
+    var o = index_[word];
+    if (_.isUndefined(o))
       return null;
-    return r.refs;
+    return o.refs;
   };
 
   // returns array of all words
@@ -69,10 +67,10 @@ function Dictionary(desc) {
   // returns how many times the word met in the dictionary
   // -1 if word absent
   this.occurrence = function(word) {
-    var r = index_[word];
-    if (_.isUndefined(r))
+    var o = index_[word];
+    if (_.isUndefined(o))
       return -1;
-    return r.c;
+    return o.c;
   };
 
   // cleanup all internal data of dictionary

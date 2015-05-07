@@ -255,19 +255,19 @@ var Search = function() {
       console.log('SUB   words: %d', swm_.count());
       console.log('CISUB words: %d', ciswm_.count());
 
-      var stat = dict_.stat(false, 100);
+      var stat = dict_.stat(true, 10);
       console.log('MAIN total count: ', stat.total);
       //console.log('MAIN index: ', stat.index, '\n');
 
-      stat = cim_.stat(false, 100);
+      stat = cim_.stat(false, 10);
       console.log('CIM total count: ', stat.total);
       //console.log('CIM index: ', stat.index, '\n');
 
-      stat = swm_.stat(false, 100);
+      stat = swm_.stat(false, 10);
       console.log('SWM total count: ', stat.total);
       //console.log('SWM index: ', stat.index, '\n');
 
-      stat = ciswm_.stat(false, 100);
+      stat = ciswm_.stat(false, 10);
       console.log('CISWM total count: ', stat.total);
       //console.log('CISWM index: ', stat.index, '\n');
     },

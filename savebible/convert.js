@@ -65,7 +65,7 @@ var timer           = new HiResTimer();
     ['zed', 'en']
   ];
 
-  var input = inputs[2];
+  var input = inputs[0];
 
   // en-kjv-usfm+, zed
   var bible = loadUSFMBible(dropboxDir + '/' + 'Data/' + input[0] + '/');
@@ -235,7 +235,7 @@ rl.on('line', function(line) {
 
   if (res !== null) {
     console.log(res.length);
-    if (res.length < 50) {
+    if (res.length < 80) {
       console.log(res);
       expend(istr, res, opts.cs);
     }
