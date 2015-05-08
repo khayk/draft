@@ -115,6 +115,10 @@ function runQuery(arr, dict) {
 }
 
 
+// ------------------------------------------------------------------------
+//                      CORE SEARCH FUNCTIONALITY
+// ------------------------------------------------------------------------
+
 // Search functionality
 var Search = function() {
   // key: original word from bible,
@@ -315,4 +319,166 @@ var Search = function() {
   };
 };
 
-exports.Search = Search;
+
+
+
+// ------------------------------------------------------------------------
+//                             BIBLE SEARCH
+// ------------------------------------------------------------------------
+var BibleSearch = function(bible) {
+  var bible_    = null;
+  var lexic_    = null;
+  var search_   = null;
+  var renderer_ = null;
+
+  initialize(bible);
+
+  // initialize bible search module
+  function initialize(bible) {
+    bible_ = bible;
+    lexic_ = LC.instance().getLexical(bible.lang);
+
+    if (lexic_ === null)
+      throw 'Bible language is not specified or supported: ' + bible.lang;
+
+    search_   = new Search();
+    renderer_ = new TextRenderer();
+
+    var toc = bible_.getToc();
+    var ti = toc.firstItem();
+
+    while (ti !== null) {
+      var book = bible_.getBook(ti.id);
+      if (book !== null) {
+        var chap = book.getChapter(1);
+        while (chap !== null) {
+          var verse = chap.getVerse(1);
+          while (verse !== null) {
+            var text = verse.render(renderer_);
+            var ref = encodeRef(verse.ref());
+            text = lexic_.removePunctuations(text);
+
+            // process every single word
+            var wordsArray = text.split(' ');
+            for (var i = 0; i < wordsArray.length; ++i)
+              search_.add(wordsArray[i], ref);
+            verse = verse.next();
+          }
+          chap = chap.next();
+        }
+      }
+      ti = toc.nextItem(ti.id);
+    }
+
+    // building index
+    search_.buildIndex();
+
+    search_.displayStatistics();
+  }
+
+  return {
+    // search words in a text occording to rules in opts object
+    // and return array of references if succeeded,
+    // otherwise returns null
+    query: function(text, opts) {
+      if (!text)
+        return null;
+
+      // if one of the words in the text is absent from the dictionary
+      // it indicates that we should return empty set
+      var noResult = false;
+
+      text = lexic_.removePunctuations(text);
+      var wm = {}; // contains unique words
+      var wa = []; // contains all words in an order they appeared in the text
+      text.split(' ').forEach(function(word) {
+        var obj = {w: word, r: null};
+        wm[word] = obj;
+        wa.push(obj);
+      });
+
+      if (wm.length === 0)
+        return [];
+
+      var refArrays = [];
+      _.each(wm, function(value, key) {
+        // do not search if overall outcome determined to be empty
+        if (noResult)
+          return;
+
+        // value represents references
+        value.r = search_.query(key, opts);
+        if (value.r === null) {
+          noResult = true;
+          return;
+        }
+
+        refArrays.push(value.r);
+        //console.log('%s -> %j', key, value);
+      });
+
+      if (noResult)
+        return [];
+
+      // combine results into one array
+      var result = refArrays[0];
+      // for (var i = 1; i < refArrays.length; ++i) {
+      //   result = _.intersection(result, refArrays[i]);
+      // }
+      return result;
+    },
+
+    searchAllWords: function() {
+      var maxLength = 0;
+      var resWord;
+      search_.getDictionary().words().forEach(function(w) {
+        var res = search_.searchWord(w, {cs:false, ww:false});
+        if (maxLength < res.length) {
+          maxLength = res.length;
+          resWord = w;
+        }
+      });
+
+      console.log("Max lenght: %d, word: %s", maxLength, resWord);
+    },
+
+    // TODO: TEMPORARY PLACE
+    expend: function(word, refs, cs) {
+      if (refs === null) {
+        console.warn('word `%s` is not found.', word);
+        return;
+      }
+      else {
+        console.log('Found %d verses containing "%s"', refs.length, word);
+      }
+
+      var flags = 'gmi';
+      if (cs === true) {
+        flags = 'gm';
+      }
+
+      var re = new RegExp('\\b' + word + '\\b', flags);
+
+      refs.forEach(function(ref) {
+        var dref = decodeRef(ref);
+        var book = bible_.getBook(BBM.instance().idByOn(dref.ix));
+        var chap = book ? book.getChapter(dref.cn) : null;
+        var verse = chap ? chap.getVerse(dref.vn) : null;
+
+        if (verse) {
+          var res = renderer_.renderVerse(verse);
+          var matches = res.match(re);
+          if (matches === null) {
+            console.error('--> NO MATCHES FOUND <--  %s', res);
+            return;
+          }
+          console.log('%s(%d) -> %s', word, matches.length, res);
+        }
+      });
+    }
+  };
+};
+
+
+exports.Search      = Search;
+exports.BibleSearch = BibleSearch;
