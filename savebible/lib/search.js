@@ -1,10 +1,16 @@
-var _     = require('underscore');
-var funcs = require('./functionality.js');
-var bibl  = require('./bible.js');
+var util   = require('util');
+var colors = require('colors/safe');
+var _      = require('underscore');
+var funcs  = require('./functionality.js');
+var bibl   = require('./bible.js');
+var common = require('./common.js');
+
 
 var TextRenderer = bibl.TextRenderer;
+var BBM          = bibl.BBM;
 var Dictionary   = funcs.Dictionary;
 var LC           = funcs.LC;
+
 
 
 var algo = (function() {
@@ -366,13 +372,61 @@ var BibleSearch = function(bible) {
 
   initialize(bible);
 
+  // create regex object
+  function createRegex(word, lang, cs, ww) {
+    var flags = 'gmi';
+    if (cs === true) {
+      flags = 'gm';
+    }
+
+    var letters = lexic_.getLetters();
+    var str;
+    if (ww === true)
+      str = '([^%letters%]|^)%word%(?=([^%letters%]|$))';
+    else
+      str = '([^%letters%]|^)%word%';
+    str = str.replace(/%letters%/gm, letters);
+    str = str.replace(/%word%/gm, word);
+
+    return new RegExp(str, flags);
+  }
+
+  // colorize the `part` in the 'res'
+  function colorize(res, part, lang, cs, ww) {
+    var re = createRegex(part, lang, cs, ww);
+    var arr = re.exec(res);
+
+    if (arr === null)
+      return res;
+
+    var str = '';
+    var prevIndex = 0;
+    var prevMatchLength = 0;
+    var match = '';
+    while (arr !== null) {
+      match = arr[0];
+      if (str.length === 0)
+        str += res.substring(0, arr.index);
+      else
+        str += res.substring(prevIndex + prevMatchLength, arr.index);
+      str += colors.green(match);
+      prevIndex = arr.index;
+      prevMatchLength = match.length;
+      arr = re.exec(res);
+      if (arr === null) {
+        str += res.substr(prevIndex + prevMatchLength);
+      }
+    }
+    return str;
+  }
+
   // initialize bible search module
   function initialize(bible) {
     bible_ = bible;
-    lexic_ = LC.instance().getLexical(bible.lang);
+    lexic_ = LC.instance().getLexical(bible_.lang);
 
     if (lexic_ === null)
-      throw 'Bible language is not specified or supported: ' + bible.lang;
+      throw 'Bible language is not specified or supported: ' + bible_.lang;
 
     search_   = new Search();
     renderer_ = new TextRenderer();
@@ -416,6 +470,8 @@ var BibleSearch = function(bible) {
     // search words in a text occording to rules in opts object
     // and return array of references if succeeded,
     // otherwise returns null
+    // @param text
+    // @param opts
     query: function(text, opts) {
       var res = {words: [], refs: [], orig: text, 'opts': opts};
       var words = text.split(' ');
@@ -479,6 +535,34 @@ var BibleSearch = function(bible) {
     },
 
 
+    // display the result in a use readable format
+    // @param result   return value of query
+    expend: function(result) {
+      var count = result.refs.length;
+      var summary = util.format('%d results for `%s`', count, result.orig);
+      console.log(colors.red(summary));
+
+      if (count >= 80)
+        return;
+
+      result.refs.forEach(function(ref) {
+
+        var dref = bibl.decodeRef(ref);
+        var book = bible_.getBook(BBM.instance().idByOn(dref.ix));
+        var chap = book ? book.getChapter(dref.cn) : null;
+        var verse = chap ? chap.getVerse(dref.vn) : null;
+        if (verse) {
+          var res = renderer_.renderVerse(verse);
+          result.words.forEach(function(w) {
+            res = colorize(res, w, bible_.lang, result.opts.cs, result.opts.ww);
+          });
+
+          console.log('%s.  %s', common.padString(verse.id(), '           ', true), res);
+        }
+      });
+    },
+
+    // temporary function
     searchAllWords: function() {
       var maxLength = 0;
       var resWord;
@@ -491,41 +575,6 @@ var BibleSearch = function(bible) {
       });
 
       console.log("Max lenght: %d, word: %s", maxLength, resWord);
-    },
-
-    // TODO: TEMPORARY PLACE
-    expend: function(word, refs, cs) {
-      if (refs === null) {
-        console.warn('word `%s` is not found.', word);
-        return;
-      }
-      else {
-        console.log('Found %d verses containing "%s"', refs.length, word);
-      }
-
-      var flags = 'gmi';
-      if (cs === true) {
-        flags = 'gm';
-      }
-
-      var re = new RegExp('\\b' + word + '\\b', flags);
-
-      refs.forEach(function(ref) {
-        var dref = decodeRef(ref);
-        var book = bible_.getBook(BBM.instance().idByOn(dref.ix));
-        var chap = book ? book.getChapter(dref.cn) : null;
-        var verse = chap ? chap.getVerse(dref.vn) : null;
-
-        if (verse) {
-          var res = renderer_.renderVerse(verse);
-          var matches = res.match(re);
-          if (matches === null) {
-            console.error('--> NO MATCHES FOUND <--  %s', res);
-            return;
-          }
-          console.log('%s(%d) -> %s', word, matches.length, res);
-        }
-      });
     }
   };
 };
@@ -533,4 +582,4 @@ var BibleSearch = function(bible) {
 
 exports.Search      = Search;
 exports.BibleSearch = BibleSearch;
-exports.algo = algo;
+exports.algo        = algo;

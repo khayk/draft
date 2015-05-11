@@ -54,11 +54,9 @@ var timer           = new HiResTimer();
 
 'use strict';
 
-
 var renderer = new TextRenderer();
 var bibleStat = new BibleStats();
 var LCO = LC.instance();
-
 
 // -----------------------------------------------------------------------
 function beginMeasure(msg) {
@@ -74,112 +72,7 @@ function endMeasure() {
   console.log(util.inspect(process.memoryUsage()) + '\n');
 }
 
-
 // -----------------------------------------------------------------------
-function createRegex(word, lang, cs, ww) {
-  var flags = 'gmi';
-  if (cs === true) {
-    flags = 'gm';
-  }
-
-  var letters = LCO.getLexical(lang).getLetters();
-  var str;
-  if (ww === true)
-    str = '([^%letters%]|^)%word%(?=([^%letters%]|$))';
-  else
-    str = '([^%letters%]|^)%word%';
-  str = str.replace(/%letters%/gm, letters);
-  str = str.replace(/%word%/gm, word);
-
-  return new RegExp(str, flags);
-}
-
-
-// -----------------------------------------------------------------------
-// colorize
-function colorize(res, part, lang, cs, ww) {
-  var re = createRegex(part, lang, cs, ww);
-  var arr = re.exec(res);
-
-  if (arr === null)
-    return res;
-
-  var str = '';
-  var prevIndex = 0;
-  var prevMatchLength = 0;
-  var match = '';
-  while (arr !== null) {
-    match = arr[0];
-    if (str.length === 0)
-      str += res.substring(0, arr.index);
-    else
-      str += res.substring(prevIndex + prevMatchLength, arr.index);
-    str += colors.green(match);
-    prevIndex = arr.index;
-    prevMatchLength = match.length;
-    arr = re.exec(res);
-    if (arr === null) {
-      str += res.substr(prevIndex + prevMatchLength);
-    }
-  }
-  return str;
-}
-
-
-// -----------------------------------------------------------------------
-function expendBSR(result) {
-  var count = result.refs.length;
-  var summary = util.format('%d results for `%s`', count, result.orig);
-  console.log(colors.red(summary));
-
-  if (count >= 80)
-    return;
-
-  result.refs.forEach(function(ref) {
-
-    var dref = decodeRef(ref);
-    var book = bible.getBook(BBM.instance().idByOn(dref.ix));
-    var chap = book ? book.getChapter(dref.cn) : null;
-    var verse = chap ? chap.getVerse(dref.vn) : null;
-    if (verse) {
-      var res = renderer.renderVerse(verse);
-      result.words.forEach(function(w) {
-        res = colorize(res, w, bible.lang, result.opts.cs, result.opts.ww);
-      });
-
-      console.log('%s.  %s', common.padString(verse.id(), '           ', true), res);
-    }
-  });
-}
-
-// -----------------------------------------------------------------------
-//                          START MAIN
-// -----------------------------------------------------------------------
-var inputs = [
-  ['ru-synod-usfm-from-text', 'ru'],
-  ['en-kjv-usfm+', 'en'],
-  ['am-eab-usfm-from-text', 'hy'],
-  ['zed', 'en'],
-  ['arm', 'hy']
-];
-
-var input = inputs[3];
-
-beginMeasure('bible loading');
-var bible = loadUSFMBible(dropboxDir + '/' + 'Data/' + input[0] + '/');
-endMeasure();
-
-bible.lang = input[1];
-LCO.load('./data/lexical.json');
-
-beginMeasure('initialization');
-var bs = new BibleSearch(bible);
-endMeasure();
-
-  //search.displayStatistics();
-
-var opts = {cs: false, ww: false, op: 'and'};
-
 function benchmarkSearch() {
   var options = [
     {cs: true, ww: true},
@@ -202,12 +95,40 @@ function benchmarkSearch() {
   });
 }
 
-beginMeasure('Seaching all words');
-bs.searchAllWords();
-endMeasure();
+// -----------------------------------------------------------------------
+//                          START MAIN
+// -----------------------------------------------------------------------
+var inputs = [
+  ['ru-synod-usfm-from-text', 'ru'],
+  ['en-kjv-usfm+', 'en'],
+  ['am-eab-usfm-from-text', 'hy']
+  //['zed', 'en'],
+  //['arm', 'hy']
+];
 
-// var res = bs.query('Սամարաց կինը', opts);
-// expendBSR(res);
+var bsArray = [];
+
+inputs.forEach(function(input) {
+  beginMeasure('bible loading: ' + input[0]);
+  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/' + input[0] + '/');
+  endMeasure();
+
+  bible.lang = input[1];
+  LCO.load('./data/lexical.json');
+
+  beginMeasure('initialization');
+  bsArray.push(new BibleSearch(bible));
+  endMeasure();
+});
+
+var opts = {cs: false, ww: false, op: 'and'};
+
+// beginMeasure('Seaching all words');
+// bs.searchAllWords();
+// endMeasure();
+
+// var res = bs.query('earth', opts);
+// bs.expend(res);
 // return;
 
 
@@ -221,22 +142,11 @@ rl.on('line', function(line) {
     process.exit(0);
 
   beginMeasure('querying: %s', istr);
-  var res = bs.query(istr, opts);
+  bsArray.forEach(function(bs) {
+    var res = bs.query(istr, opts);
+    bs.expend(res);
+  });
   endMeasure();
-
-  expendBSR(res, opts);
-
-  // var refs = res.refs;
-  // if (refs !== null) {
-
-  //   console.log(refs.length);
-  //   if (refs < 80) {
-  //     console.log(refs);
-  //     expend(istr, refs, opts.cs);
-  //   }
-  // } else {
-  //   console.log('No matches found for:', istr);
-  // }
 
   rl.prompt();
 
