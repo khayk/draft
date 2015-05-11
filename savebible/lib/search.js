@@ -417,9 +417,6 @@ var BibleSearch = function(bible) {
     // and return array of references if succeeded,
     // otherwise returns null
     query: function(text, opts) {
-      if (!text)
-        return null;
-
       var res = {words: [], refs: [], orig: text, 'opts': opts};
       var words = text.split(' ');
       words.sort();
@@ -453,6 +450,11 @@ var BibleSearch = function(bible) {
           stopLookup = true;
       });
 
+
+      if (stopLookup) {
+        // result is defenitly empty
+        return res;
+      }
 
       // isolated result of query conrained in the `refs` array
       // now we have to form a final result based on `op` value

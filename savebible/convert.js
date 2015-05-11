@@ -97,8 +97,8 @@ function createRegex(word, lang, cs, ww) {
 
 // -----------------------------------------------------------------------
 // colorize
-function colorize(res, part, cs, ww) {
-  var re = createRegex(part, bible.lang, cs, ww);    // new RegExp(part, flags);
+function colorize(res, part, lang, cs, ww) {
+  var re = createRegex(part, lang, cs, ww);
   var arr = re.exec(res);
 
   if (arr === null)
@@ -106,18 +106,20 @@ function colorize(res, part, cs, ww) {
 
   var str = '';
   var prevIndex = 0;
+  var prevMatchLength = 0;
   var match = '';
   while (arr !== null) {
     match = arr[0];
     if (str.length === 0)
       str += res.substring(0, arr.index);
     else
-      str += res.substring(prevIndex + match.length, arr.index);
+      str += res.substring(prevIndex + prevMatchLength, arr.index);
     str += colors.green(match);
     prevIndex = arr.index;
+    prevMatchLength = match.length;
     arr = re.exec(res);
     if (arr === null) {
-      str += res.substr(prevIndex + match.length);
+      str += res.substr(prevIndex + prevMatchLength);
     }
   }
   return str;
@@ -127,9 +129,10 @@ function colorize(res, part, cs, ww) {
 // -----------------------------------------------------------------------
 function expendBSR(result) {
   var count = result.refs.length;
-  console.log('%d results for `%s`', count, result.orig);
+  var summary = util.format('%d results for `%s`', count, result.orig);
+  console.log(colors.red(summary));
 
-  if (count >= 50)
+  if (count >= 80)
     return;
 
   result.refs.forEach(function(ref) {
@@ -141,7 +144,7 @@ function expendBSR(result) {
     if (verse) {
       var res = renderer.renderVerse(verse);
       result.words.forEach(function(w) {
-        res = colorize(res, w, result.opts.cs, result.opts.ww);
+        res = colorize(res, w, bible.lang, result.opts.cs, result.opts.ww);
       });
 
       console.log('%s.  %s', common.padString(verse.id(), '           ', true), res);
@@ -156,7 +159,8 @@ var inputs = [
   ['ru-synod-usfm-from-text', 'ru'],
   ['en-kjv-usfm+', 'en'],
   ['am-eab-usfm-from-text', 'hy'],
-  ['zed', 'en']
+  ['zed', 'en'],
+  ['arm', 'hy']
 ];
 
 var input = inputs[3];
@@ -174,7 +178,7 @@ endMeasure();
 
   //search.displayStatistics();
 
-var opts = {cs: true, ww: true, op: 'or'};
+var opts = {cs: false, ww: false, op: 'and'};
 
 function benchmarkSearch() {
   var options = [
@@ -198,10 +202,13 @@ function benchmarkSearch() {
   });
 }
 
+beginMeasure('Seaching all words');
+bs.searchAllWords();
+endMeasure();
 
-var res = bs.query('the earth', opts);
-expendBSR(res);
-return;
+// var res = bs.query('Սամարաց կինը', opts);
+// expendBSR(res);
+// return;
 
 
 var rl = readline.createInterface(process.stdin, process.stdout);
