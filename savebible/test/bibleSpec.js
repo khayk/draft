@@ -605,6 +605,40 @@ describe('functionality', function() {
     expect(ref.indexOf('07')).is.equal(-1);
   });
 
+  describe('algorithms', function() {
+    var cases = [
+      {a: [1, 2, 4, 6, 7, 8, 99], b: [3, 4, 5, 6, 7, 20, 24, 27]},
+      {a: [],  b: []},
+      {a: [1], b: []},
+      {a: [],  b: [2]},
+      {a: [1], b: [1]},
+      {a: [2, 3], b: [1, 2, 3]},
+      {a: [1, 2], b: []},
+      {a: [1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 17, 19, 20, 22, 25, 27, 30], b: [-1, 1, 2, 3, 4, 5, 6, 10, 30, 31, 99, 102]}
+    ];
+
+    function sortNumber(a, b) {
+      return a - b;
+    }
+
+    it('intersection', function() {
+      cases.forEach(function(elem) {
+        var x = search.algo.intersectSortedUniqueArrays(elem.a, elem.b);
+        var y = _.intersection(elem.a, elem.b);
+        expect(x).to.deep.equal(y);
+      });
+    });
+
+    it('union', function() {
+      cases.forEach(function(elem) {
+        var x = search.algo.combineSortedUniqueArrays(elem.a, elem.b);
+        var y = _.union(elem.a, elem.b);
+        y.sort(sortNumber);
+        expect(x).to.deep.equal(y);
+      });
+    });
+  });
+
   describe('search', function() {
     var srch = new Search();
     var words = [

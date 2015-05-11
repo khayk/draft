@@ -137,16 +137,22 @@ function Dictionary(desc) {
 // ------------------------------------------------------------------------
 var Lexical = function(lang, data) {
   var obj = {
-    letters   : new RegExp('['  + data.letters + ']', 'gm'),
-    nonLetters: new RegExp('[^' + data.letters + '\\s]', 'gm'),
-    question  : data.question,
-    emphasis  : data.emphasis,
-    language  : lang
+    letters    : new RegExp('['  + data.letters + ']', 'gm'),
+    nonLetters : new RegExp('[^' + data.letters + '\\s]', 'gm'),
+    question   : data.question,
+    emphasis   : data.emphasis,
+    lettersStr : data.letters,
+    language   : lang
   };
 
   // returns language name that is processed by the Lexical object
   this.getLanguage = function () {
     return obj.language;
+  };
+
+  // returns language letters with regex definition rules
+  this.getLetters = function() {
+    return obj.lettersStr;
   };
 
   // remove all punctuations and returns resulting string

@@ -47,153 +47,134 @@ var Lexical         = funcs.Lexical;
 var Dictionary      = funcs.Dictionary;
 
 var Search          = search.Search;
+var BibleSearch     = search.BibleSearch;
 var timer           = new HiResTimer();
 
 (function() {
+
 'use strict';
 
-  var search = new Search();
 
-  var renderer = new TextRenderer();
-  var bibleStat = new BibleStats();
-  var LCO = LC.instance();
+var renderer = new TextRenderer();
+var bibleStat = new BibleStats();
+var LCO = LC.instance();
 
-  var inputs = [
-    ['ru-synod-usfm-from-text', 'ru'],
-    ['en-kjv-usfm+', 'en'],
-    ['am-eab-usfm-from-text', 'hy'],
-    ['zed', 'en']
-  ];
 
-  var input = inputs[0];
+// -----------------------------------------------------------------------
+function beginMeasure(msg) {
+  timer.start();
+  if (msg)
+    console.log('==== %s ====', msg);
+}
 
-  // en-kjv-usfm+, zed
-  var bible = loadUSFMBible(dropboxDir + '/' + 'Data/' + input[0] + '/');
-  measure('bible loading');
-  bible.lang = input[1];
-  LCO.load('./data/lexical.json');
+// -----------------------------------------------------------------------
+function endMeasure() {
+  timer.stop();
+  console.log('elapsed: %s', timer.str());
+  console.log(util.inspect(process.memoryUsage()) + '\n');
+}
 
-  function measure(msg) {
-    timer.stop();
 
-    if (msg)
-      console.log('--> %s <-- takse: %s', msg, timer.str());
+// -----------------------------------------------------------------------
+function createRegex(word, lang, cs, ww) {
+  var flags = 'gmi';
+  if (cs === true) {
+    flags = 'gm';
+  }
+
+  var letters = LCO.getLexical(lang).getLetters();
+  var str;
+  if (ww === true)
+    str = '([^%letters%]|^)%word%(?=([^%letters%]|$))';
+  else
+    str = '([^%letters%]|^)%word%';
+  str = str.replace(/%letters%/gm, letters);
+  str = str.replace(/%word%/gm, word);
+
+  return new RegExp(str, flags);
+}
+
+
+// -----------------------------------------------------------------------
+// colorize
+function colorize(res, part, cs, ww) {
+  var re = createRegex(part, bible.lang, cs, ww);    // new RegExp(part, flags);
+  var arr = re.exec(res);
+
+  if (arr === null)
+    return res;
+
+  var str = '';
+  var prevIndex = 0;
+  var match = '';
+  while (arr !== null) {
+    match = arr[0];
+    if (str.length === 0)
+      str += res.substring(0, arr.index);
     else
-      console.log('elapsed: %s', timer.str());
-    console.log(util.inspect(process.memoryUsage()) + '\n');
-
-    timer.start();
+      str += res.substring(prevIndex + match.length, arr.index);
+    str += colors.green(match);
+    prevIndex = arr.index;
+    arr = re.exec(res);
+    if (arr === null) {
+      str += res.substr(prevIndex + match.length);
+    }
   }
+  return str;
+}
 
 
-  // TODO: TEMPORARY PLACE
-  function expend(word, refs, cs) {
-    if (refs === null) {
-      console.warn('word `%s` is not found.', word);
-      return;
+// -----------------------------------------------------------------------
+function expendBSR(result) {
+  var count = result.refs.length;
+  console.log('%d results for `%s`', count, result.orig);
+
+  if (count >= 50)
+    return;
+
+  result.refs.forEach(function(ref) {
+
+    var dref = decodeRef(ref);
+    var book = bible.getBook(BBM.instance().idByOn(dref.ix));
+    var chap = book ? book.getChapter(dref.cn) : null;
+    var verse = chap ? chap.getVerse(dref.vn) : null;
+    if (verse) {
+      var res = renderer.renderVerse(verse);
+      result.words.forEach(function(w) {
+        res = colorize(res, w, result.opts.cs, result.opts.ww);
+      });
+
+      console.log('%s.  %s', common.padString(verse.id(), '           ', true), res);
     }
-    else {
-      console.log('Found %d verses containing "%s"', refs.length, word);
-    }
-
-    var flags = 'gmi';
-    if (cs === true) {
-      flags = 'gm';
-    }
-
-    //var re = new RegExp('\\b' + word + '\\b', flags);
-    var re = new RegExp(word, flags);
-
-    refs.forEach(function(ref) {
-      var dref = decodeRef(ref);
-      var book = bible.getBook(BBM.instance().idByOn(dref.ix));
-      var chap = book ? book.getChapter(dref.cn) : null;
-      var verse = chap ? chap.getVerse(dref.vn) : null;
-
-      if (verse) {
-        var res = renderer.renderVerse(verse);
-        var arr = re.exec(res);
-
-        var str = '';
-        var prevIndex = 0;
-        var match = '';
-        while (arr !== null) {
-          match = arr[0];
-          if (str.length === 0)
-            str += res.substring(0, arr.index);
-          else
-            str += res.substring(prevIndex + match.length, arr.index);
-          str += colors.green(match);
-          prevIndex = arr.index;
-          arr = re.exec(res);
-          if (arr === null) {
-            str += res.substr(prevIndex + match.length);
-          }
-        }
-        console.log('%s.  %s', verse.id(), str);
-      }
-    });
-  }
-
-
-
-  var idx = lunr(function () {
-    this.field('verse');
   });
+}
 
+// -----------------------------------------------------------------------
+//                          START MAIN
+// -----------------------------------------------------------------------
+var inputs = [
+  ['ru-synod-usfm-from-text', 'ru'],
+  ['en-kjv-usfm+', 'en'],
+  ['am-eab-usfm-from-text', 'hy'],
+  ['zed', 'en']
+];
 
-  function fillDictionary(dict) {
-    var lexic = LC.instance().getLexical(bible.lang);
+var input = inputs[3];
 
-    var toc = bible.getToc();
-    var ti = toc.firstItem();
+beginMeasure('bible loading');
+var bible = loadUSFMBible(dropboxDir + '/' + 'Data/' + input[0] + '/');
+endMeasure();
 
-    while (ti !== null) {
-      var book = bible.getBook(ti.id);
-      if (book !== null) {
-        var chap = book.getChapter(1);
-        while (chap !== null) {
-          var verse = chap.getVerse(1);
-          while (verse !== null) {
-            var text = verse.render(renderer);
-            var ref = encodeRef(verse.ref());
-            text = lexic.removePunctuations(text);
+bible.lang = input[1];
+LCO.load('./data/lexical.json');
 
-            //search.index(text, ref);
+beginMeasure('initialization');
+var bs = new BibleSearch(bible);
+endMeasure();
 
-            //idx.add({'verse': text, 'id': ref});
+  //search.displayStatistics();
 
-            // process every single word
-            var wordsArray = text.split(' ');
-            for (var i = 0; i < wordsArray.length; ++i) {
-              search.add(wordsArray[i], ref);
-              //dict.add(wordsArray[i], ref);
-            }
-            verse = verse.next();
-          }
-          chap = chap.next();
-        }
-      }
-      ti = toc.nextItem(ti.id);
-    }
-  }
-
-  // idx.pipeline.remove(lunr.stemmer);
-  // idx.pipeline.remove(lunr.stopWordFilter);
-
-  //console.log(idx);
-
-  // var d1 = new Dictionary();
-  fillDictionary();
-  measure('initialization');
-  search.buildIndex();
-  measure('index build');
-
-
-  search.displayStatistics();
-
-
-  var opts = {cs: false, ww: false};
+var opts = {cs: true, ww: true, op: 'or'};
 
 function benchmarkSearch() {
   var options = [
@@ -218,6 +199,10 @@ function benchmarkSearch() {
 }
 
 
+var res = bs.query('the earth', opts);
+expendBSR(res);
+return;
+
 
 var rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('ENTER> ');
@@ -228,20 +213,23 @@ rl.on('line', function(line) {
   if (istr === 'EXIT')
     process.exit(0);
 
-  timer.stop();
-  timer.start();
-  var res = search.query(istr, opts);
-  measure('querying: %s', istr);
+  beginMeasure('querying: %s', istr);
+  var res = bs.query(istr, opts);
+  endMeasure();
 
-  if (res !== null) {
-    console.log(res.length);
-    if (res.length < 80) {
-      console.log(res);
-      expend(istr, res, opts.cs);
-    }
-  } else {
-    console.log('No matches found for:', istr);
-  }
+  expendBSR(res, opts);
+
+  // var refs = res.refs;
+  // if (refs !== null) {
+
+  //   console.log(refs.length);
+  //   if (refs < 80) {
+  //     console.log(refs);
+  //     expend(istr, refs, opts.cs);
+  //   }
+  // } else {
+  //   console.log('No matches found for:', istr);
+  // }
 
   rl.prompt();
 

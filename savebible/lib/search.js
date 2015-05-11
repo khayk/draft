@@ -1,7 +1,10 @@
 var _     = require('underscore');
 var funcs = require('./functionality.js');
+var bibl  = require('./bible.js');
 
-var Dictionary = funcs.Dictionary;
+var TextRenderer = bibl.TextRenderer;
+var Dictionary   = funcs.Dictionary;
+var LC           = funcs.LC;
 
 
 var algo = (function() {
@@ -66,6 +69,36 @@ var algo = (function() {
           cache[sz++] = nv;
         }
       }
+      return cache.slice(0, sz);
+    },
+
+    // intersect 2 sorted unique arrays into one sorted unique array
+    intersectSortedUniqueArrays: function(a, b) {
+      if (a.length === 0 || b.length === 0)
+        return [];
+
+      var smin = b.length;
+      var i = 0, j = 0, sz = 0, c;
+      if (a.length < b.length) {
+        smin  = a.length;
+      }
+      ensureCache(smin);
+
+      while (i < a.length && j < b.length) {
+        c = a[i];
+        if (c < b[j]) {
+          i++;
+        }
+        else if (c > b[j]) {
+          j++;
+        }
+        else {
+          cache[sz++] = c;
+          i++;
+          j++;
+        }
+      }
+
       return cache.slice(0, sz);
     }
   };
@@ -355,7 +388,7 @@ var BibleSearch = function(bible) {
           var verse = chap.getVerse(1);
           while (verse !== null) {
             var text = verse.render(renderer_);
-            var ref = encodeRef(verse.ref());
+            var ref = bibl.encodeRef(verse.ref());
             text = lexic_.removePunctuations(text);
 
             // process every single word
@@ -376,6 +409,9 @@ var BibleSearch = function(bible) {
     search_.displayStatistics();
   }
 
+  var OP_AND = 'and';
+  var OP_OR  = 'or';
+
   return {
     // search words in a text occording to rules in opts object
     // and return array of references if succeeded,
@@ -384,55 +420,68 @@ var BibleSearch = function(bible) {
       if (!text)
         return null;
 
-      // if one of the words in the text is absent from the dictionary
-      // it indicates that we should return empty set
-      var noResult = false;
+      var res = {words: [], refs: [], orig: text, 'opts': opts};
+      var words = text.split(' ');
+      words.sort();
+      words = _.unique(words, true);
 
-      text = lexic_.removePunctuations(text);
-      var wm = {}; // contains unique words
-      var wa = []; // contains all words in an order they appeared in the text
-      text.split(' ').forEach(function(word) {
-        var obj = {w: word, r: null};
-        wm[word] = obj;
-        wa.push(obj);
-      });
+      if (!opts) {
+        opts = {op: OP_AND};
+      }
+      else {
+        if (typeof opts.op !== 'string')
+          opts.op = OP_AND;
+      }
+      var op = opts.op;
 
-      if (wm.length === 0)
-        return [];
+      // stop perform any further searches if overall result is surely empty
+      var stopLookup = false;
 
-      var refArrays = [];
-      _.each(wm, function(value, key) {
-        // do not search if overall outcome determined to be empty
-        if (noResult)
+      var refs = [];
+      words.forEach(function(word) {
+        if (stopLookup)
           return;
 
-        // value represents references
-        value.r = search_.query(key, opts);
-        if (value.r === null) {
-          noResult = true;
-          return;
+        var w = lexic_.removePunctuations(word);
+        var r = search_.query(w, opts);
+
+        if (r !== null) {
+          refs.push(r);
+          res.words.push(word); // original words with punctuations
         }
-
-        refArrays.push(value.r);
-        //console.log('%s -> %j', key, value);
+        else if (op === OP_AND)
+          stopLookup = true;
       });
 
-      if (noResult)
-        return [];
 
-      // combine results into one array
-      var result = refArrays[0];
-      // for (var i = 1; i < refArrays.length; ++i) {
-      //   result = _.intersection(result, refArrays[i]);
-      // }
-      return result;
+      // isolated result of query conrained in the `refs` array
+      // now we have to form a final result based on `op` value
+      // this cases checked one by one ony for the sake of optimization
+      if (refs.length === 1) {
+        res.refs = refs[0];
+      }
+      else if (refs.length >= 2) {
+        if (op === OP_AND)
+          res.refs = algo.intersectSortedUniqueArrays(refs[0], refs[1]);
+        else
+          res.refs = algo.combineSortedUniqueArrays(refs[0], refs[1]);
+
+        for (var i = 2; i < refs.length; ++i) {
+          if (op === OP_AND)
+            res.refs = algo.intersectSortedUniqueArrays(res.refs, refs[i]);
+          else
+            res.refs = algo.combineSortedUniqueArrays(res.refs, refs[i]);
+        }
+      }
+      return res;
     },
+
 
     searchAllWords: function() {
       var maxLength = 0;
       var resWord;
       search_.getDictionary().words().forEach(function(w) {
-        var res = search_.searchWord(w, {cs:false, ww:false});
+        var res = search_.query(w);
         if (maxLength < res.length) {
           maxLength = res.length;
           resWord = w;
@@ -482,3 +531,4 @@ var BibleSearch = function(bible) {
 
 exports.Search      = Search;
 exports.BibleSearch = BibleSearch;
+exports.algo = algo;

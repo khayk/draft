@@ -1,15 +1,58 @@
 var _              = require('underscore');
 var bounds         = require('binary-search-bounds');
 var search         = require('./lib/search.js');
+var helper         = require('./lib/helper.js');
+var assert         = require('assert');
+
+var HiResTimer     = helper.HiResTimer;
+var timer          = new HiResTimer();
+var algo = search.algo;
+
+
+function stess(desc, a, b, cb) {
+  var res = [];
+  console.log('stressing...: %s', desc);
+  timer.start();
+  for (var i = 0; i < 10000; i++) {
+    res = cb(a, b);
+  }
+  timer.stop();
+  console.log('completed: %s', timer.str());
+  console.log('result: ', res);
+  console.log('\n\n');
+  return res;
+}
+
+function sortNumber(a,b) {
+    return a - b;
+}
 
 var a = [1, 2, 4, 6, 7, 8, 99];
 var b = [3, 4, 5, 6, 7, 20, 24, 27];
 
-for (var i = 0; i < 1000000; i++) {
-  algos.combineSortedUniqueArrays(a, b);
-}
-console.log('algos.combineSortedUniqueArrays');
-//console.log(algos.combineSortedUniqueArrays(a, b));
+
+var cases = [
+  {a: [1, 2, 4, 6, 7, 8, 99], b: [3, 4, 5, 6, 7, 20, 24, 27]},
+  {a: [],  b: []},
+  {a: [1], b: []},
+  {a: [],  b: [2]},
+  {a: [1], b: [1]},
+  {a: [2, 3], b: [1, 2, 3]},
+  {a: [1, 2], b: []},
+  {a: [1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 17, 19, 20, 22, 25, 27, 30], b: [-1, 1, 2, 3, 4, 5, 6, 10, 30, 31, 99, 102]}
+];
+
+cases.forEach(function(elem) {
+  var x = stess('intersectSortedUniqueArrays', elem.a, elem.b, algo.intersectSortedUniqueArrays);
+  var y = stess('_.intersection', elem.a, elem.b, _.intersection);
+  assert.deepEqual(x, y);
+
+  x = stess('combineSortedUniqueArrays', elem.a, elem.b, algo.combineSortedUniqueArrays);
+  y = stess('_.union', elem.a, elem.b, _.union);
+  y.sort(sortNumber);
+  assert.deepEqual(x, y);
+});
+
 
 
 return;
