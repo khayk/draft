@@ -624,18 +624,22 @@ describe('functionality', function() {
 
     it('intersection', function() {
       cases.forEach(function(elem) {
-        var x = search.algo.intersectSortedUniqueArrays(elem.a, elem.b);
-        var y = _.intersection(elem.a, elem.b);
+        var x  = search.algo.intersectSortedUniqueArrays(elem.a, elem.b);
+        var x1 = search.algo.intersectSortedUniqueArrays(elem.b, elem.a);
+        var y  = _.intersection(elem.a, elem.b);
         expect(x).to.deep.equal(y);
+        expect(x1).to.deep.equal(y);
       });
     });
 
     it('union', function() {
       cases.forEach(function(elem) {
         var x = search.algo.combineSortedUniqueArrays(elem.a, elem.b);
+        var x1 = search.algo.combineSortedUniqueArrays(elem.b, elem.a);
         var y = _.union(elem.a, elem.b);
         y.sort(sortNumber);
         expect(x).to.deep.equal(y);
+        expect(x1).to.deep.equal(y);
       });
     });
   });
@@ -828,7 +832,7 @@ describe('object BibleSearch', function() {
   ];
 
   var bs    = null;
-  var opts   = {cs: true, ww: true, op: 'and'};
+  var opts  = {cs: 'true', ww: 'true'}; // for correct usage provide boolean values
 
   // add words into dictionary
   before(function() {
@@ -867,8 +871,17 @@ describe('object BibleSearch', function() {
     expect(bs.query('Rachel serve', opts).refs).to.deep.equal([text[2].r]);
 
     expect(bs.query('serve mother', opts).refs).to.deep.equal([]);
+    expect(bs.query('serve mother absent again', opts).refs).to.deep.equal([]);
+    expect(bs.query('and loved his but', opts).refs).to.deep.equal([text[0].r]);
+
     opts.op = 'or';
     expect(bs.query('serve mother', opts).refs).to.deep.equal([text[1].r, text[2].r]);
+    expect(bs.query('serve mother absent', opts).refs).to.deep.equal([text[1].r, text[2].r]);
+    expect(bs.query('serve mother absent again', opts).refs).to.deep.equal([text[1].r, text[2].r]);
+
+    opts.ww = false;
+    expect(bs.query('and loved his but', opts).refs).to.deep.equal([text[0].r, text[1].r, text[2].r, text[3].r]);
+    expect(bs.query('doesnotexists', opts).refs).to.deep.equal([]);
   });
 
   it('navigation', function() {
