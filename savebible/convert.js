@@ -99,10 +99,10 @@ function benchmarkSearch() {
 //                          START MAIN
 // -----------------------------------------------------------------------
 var inputs = [
-  ['ru-synod-usfm-from-text', 'ru'],
-  ['en-kjv-usfm+', 'en'],
-  ['am-eab-usfm-from-text', 'hy']
-  //['zed', 'en'],
+  //['ru-synod-usfm-from-text', 'ru'],
+  //['en-kjv-usfm+', 'en']
+  //['am-eab-usfm-from-text', 'hy']
+  ['zed', 'en']
   //['arm', 'hy']
 ];
 

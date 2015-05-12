@@ -14,6 +14,7 @@ var fs             = require('fs');
 var BBM            = bibleModule.BBM;
 var Tags           = bibleModule.Tags;
 var USFMParser     = bibleModule.USFMParser;
+var TextParser     = bibleModule.TextParser;
 var USFMRenderer   = bibleModule.USFMRenderer;
 var TextRenderer   = bibleModule.TextRenderer;
 var TableOfContent = bibleModule.TableOfContent;
@@ -33,12 +34,12 @@ var decodeRef      = bibleModule.decodeRef;
 var createTestBook = utils.createTestBook;
 
 // lexical collections
-var LC         = funcs.LC;
-var Lexical    = funcs.Lexical;
-var Dictionary = funcs.Dictionary;
+var LC          = funcs.LC;
+var Lexical     = funcs.Lexical;
+var Dictionary  = funcs.Dictionary;
 
-var Search     = search.Search;
-
+var Search      = search.Search;
+var BibleSearch = search.BibleSearch;
 
 describe('module BBM', function() {
   var o = BBM.instance();
@@ -819,10 +820,55 @@ describe('search advanced', function() {
 });
 
 describe('object BibleSearch', function() {
+  var text = [
+    {s: 'And Isaac loved Esau, because he did eat of [his] venison: but Rebekah loved Jacob.', r: 1},
+    {s: 'And he went, and fetched, and brought [them] to his mother: and his mother made savoury meat, such as his father loved.', r: 2},
+    {s: 'And Jacob loved Rachel; and said, I will serve thee seven years for Rachel thy younger daughter.', r: 3},
+    {s: 'And he went in also unto Rachel, and he loved also Rachel more than Leah, and served with him yet seven other years.', r: 4}
+  ];
+
+  var bs    = null;
+  var opts   = {cs: true, ww: true, op: 'and'};
+
+  // add words into dictionary
+  before(function() {
+    var bible  = new Bible();
+    var book   = new Book();
+    var chap   = new Chapter();
+    var parser = new TextParser();
+
+    book.id = 'GEN';
+    chap.number = 1;
+
+    bible.addBook(book.addChapter(chap));
+
+    text.forEach(function(ti) {
+      var v = parser.parseVerse(ti.s);
+      v.number = ti.r;
+      chap.addVerse(v);
+      ti.r = encodeRef(v.ref());
+    });
+
+    bible.lang = 'en';
+    bs = new BibleSearch(bible);
+  });
+
   it('word searching', function() {
+    expect(bs.query('Because', opts).refs).to.deep.equal([]);
+    expect(bs.query('because', opts).refs).to.deep.equal([text[0].r]);
+
+    opts.cs = false;
+    expect(bs.query('because', opts).refs).to.deep.equal([text[0].r]);
   });
 
   it('text searching', function() {
+    opts.cs = false;
+    expect(bs.query('Rachel', opts).refs).to.deep.equal([text[2].r, text[3].r]);
+    expect(bs.query('Rachel serve', opts).refs).to.deep.equal([text[2].r]);
+
+    expect(bs.query('serve mother', opts).refs).to.deep.equal([]);
+    opts.op = 'or';
+    expect(bs.query('serve mother', opts).refs).to.deep.equal([text[1].r, text[2].r]);
   });
 
   it('navigation', function() {

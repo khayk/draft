@@ -587,6 +587,7 @@ Chapter.prototype = {
       }
     }
     this.verses.push(verse);
+    return this;
   },
 
   getVerse: function(number) {
@@ -663,6 +664,7 @@ Book.prototype = {
       throw 'detected chapter gap while adding ' + chapter.id();
     }
     this.chapters.push(chapter);
+    return this;
   },
 
   getChapter: function(number) {
@@ -729,6 +731,7 @@ Bible.prototype.addBook = function(book) {
                                book.name,
                                book.lname,
                                book.desc));
+  return this;
 };
 
 Bible.prototype.getBook = function(id) {
@@ -1011,9 +1014,14 @@ USFMParser.prototype.parseBible = function(arr, details) {
 //                            TEXT PARSER
 // ------------------------------------------------------------------------
 var TextParser = function() {
-
+  USFMParser.call(this, false);
 };
-extend(TextParser, Parser);
+extend(TextParser, USFMParser);
+
+TextParser.prototype.parseVerse = function(str) {
+  var tmp = str.replace(/\[/gm, '\\add ').replace(/\]/gm, '\\add*');
+  return USFMParser.prototype.parseVerse.call(this, tmp);
+};
 
 
 // ------------------------------------------------------------------------
@@ -1320,6 +1328,7 @@ exports.Bible          = Bible;
 
 exports.Parser         = Parser;
 exports.USFMParser     = USFMParser;
+exports.TextParser     = TextParser;
 exports.ParserFactory  = ParserFactory;
 
 exports.Renderer       = Renderer;

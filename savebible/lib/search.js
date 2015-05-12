@@ -23,7 +23,7 @@ var algo = (function() {
       cacheSize *= 2;
       cacheSize = cacheSize < nsize ? nsize : cacheSize;
       cache = new Array(cacheSize);
-      console.log('cache size increased to: %d', cacheSize);
+      //console.log('cache size increased to: %d', cacheSize);
     }
   }
 
@@ -459,8 +459,6 @@ var BibleSearch = function(bible) {
 
     // building index
     search_.buildIndex();
-
-    search_.displayStatistics();
   }
 
   var OP_AND = 'and';
@@ -560,6 +558,11 @@ var BibleSearch = function(bible) {
           console.log('%s.  %s', common.padString(verse.id(), '           ', true), res);
         }
       });
+    },
+
+    // return search object
+    search: function() {
+      return search_;
     },
 
     // temporary function
