@@ -54,8 +54,6 @@ var timer           = new HiResTimer();
 
 'use strict';
 
-var renderer = new TextRenderer();
-var bibleStat = new BibleStats();
 var LCO = LC.instance();
 
 // -----------------------------------------------------------------------
@@ -86,12 +84,14 @@ function benchmarkSearch() {
     console.log('Lookup all words in the bible with options: ', opt);
 
     var words = search.getDictionary().words();
-
+    
+    beginMeasure('total ' + words.length + ' words: ');
+    
     // iterate over all words
     words.forEach(function(word) {
       search.query(word, opt);
     });
-    measure('total ' + words.length + ' words: ');
+    endMeasure();    
   });
 }
 

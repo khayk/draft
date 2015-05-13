@@ -462,7 +462,6 @@ var BibleSearch = function(bible) {
   }
 
   var OP_AND = 'and';
-  var OP_OR  = 'or';
 
   return {
     // search words in a text occording to rules in opts object

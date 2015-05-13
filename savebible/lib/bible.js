@@ -372,7 +372,6 @@ var Node = function(parent) {
 
 // -----------------------------------------------------------------------=
 var NH = function() {
-  var tmp;
   return {
     isCompound: function(node) {
       if (typeof node.nodes !== 'undefined')
@@ -1293,9 +1292,9 @@ var BibleStats = function() {
     console.log("Chapters: %d", chapterCount);
     console.log("Books: %d\n\n", bookCount);
 
-    var text = 'hello';
-    var tag  = '';
-    var baseNode = new Node(null);
+//    var text = 'hello';
+//    var tag  = '';
+//    var baseNode = new Node(null);
 
 //    var n = new Node(baseNode);
 //    var tn = new TextNode(text, n);
