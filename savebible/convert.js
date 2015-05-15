@@ -84,14 +84,14 @@ function benchmarkSearch() {
     console.log('Lookup all words in the bible with options: ', opt);
 
     var words = search.getDictionary().words();
-    
+
     beginMeasure('total ' + words.length + ' words: ');
-    
+
     // iterate over all words
     words.forEach(function(word) {
       search.query(word, opt);
     });
-    endMeasure();    
+    endMeasure();
   });
 }
 
@@ -99,10 +99,10 @@ function benchmarkSearch() {
 //                          START MAIN
 // -----------------------------------------------------------------------
 var inputs = [
-  //['ru-synod-usfm-from-text', 'ru'],
-  //['en-kjv-usfm+', 'en']
-  //['am-eab-usfm-from-text', 'hy']
-  ['zed', 'en']
+//  ['ru-synod-usfm-from-text', 'ru']
+  ['en-kjv-usfm+', 'en']
+//  ['am-eab-usfm-from-text', 'hy']
+//  ['zed', 'en']
   //['arm', 'hy']
 ];
 

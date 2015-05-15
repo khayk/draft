@@ -537,6 +537,7 @@ var BibleSearch = function(bible) {
     expend: function(result) {
       var count = result.refs.length;
       var summary = util.format('%d results for `%s`', count, result.orig);
+      console.log(summary);
       console.log(colors.red(summary));
 
       if (count >= 80)
