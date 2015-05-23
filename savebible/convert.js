@@ -5,7 +5,6 @@ var path            = require('path');
 var util            = require('util');
 var _               = require('underscore');
 var lunr            = require('lunr');
-var colors          = require('colors/safe');
 var readline        = require('readline');
 
 //var agent         = require('webkit-devtools-agent');
@@ -99,7 +98,7 @@ function benchmarkSearch() {
 //                          START MAIN
 // -----------------------------------------------------------------------
 var inputs = [
-//  ['ru-synod-usfm-from-text', 'ru']
+//  ['ru-synod-usfm-from-text', 'ru'],
   ['en-kjv-usfm+', 'en']
 //  ['am-eab-usfm-from-text', 'hy']
 //  ['zed', 'en']
@@ -126,8 +125,8 @@ var opts = {cs: false, ww: false, op: 'and'};
 // beginMeasure('Seaching all words');
 // bs.searchAllWords();
 // endMeasure();
-
-// var res = bs.query('earth', opts);
+// var bs = bsArray[0];
+// var res = bs.query('help', opts);
 // bs.expend(res);
 // return;
 
@@ -141,10 +140,18 @@ rl.on('line', function(line) {
   if (istr === 'EXIT')
     process.exit(0);
 
+  var notFound = bsArray.length;
   beginMeasure('querying: %s', istr);
   bsArray.forEach(function(bs) {
     var res = bs.query(istr, opts);
-    bs.expend(res);
+    if (res.refs.length === 0)
+      notFound--;
+    else
+      bs.expend(res);
+
+    // print not found only if the text is not found in all available bibles
+    if (notFound === 0)
+      bs.expend(res);
   });
   endMeasure();
 

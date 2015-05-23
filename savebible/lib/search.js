@@ -1,10 +1,10 @@
 var util   = require('util');
-var colors = require('colors/safe');
+//var colors = require('colors/safe');
+var colors = require('colors');
 var _      = require('underscore');
 var funcs  = require('./functionality.js');
 var bibl   = require('./bible.js');
 var common = require('./common.js');
-
 
 var TextRenderer = bibl.TextRenderer;
 var BBM          = bibl.BBM;
@@ -409,7 +409,7 @@ var BibleSearch = function(bible) {
         str += res.substring(0, arr.index);
       else
         str += res.substring(prevIndex + prevMatchLength, arr.index);
-      str += colors.green(match);
+      str += match.green;
       prevIndex = arr.index;
       prevMatchLength = match.length;
       arr = re.exec(res);
@@ -537,8 +537,7 @@ var BibleSearch = function(bible) {
     expend: function(result) {
       var count = result.refs.length;
       var summary = util.format('%d results for `%s`', count, result.orig);
-      console.log(summary);
-      console.log(colors.red(summary));
+      console.log(summary.red);
 
       if (count >= 80)
         return;
