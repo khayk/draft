@@ -832,7 +832,7 @@ describe('object BibleSearch', function() {
   ];
 
   var bs    = null;
-  var opts  = {cs: 'true', ww: 'true'}; // for correct usage provide boolean values
+  var opts  = {cs: true, ww: true}; // for correct usage provide boolean values
 
   // add words into dictionary
   before(function() {
