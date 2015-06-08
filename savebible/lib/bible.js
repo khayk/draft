@@ -1,6 +1,6 @@
 var idsmap = require('./idsmap.js');
-var _ = require('underscore');
-var cmn = require('./common.js');
+var _      = require('underscore');
+var cmn    = require('./common.js');
 
 var padNumber = cmn.padNumber;
 
@@ -370,7 +370,7 @@ var Node = function(parent) {
   this.parent = parent;
 };
 
-// -----------------------------------------------------------------------=
+// ------------------------------------------------------------------------
 var NH = function() {
   return {
     isCompound: function(node) {
