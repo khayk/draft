@@ -2,6 +2,12 @@
 ;(function() {
   'use strict';
 
+  // Establish the root object, `window` in the browser, or `exports` on the server.
+  var root = this;
+
+  // HAYK:TODO  use lodash padding
+
+
   // Pad a number with leading zeros to "pad" places:
   //
   // @param  {number} num   The number to pad
@@ -43,9 +49,9 @@
     });
   }
 
-  exports.padNumber     = padNumber;
-  exports.padString     = padString;
-  exports.padWithSymbol = padWithSymbol;
-  exports.toTitleCase   = toTitleCase;
+  root.padNumber     = padNumber;
+  root.padString     = padString;
+  root.padWithSymbol = padWithSymbol;
+  root.toTitleCase   = toTitleCase;
 
-})();
+}.call(this));
