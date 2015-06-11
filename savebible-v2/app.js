@@ -6,17 +6,18 @@
 
   var parser = lb.createParser('usfm');
 
-  var bible   = parser.parseBible('folder');
-  var book    = parser.parseBook('file');
-  var chapter = parse.parseChapter('string');
-  var verse   = parse.parseVerse('string');
+  var bible   = parser.parseBible(arr);
+  bible.validate();
 
-  book.fromFile('file name');
-  book.fromStream('stream');
-  book.fromString('string');
+  var book    = parser.parseBook(str);
+  book.validate();
 
-  var verse = new Verse();
-  var chapter = new Chapter();
+  var chapter = parser.parseChapter(str);
+  chapter.validate();
+
+  var verse   = parser.parseVerse(str);
+  verse.validate();
+
 }());
 
 
