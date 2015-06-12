@@ -11,7 +11,11 @@
     "url": "https://github.com/khayk/draft"
   },
   "dependencies": {
-    "chai": "^2.2.0"
+    "chai": "^2.2.0",
+    "lodash": "^3.9.3",
+    "log4js": "^0.6.26",
+    "mkdirp": "^0.5.1",
+    "nconf": "^0.7.1"
   },
   "readme": "ERROR: No README data found!"
 }

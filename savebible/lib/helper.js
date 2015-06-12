@@ -44,5 +44,6 @@ var HiResTimer = function() {
 //   return obj === void 0;
 // };
 
+
 exports.HiResTimer     = HiResTimer;
 exports.timeToStr      = timeToStr;

@@ -1,6 +1,6 @@
 var Configs = (function() {
-  //var dropboxDir = 'C:/Users/Hayk/Dropbox (Personal)/';
-  var dropboxDir = 'c:/Users/Hayk/Dropbox/';
+  var dropboxDir = 'C:/Users/Hayk/Dropbox (Personal)/';
+  //var dropboxDir = 'c:/Users/Hayk/Dropbox/';
   //var dropboxDir = '/home/hayk/Downloads/';
   //var dropboxDir = '/home/khayk/Dropbox/';
   var dataDir    = 'Data/';
@@ -14,7 +14,7 @@ var Configs = (function() {
     },
 
     am_grabar_text: function() {
-      var from_ = dropboxDir + dataDir + 'am_grabar_text';
+      var from_ = dropboxDir + dataDir + 'am-grabar-text';
       var to_   = uniformDir + 'grabar/';
       return {from: from_, to: to_};
     },

@@ -371,7 +371,7 @@ var Node = function(parent) {
 };
 
 // ------------------------------------------------------------------------
-var NH = function() {
+var NH = (function() {
   return {
     isCompound: function(node) {
       if (typeof node.nodes !== 'undefined')
@@ -385,7 +385,7 @@ var NH = function() {
       return false;
     },
   };
-}();
+})();
 
 // ------------------------------------------------------------------------
 //                             TEXT NODE
