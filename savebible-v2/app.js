@@ -19,7 +19,8 @@
   bench.begin('node ready');
   bench.end();
 
-  var bbm        = lb.BBM;
+  var BBM        = lb.BBM;
+
   var parser     = new lb.Parser(true);
   var usfmRender = new lb.USFMRenderer();
   var textRender = new lb.TextRenderer();
@@ -40,7 +41,7 @@
 
   bench.begin('reading bible from hdd');
   for (var i = 0; i < 1; ++i) {
-    bible = lb.loadBible(cfg.inputDir() + 'en-kjv-usfm/');
+    bible = lb.loadBible(cfg.inputDir() + 'en-kjv-usfm+/');
   }
   bench.end();
 
@@ -57,55 +58,13 @@
 
   fs.writeFileSync(cfg.tmpDir() + 'out.txt', usfm);
 
-  var fdir = path.join(cfg.mediaDir(), 'meta/lang/en/');
-  mkdirp.sync(fdir);
-
 
 // var bible = loadBible();
 // var defMeta = loadDefaultMeta();
 
-
 // // {mode: overwrite | missing}
 // var report  = populate(bible, mapping, opt);
 
-// media
-//   meta
-//     languages
-//       en
-//         data.json (toc: [], lexical: {}, brief: {})
-
-
-  // var data = {};
-  // data.toc = [];
-  // data.lexical = {};
-  // data.brief = {};
-
-  // var res = '';
-  // bbm.instance().items().forEach(function(itm) {
-  //   var raw = {};
-  //   raw = {id: itm.id, name: '', abbr: '', lname: '', desc: ''};
-
-  //   var book = bible.getBook(itm.id);
-  //   if (book === null) {
-  //     log.warn('book `%s` is not contained in the bible', itm.id);
-  //   }
-  //   else {
-  //     raw.name  = book.name;
-  //     raw.abbr  = book.abbr;
-  //     raw.lname = book.lname;
-  //     raw.desc  = book.desc;
-  //   }
-
-  //   res += '{';
-  //   res += '"id":"'    + raw.id + '", ';
-  //   res += '"name":"'  + _.padRight(raw.name + '", ', 22, ' ');
-  //   res += '"abbr":"'  + _.padRight(raw.abbr + '", ', 11, ' ');
-  //   res += '"lname":"' + _.padRight(raw.lname + '", ', 30, ' ');
-  //   res += '"desc":"'  + _.padRight(raw.desc + '" ', 80, ' ');
-  //   res += '},\n';
-  // });
-
-  // fs.writeFileSync(path.join(fdir, 'data.json'), res);
   //lb.saveBible(folder);
 
 }());

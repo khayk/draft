@@ -14,8 +14,12 @@ nconf.argv()
 var root = path.dirname(__dirname);
 
 // make sure that logging directory do exists
-function createLogDirectory(logConfig) {
-  logConfig.appenders.forEach(function(entry) {
+function createLogDirectory(loggerConfig) {
+  if (_.isUndefined(loggerConfig)) {
+    throw 'Application is not configured properly! Check if `config/config.json` file exists.';
+  }
+
+  loggerConfig.appenders.forEach(function(entry) {
     if (!_.isUndefined(entry.filename)) {
       var ld = path.dirname(entry.filename);
       mkdirp.sync(ld);
@@ -23,11 +27,11 @@ function createLogDirectory(logConfig) {
   });
 }
 
-var logConfig = nconf.get('log4js');
-createLogDirectory(logConfig);
+var loggerConfig = nconf.get('log4js');
+createLogDirectory(loggerConfig);
 
 // configure logging and process with our modules
-log4js.configure(logConfig, {});
+log4js.configure(loggerConfig, {});
 
 // now logging is configured and can be used throughout of the application
 

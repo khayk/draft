@@ -1,4 +1,4 @@
-;(function(exports){
+;(function(){
 
   // Book ordering according to https://en.wikipedia.org/wiki/Books_of_the_Bible
   exports.idsmap = [
@@ -115,4 +115,4 @@
     {"id":"BEL", "index":82, "type":4},
     {"id":"2ES", "index":83, "type":3}
   ];
-})(typeof exports === 'undefined' ? this.idsmap = {} : exports);
+})();

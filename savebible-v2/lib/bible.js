@@ -30,7 +30,7 @@ function inherit(child, base, props) {
   var BOOK_TYPE_OLD = 1,              // old testament book
       BOOK_TYPE_NEW = 2,              // new testament book
       BOOK_TYPE_DEU = 3,              // deuterocanon book
-      BOOK_TYPE_SEC = 4;              // secondary book
+      BOOK_TYPE_APO = 4;              // apocryphal book
 
 
   /*------------------------------------------------------------------------*/
@@ -43,8 +43,8 @@ function inherit(child, base, props) {
   // @param {string} type  book type, i.e. old, new testaments
   //
   var BBMItem = function(id, index, type) {
-    if (!type || type < BOOK_TYPE_OLD || type > BOOK_TYPE_SEC)
-      throw 'invalid Bible book mapping item type: ' + type;
+    if (!type || type < BOOK_TYPE_OLD || type > BOOK_TYPE_APO)
+      throw 'Invalid Bible book mapping item type: ' + type;
 
     this.id    = id;
     this.index = parseInt(index);
@@ -54,16 +54,17 @@ function inherit(child, base, props) {
 
   // Bible books mapping module,
   var BBM = (function() {
-    var instance_;        // instance stores a reference to the Singleton
+    var mappings_ = {};    // possibility to work with different mappings
+    var instance_;         // active instance of existing mappings
 
 
-    function init() {
+    function init(imap) {
       var items = [];
       var byId  = {};     // sorted by id
       var byOn  = {};     // sorted by order number (i.e. by index)
 
 
-      idsmap.idsmap.forEach(function(e) {
+      imap.forEach(function(e) {
         var obj = new BBMItem(e.id, e.index, e.type);
         items.push(obj);
       });
@@ -75,25 +76,33 @@ function inherit(child, base, props) {
       // initialize maps
       items.forEach(function(e, i) {
         if (!_.isUndefined(byId[e.id]))
-          throw 'Duplicate book id in idsmap: ' + e.id;
+          throw 'Duplicate book id in the ids mapping: ' + e.id;
         byId[e.id]    = i;
 
         if (!_.isUndefined(byOn[e.index]))
-          throw 'Duplicate index found in idsmap' + e.index;
+          throw 'Duplicate index found in ids mapping: ' + e.index;
         byOn[e.index] = i;
       });
 
-
-      var advance = function(id, delta) {
-        var ref = instance_.itemById(id);
-        if (ref) {
-          ref = instance_.itemByOn(ref.index + delta);
-          if (ref)
-            return ref.id;
-        }
-        return null;
+      var getItem = function(i) {
+        if (i < 0 || i >= items.length)
+          return null;
+        return items[i];
       };
 
+      var getItemId = function(i) {
+        var ref = getItem(i);
+        if (ref === null)
+          return null;
+        return ref.id;
+      };
+
+      var advance = function(id, diff) {
+        var i = byId[id];
+        if (_.isUndefined(i))
+          return null;
+        return getItemId(i + diff);
+      };
 
       return {
 
@@ -161,6 +170,22 @@ function inherit(child, base, props) {
           return byOn;
         },
 
+        // @return  id of the book that stands at the first position
+        //          in the ordered books collection
+        firstId: function() {
+          if (items.length > 0)
+            return items[0].id;
+          return null;
+        },
+
+        // @return  id of the book that stands at the last position
+        //          in the ordered books collection
+        lastId: function() {
+          if (items.length > 0)
+            return items[items.length - 1].id;
+          return null;
+        },
+
         // @returns  id that come after the item with specified id,
         //           null if there are no more items
         nextId: function(id) {
@@ -176,9 +201,34 @@ function inherit(child, base, props) {
     }
 
     return {
+      // Creates and activates the BBM instance according to specified mapping
+      //
+      // @param {array} imap  array of ids mapping, if `undefined` default
+      //                      mapping will be activated
+      //
+      // @returns   activated instance of BBM
+      activate: function(imap) {
+
+        // activate default mapping if not input is provided
+        if (_.isUndefined(imap)) {
+          if (!_.isUndefined(idsmap.idsmap))
+            return this.activate(idsmap.idsmap);
+        }
+
+        if (_.isUndefined(mappings_[imap])) {
+          var tmp = init(imap);
+          mappings_[imap] = tmp;
+        }
+        instance_ = mappings_[imap];
+        return instance_;
+      },
+
+      // @returns  last activated instance of the BBM, if no active instance
+      //           exists, the default one will be created, activated and
+      //           returned
       instance: function() {
         if (!instance_) {
-          instance_ = init();
+          return this.activate();
         }
         return instance_;
       }
