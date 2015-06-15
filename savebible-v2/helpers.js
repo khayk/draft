@@ -1,6 +1,6 @@
-var util   = require('util');
-var _      = require('lodash');
-var logger = require('log4js').getLogger('hlp');
+var util = require('util');
+var _    = require('lodash');
+var log  = require('log4js').getLogger('hlp');
 
 /// Time to str
 var timeToStr = function(elapsed) {
@@ -32,7 +32,7 @@ var HiResTimer = function() {
   };
 
   this.report = function() {
-    logger.info(this.str());
+    log.info(this.str());
   };
 
   this.str = function() {
@@ -57,7 +57,7 @@ var Benchmark = function() {
 
   this.begin = function(msg) {
     if (msg) {
-      logger.info(_.pad(_.pad(msg, msg.length + 2, ' '), len, '-'));
+      log.info(_.pad(_.pad(msg, msg.length + 2, ' '), len, '-'));
     }
     var usage = process.memoryUsage();
     heapTotal = usage.heapTotal;
@@ -67,14 +67,14 @@ var Benchmark = function() {
 
   this.end = function() {
     timer.stop();
-    logger.info('elapsed: %s', timer.str());
+    log.info('elapsed: %s', timer.str());
     var usage = process.memoryUsage();
     // var deltaTotal = usage.heapTotal - heapTotal;
     // var deltaUsed  = usage.heapUsed  - heapUsed;
-    logger.info('total: %s, used: %s\n',
+    log.info('total: %s, used: %s\n',
                 bytesToSize(usage.heapTotal),
                 bytesToSize(usage.heapUsed));
-    //logger.log(util.inspect(process.memoryUsage()) + '\n');
+    //log.log(util.inspect(process.memoryUsage()) + '\n');
   };
 };
 
@@ -83,3 +83,5 @@ exports.timeToStr      = timeToStr;
 exports.bytesToSize    = bytesToSize;
 exports.HiResTimer     = HiResTimer;
 exports.Benchmark      = Benchmark;
+
+require('./config').logFileLoading(__filename);

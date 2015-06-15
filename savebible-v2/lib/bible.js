@@ -1,9 +1,33 @@
 var fs   = require('fs');
 var path = require('path');
 var _    = require('lodash');
+var util = require('util');
 var help = require('./../helpers');
 
-var logger = require('log4js').getLogger('bib');
+var log  = require('log4js').getLogger('bib');
+
+function functionName(fun) {
+  var ret = fun.toString();
+  ret = ret.substr('function '.length);
+  ret = ret.substr(0, ret.indexOf('('));
+  return ret;
+}
+
+// function extend(child, parent) {
+//   var FnObj = function() {};
+//   FnObj.prototype = parent.prototype;
+//   child.prototype = new FnObj();
+//   child.prototype.constructor = child;
+//   child.uber = parent.prototype;
+// }
+
+function inherit(child, base, props) {
+  child.prototype = _.create(base.prototype, _.assign({
+    '_super': base.prototype,
+    'constructor': child
+  }, props));
+  return child;
+}
 
 ;(function() {
   'use strict';
@@ -20,9 +44,9 @@ var logger = require('log4js').getLogger('bib');
     files.forEach(function(file) {
       var buff = fs.readFileSync(dir + file);
       totalSize += buff.length;
-      console.log('file: %s, size: %s', file, help.bytesToSize(buff.length));
+      log.trace('file: %s, size: %s', file, help.bytesToSize(buff.length));
     });
-    console.log('bible size: %s', help.bytesToSize(totalSize));
+    log.info('bible size: %s', help.bytesToSize(totalSize));
     return null;
   };
 
@@ -42,26 +66,28 @@ var logger = require('log4js').getLogger('bib');
       },
 
       normalize: function(node) {
-        var current = null;
-        node.nodes.forEach(function(n) {
-          if (NH.isCompound(n)) {
-            current = null;
-            n.normalize();
-          }
-          else {
-            if (current === null)
-              current = n;
-            else {
-              current.text += n.text;
-              n.text = '';
-            }
-          }
-        });
+        // if (NH.isCompound(node)) {
+        //   var current = null;
+        //   node.nodes.forEach(function(n) {
+        //     if (NH.isCompound(n)) {
+        //       current = null;
+        //       n.normalize();
+        //     }
+        //     else {
+        //       if (current === null)
+        //         current = n;
+        //       else {
+        //         current.text += n.text;
+        //         n.text = '';
+        //       }
+        //     }
+        //   });
 
-        // now remove redundant nodes
-        node.nodes = node.nodes.filter(function(n) {
-          return !(NH.isText(n) && n.text === '');
-        });
+        //   // now remove redundant nodes
+        //   node.nodes = node.nodes.filter(function(n) {
+        //     return !(NH.isText(n) && n.text === '');
+        //   });
+        // }
       }
     };
   })();
@@ -75,12 +101,15 @@ var logger = require('log4js').getLogger('bib');
   var Verse = function() {
     this.parent = null;
     this.number = 0;
-    this.np     = false;
     this.node   = new Node(null);
   };
 
-  var Parser = function() {
+  Verse.prototype.validate = function() {
 
+  };
+
+  var Parser = function() {
+    var reVerse = /(\\\+?(\w+)\*?)\s?/gm;
     this.parseVerseImpl = function(str, node) {
 
     };
@@ -89,13 +118,67 @@ var logger = require('log4js').getLogger('bib');
   Parser.prototype.parseVerse = function(str) {
     var verse = new Verse();
     this.parseVerseImpl(str, verse.node);
+    NH.normalize(verse.node);
+    return verse;
   };
 
-  exports.loadBible = loadBible;
+  var Renderer = function() {
+  };
 
-  exports.Verse = Verse;
-  exports.Parser = Parser;
+  // These functions `SHOULD BE` overridden in the derived classes
+  Renderer.prototype.renderOpenTag        = function(tag)   {};
+  Renderer.prototype.renderCloseTag       = function(tag)   {};
+  Renderer.prototype.renderOpenParagraph  = function(verse) {};
+  Renderer.prototype.renderCloseParagraph = function(verse) {};
+  Renderer.prototype.renderVerseNumber    = function(verse) {};
+  Renderer.prototype.renderChapterNumber  = function(chap)  {};
+  Renderer.prototype.renderBookHeader     = function(book)  {};
+
+  // These functions `SHOULD NOT` be overridden in the derived classes
+  Renderer.prototype.renderNode    = function(node)  {
+
+  };
+
+  Renderer.prototype.renderVerse   = function(verse)  {
+    log.info('called Renderer::renderVerse');
+  };
+
+  Renderer.prototype.renderChapter = function(chapter) {
+
+  };
+
+  Renderer.prototype.renderBook    = function(book) {
+
+  };
+
+  Renderer.prototype.renderBible   = function(bible) {
+
+  };
+
+
+  var USFMRenderer = function() {
+    Renderer.call(this);
+  };
+  inherit(USFMRenderer, Renderer);
+
+  var TextRenderer = function() {
+    Renderer.call(this);
+  };
+  inherit(TextRenderer, Renderer);
+
+
+  exports.loadBible    = loadBible;
+  exports.Verse        = Verse;
+  exports.Parser       = Parser;
+
+  exports.Renderer     = Renderer;
+  exports.USFMRenderer = USFMRenderer;
+  exports.TextRenderer = TextRenderer;
+
+
 
 }.call(this));
+
+require('../config').logFileLoading(__filename);
 
 

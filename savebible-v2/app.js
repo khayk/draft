@@ -1,29 +1,50 @@
 (function () {
   'use strict';
 
-  var log4js = require('log4js');
+  var dataUSFM = require('./test/dataUSFM.js');
+
   var util   = require('util');
   var fs     = require('fs');
+  var _      = require('lodash');
+  var log4js = require('log4js');
 
-  // configure logging and process with our modules
-  log4js.configure('./config/log4js.json', {});
-
+  var cfg    = require('./config');
   var lb     = require('./lib/bible');
   var help   = require('./helpers');
-  var cfg    = require('./config').cfg;
 
-
-  var logger = log4js.getLogger('app');
+  var log    = log4js.getLogger('app');
   var bench  = new help.Benchmark();
 
-
-
-  bench.begin( 'preparing to start');
+  bench.begin('node ready');
   bench.end();
 
-  //var config = require('./config');
+  var tvs = dataUSFM.verses[0];
+  var orig = tvs.data.orig;
+  var parsed = tvs.data.parsed;
 
-  // var parser = lb.createParser('usfm');
+  var parser = new lb.Parser();
+
+  var verse = parser.parseVerse(orig);
+  verse.validate();
+
+
+  // var defRender = new lb.Renderer();
+  // console.log(util.inspect(defRender));
+  // console.log(util.inspect(defRender.__proto__));
+
+  var usfmRender = new lb.USFMRenderer();
+  //console.log(util.inspect(usfmRender.__proto__));
+  usfmRender.renderVerse(verse);
+
+  // bench.begin('creating verses');
+  // var arr= [];
+  // for (var i = 0 ; i < 35000; ++i) {
+  //   arr.push(new lb.Verse());
+  // }
+  // bench.end();
+
+  // var textRender = new lb.TextRenderer();
+  // textRender.renderVerse(verse);
 
   // var bible   = parser.parseBible(str);
   // bible.validate();
@@ -34,33 +55,16 @@
   // var chapter = parser.parseChapter(str);
   // chapter.validate();
 
-  // var verse   = parser.parseVerse(str);
-  // verse.validate();
-
   var bible = null;
 
 
   //console.log(cfg.);
 
-  bench.begin('reading bible from hdd');
-  bible = lb.loadBible(cfg.en_kjv_usfm().from);
-  bench.end();
-
+  // bench.begin('reading bible from hdd');
+  // bible = lb.loadBible(cfg.en_kjv_usfm().from);
+  // bench.end();
   // lb.saveBible(folder);
 
-  // bench.begin('doing some stuff');
-  // bench.end();
-
-  // bench.begin('doing some other stuff');
-  // bench.end();
-
-  // bench.begin('calculating real things');
-  // bench.end();
-
-
-
-
-  //console.log(util.inspect(cfg.get('en_kjv_usfm')));
 }());
 
 

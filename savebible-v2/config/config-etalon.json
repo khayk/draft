@@ -3,5 +3,26 @@
   "data": {
     "input": "C:/Users/Hayk/Dropbox (Personal)/Data/",
     "output": "./output/"
+  },
+  "log4js": {
+    "appenders": [
+      {
+        "type": "console",
+        "layout": {
+          "type": "pattern",
+          "pattern": "%[[%r] [%1.1p] -%] %m"
+        }
+      },
+      {
+        "type": "file",
+        "filename": "logs/app.log",
+        "maxLogSize": 10485760,
+        "numBackups": 3,
+        "layout": {
+          "type": "pattern",
+          "pattern": "[%d{DATE}] [%1.1p] [%3.3c] - %m"
+        }
+      }
+    ]
   }
 }

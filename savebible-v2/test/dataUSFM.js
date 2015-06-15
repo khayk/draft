@@ -177,5 +177,4 @@ ViewSettings = function() {
     highlightJesusWords: true,
     translatorAddition:
 }
-
 */
