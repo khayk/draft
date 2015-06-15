@@ -18,13 +18,16 @@ function inherit(child, base, props) {
 }
 
 
-;(function() {
+(function() {
   'use strict';
 
+  var LF = '\n'; // line feed
+  var CR = '\r'; // carriage return
 
   // -----------------------------------------------------------------------
   //                             BBMEntry
   // -----------------------------------------------------------------------
+
 
   var BBM_TYPE_OLD = 1;
   var BBM_TYPE_NEW = 2;
@@ -227,7 +230,16 @@ function inherit(child, base, props) {
   };
 
   Node.prototype.addChild = function(node) {
-    this.nodes.push(node);
+    if (this.nodes === null)
+      this.nodes = node;
+    else {
+      if (this.nodes.constructor !== Array) {
+        var arr = [];
+        arr.push(this.nodes);
+        this.nodes = arr;
+      }
+      this.nodes.push(node);
+    }
   };
 
   var NH = (function() {
@@ -247,7 +259,7 @@ function inherit(child, base, props) {
       createCompound: function(tag, parent) {
         var node = new Node(parent);
         node.tag = tag;
-        node.nodes = [];
+        node.nodes = null;
         return node;
       },
 
@@ -258,25 +270,33 @@ function inherit(child, base, props) {
       },
 
       normalize: function(node) {
-        var current = null;
-        node.nodes.forEach(function(n) {
-          if (NH.isCompound(n)) {
-            current = null;
-            NH.normalize(n);
-          } else {
-            if (current === null)
-              current = n;
-            else {
-              current.text += n.text;
-              n.text = '';
-            }
-          }
-        });
+        if (node === null || node.nodes === null || NH.isText(node))
+          return;
 
-        // now remove redundant nodes
-        node.nodes = node.nodes.filter(function(n) {
-          return !(NH.isText(n) && n.text === '');
-        });
+        var current = null;
+        if (node.nodes.constructor === Array) {
+          node.nodes.forEach(function(n) {
+            if (NH.isCompound(n)) {
+              current = null;
+              NH.normalize(n);
+            } else {
+              if (current === null)
+                current = n;
+              else {
+                current.text += n.text;
+                n.text = '';
+              }
+            }
+          });
+
+          // now remove redundant nodes
+          node.nodes = node.nodes.filter(function(n) {
+            return !(NH.isText(n) && n.text === '');
+          });
+        }
+        else {
+          NH.normalize(node.nodes);
+        }
       }
     };
   })();
@@ -437,6 +457,7 @@ function inherit(child, base, props) {
     }
   };
 
+
   var Book = function() {
     this.parent   = null;
     this.index    = 0;    // predefined index from idsmap, unchangeble value
@@ -448,6 +469,7 @@ function inherit(child, base, props) {
     this.chapters = [];
     this.preface  = [];
   };
+
 
   Book.prototype = {
 
@@ -571,7 +593,7 @@ function inherit(child, base, props) {
 
 
   var Parser = function() {
-    this.supportedOnly = false;
+    this.supportedOnly = true;
     this.vre = /(\\\+?(\w+)\*?)\s?/gm;
 
     // deal with child nodes
@@ -621,13 +643,15 @@ function inherit(child, base, props) {
     };
 
     this.parseVerseImpl = function(str, ind, arr, re, node) {
+      if (node === null)
+        return;
+
       if (arr !== null) {
 
         // collect the available text
-        if (ind < arr.index && node !== null) {
+        if (ind < arr.index) {
           childTextNode(node, str, ind, arr.index);
         }
-
         var tag = arr[1];
         if (TH.isOpening(tag)) {
           var compundNode = NH.createCompound(tag, node);
@@ -657,7 +681,7 @@ function inherit(child, base, props) {
         }
       } else {
         // collect remaining text
-        if (ind < str.length && node !== null) {
+        if (ind < str.length) {
           childTextNode(node, str, ind, str.length);
         }
       }
@@ -686,7 +710,8 @@ function inherit(child, base, props) {
         if (verseStart !== 0) {
           var v = this.parseVerse(vstr);
           v.number = parseInt(vn);
-          v.np = np;
+          if (np === true)
+            v.np = np;
           chap.addVerse(v);
         }
 
@@ -707,9 +732,7 @@ function inherit(child, base, props) {
     this.parseBookImpl = function(str, book) {
       var re = /\\c\s+(\d+)/gm;
       var arr = re.exec(str);
-      var lastIndex = 0,
-        cstr = '',
-        cn = '';
+      var lastIndex = 0, cstr = '', cn = '';
       if (arr !== null) {
         var header = str.substring(0, arr.index);
         extractHeader(header, book);
@@ -796,34 +819,30 @@ function inherit(child, base, props) {
     var bible = new Bible();
     files.forEach(function(file) {
       try {
-        bible.addBook(loadBook(dir + file));
+        var book = loadBook(dir + file);
+        bible.addBook(book);
       }
       catch (e) {
-        log.error('"%s" file processing failed. Error: %s', file, e);
-        throw e;
+        log.error('"%s" file processing failed. Error: %s', file, e.message);
       }
     });
-
     return bible;
   };
 
 
-
   var Renderer = function() {
+    this.cache = new Buffer(6 * 1024 * 1024);
+    this.offset = 0;
+    this.toBuffer = function(str) {
+      var written = this.cache.write(str, this.offset);
+      this.offset += written;
+    };
+    this.toString = function() {
+      var offset = this.offset;
+      this.offset = 0;
+      return this.cache.toString('utf8', 0, offset);
+    };
   };
-
-  // function renderNodeCommon(renderer, node) {
-  //   var res = '';
-
-  //   if (node.nodes === null)
-  //     return res;
-
-  //   // combine the result of child nodes
-  //   node.nodes.forEach(function(n) {
-  //     res += renderer.renderNode() n.render(renderer);
-  //   });
-  //   return res;
-  // }
 
   // These functions `SHOULD BE` overridden in the derived classes
   Renderer.prototype.renderOpenTag        = function(tag)   {};
@@ -836,33 +855,77 @@ function inherit(child, base, props) {
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode    = function(node)  {
-    if (NH.isText(node))
-      return node.text;
+    if (NH.isText(node)) {
+      this.toBuffer(node.text);
+      return;
+    }
+
+    if (node.tag !== '') {
+      this.toBuffer(node.tag + ' ');
+    }
 
     var that = this;
-    var res = '';
-    node.nodes.forEach(function(n) {
-      res += that.renderNode(n);
-    });
+    if (node.nodes.constructor === Array) {
+      node.nodes.forEach(function(n) {
+        that.renderNode(n);
+      });
+    }
+    else {
+      this.renderNode(node.nodes);
+    }
 
     if (node.tag === '')
-      return res;
-    return node.tag + ' ' + res + node.tag + '*';
+      return;
+    this.toBuffer(node.tag + '*');
   };
 
-  Renderer.prototype.renderVerse   = function(verse)  {
-    var prefix = '';
-    if (verse.np === true)
-      prefix = TAG.P + LF;
-    return prefix + TAG.V + ' ' + verse.number + ' ' + this.renderNode(verse.node);
+
+  Renderer.prototype.renderVerse   = function(verse, buff) {
+    if (!_.isUndefined(verse.np)) {
+      this.toBuffer(TAG.P + LF);
+    }
+
+    this.toBuffer(TAG.V + ' ' + verse.number + ' ');
+    this.renderNode(verse.node);
+
+    if (_.isUndefined(buff)) {
+      return this.toString();
+    }
   };
 
-  Renderer.prototype.renderChapter = function(chapter) {
+  Renderer.prototype.renderChapter = function(chapter, buff) {
+    this.toBuffer(TAG.C);
+    this.toBuffer(' ');
+    this.toBuffer(chapter.number.toString());
 
+    var self = this;
+    chapter.verses.forEach(function(v) {
+      self.toBuffer(LF);
+      self.renderVerse(v, self.cache);
+    });
+
+    if (_.isUndefined(buff)) {
+      return this.toString();
+    }
   };
 
-  Renderer.prototype.renderBook    = function(book) {
+  Renderer.prototype.renderBook    = function(book, buff) {
+    // var res = '';
+    // res += TAG.ID   + ' ' + book.id   + ' ' + book.name + LF;
+    // res += TAG.H    + ' ' + book.name + LF;
+    // res += TAG.TOC1 + ' ' + book.desc + LF;
+    // res += TAG.TOC2 + ' ' + book.name + LF;
+    // res += TAG.TOC3 + ' ' + book.abbr + LF;
+    // res += TAG.MT   + ' ' + book.desc;
+    var self = this;
+    book.chapters.forEach(function(c) {
+      self.toBuffer(LF);
+      self.renderChapter(c, self.cache);
+    });
 
+    if (_.isUndefined(buff)) {
+      return this.toString();
+    }
   };
 
   Renderer.prototype.renderBible   = function(bible) {

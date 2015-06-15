@@ -27,7 +27,7 @@
   // var verse = parser.parseVerse(orig);
   // verse.validate();
 
-  //var usfmRender = new lb.USFMRenderer();
+  var usfmRender = new lb.USFMRenderer();
   //console.log(usfmRender.renderVerse(verse));
 
 
@@ -60,6 +60,19 @@
     bible = lb.loadBible(cfg.cfg.en_kjv_usfm().from);
   }
   bench.end();
+
+  var book = bible.getBook('GEN');
+  var chap = book.getChapter(1);
+  var verse = chap.getVerse(2);
+  // log.info(verse.render(usfmRender));
+  // log.info(chap.render(usfmRender));
+
+  bench.begin('rendering benchmark');
+  for (i = 0; i < 100; ++i) {
+    book.render(usfmRender);
+  }
+  bench.end();
+
   // lb.saveBible(folder);
 
 }());
