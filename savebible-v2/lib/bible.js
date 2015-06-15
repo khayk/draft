@@ -1,11 +1,12 @@
-var fs   = require('fs');
-var path = require('path');
-var _    = require('lodash');
-var util = require('util');
+var fs     = require('fs');
+var path   = require('path');
+var _      = require('lodash');
+var util   = require('util');
 
-var help = require('./../helpers');
+var help   = require('./../helpers');
+var idsmap = require('./idsmap.js');
 
-var log  = require('log4js').getLogger('bib');
+var log    = require('log4js').getLogger('bib');
 
 
 function inherit(child, base, props) {
@@ -20,6 +21,145 @@ function inherit(child, base, props) {
 ;(function() {
   'use strict';
 
+
+  // -----------------------------------------------------------------------
+  //                             BBMEntry
+  // -----------------------------------------------------------------------
+
+  var BBM_TYPE_OLD = 1;
+  var BBM_TYPE_NEW = 2;
+  var BBM_TYPE_ADD = 3;
+  var BBM_TYPE_SEC = 4;
+
+  var BBMEntry = function(id, index, abbr, type) {
+    if (!type || type < BBM_TYPE_OLD || type > BBM_TYPE_SEC)
+      throw 'invalid Bible book mapping entry type: ' + type;
+
+    this.id = id;        // book unique id
+    this.index = index;  // book order number
+    this.abbr = abbr;    // book abbreviation
+    this.type = type;    // 1 - old, 2 - new, 3 - additional
+  };
+
+  // -----------------------------------------------------------------------
+  //                   BBM (bible books mapping)
+  // -----------------------------------------------------------------------
+  var BBM = (function() {
+    var instance_; // instance stores a reference to the Singleton
+
+    function init() {
+      var entries = [];
+      var byId = {}; // sorted by id
+      var byOn = {}; // sorted by order number (i.e. by index)
+
+      idsmap.idsmap.forEach(function(e) {
+        var obj = new BBMEntry(e.id, e.index, e.abbr, e.type);
+        entries.push(obj);
+      });
+
+      // sort entries in by index
+      entries.sort(function(x, y) {
+        return x.index - y.index;
+      });
+
+      // initialize maps
+      entries.forEach(function(e, i) {
+        byId[e.id] = i;
+        byOn[e.index] = i;
+      });
+
+      var advance = function(id, delta) {
+        var ref = instance_.entryById(id);
+        if (ref) {
+          ref = instance_.entryByOn(ref.index + delta);
+          if (ref)
+            return ref.id;
+        }
+        return null;
+      };
+
+      return {
+        // get an entry by given id
+        entryById: function(id) {
+          var ref = byId[id];
+          if (_.isUndefined(ref))
+            return null;
+          return entries[ref];
+        },
+
+        // get entries by order number (i.e. by index)
+        entryByOn: function(on) {
+          var ref = byOn[on];
+          if (_.isUndefined(ref))
+            return null;
+          return entries[ref];
+        },
+
+        // entries count
+        numEntries: function() {
+          return entries.length;
+        },
+
+        onById: function(id) {
+          var ref = this.entryById(id);
+          if (ref === null) {
+            return 0;
+          }
+          return ref.index;
+        },
+
+        idByOn: function(on) {
+          var ref = this.entryByOn(on);
+          if (ref === null)
+            return ref;
+          return ref.id;
+        },
+
+        // check if entry with given id exists
+        existsId: function(id) {
+          if (_.isUndefined(byId[id]))
+            return false;
+          return true;
+        },
+
+        // return entries sorted by order number
+        entries: function() {
+          return entries;
+        },
+
+        // return ids collection
+        ids: function() {
+          return byId;
+        },
+
+        // return order numbers collection
+        ons: function() {
+          return byOn;
+        },
+
+        // @returns id that come after the entry with specified id,
+        //          null if there are no more entries
+        nextId: function(id) {
+          return advance(id, 1);
+        },
+
+        // @returns id that stands before the entry with specified id.
+        //          null returned if there are no more entries
+        prevId: function(id) {
+          return advance(id, -1);
+        }
+      };
+    }
+
+    return {
+      instance: function() {
+        if (!instance_) {
+          instance_ = init();
+        }
+        return instance_;
+      }
+    };
+  })();
 
   // all tags should be presented here
   var TAG = {
@@ -148,8 +288,61 @@ function inherit(child, base, props) {
     this.node   = NH.createCompound('', null);
   };
 
-  Verse.prototype.validate = function() {
+  Verse.prototype = {
+    // construct id that will uniquely identify verse in the scope of
+    // the whole bible
+    id: function() {
+      if (this.parent === null) {
+        return 'null 0: ' + this.number;
+      }
+      return this.parent.id() + ':' + this.number;
+    },
 
+    // get reference {ix: book unchangable index, cn: chapter number, vn: verse number}
+    ref: function() {
+      if (this.parent === null) {
+        return {ix: 0, cn: 0, vn: this.vn()};
+      }
+      var t = this.parent.ref();
+      t.vn = this.vn();
+      return t;
+    },
+
+    vn: function() {
+      return this.number;
+    },
+
+    // retuns the chapter number that holds this verse, if no parent 0 returned
+    cn: function() {
+      if (this.parent)
+        return this.parent.number;
+      return 0;
+    },
+
+    // returns id of the book, that holds this verse, if no parent null returned
+    bid: function() {
+      if (this.parent)
+        return this.parent.bid();
+      return '';
+    },
+
+    // return the next verse of the chapter containing current verse
+    next: function() {
+      if (this.parent)
+        return this.parent.getVerse(this.number + 1);
+      return null;
+    },
+
+    // return the previous verse of the chapter containing current verse
+    prev: function() {
+      if (this.parent)
+        return this.parent.getVerse(this.number - 1);
+      return null;
+    },
+
+    render: function(renderer) {
+      return renderer.renderVerse(this);
+    }
   };
 
 
@@ -159,9 +352,221 @@ function inherit(child, base, props) {
     this.verses = [];
   };
 
+  Chapter.prototype = {
+    id: function() {
+      if (this.parent === null) {
+        return 'null ' + this.number;
+      }
+      return this.parent.id + ' ' + this.number;
+    },
+
+    // get reference {ix: book unchangable index, cn: chapter number, vn: verse number}
+    ref: function() {
+      if (this.parent === null) {
+        return {ix: 0, cn: this.number, vn: 0};
+      }
+      var t = this.parent.ref();
+      t.cn = this.number;
+      return t;
+    },
+
+    // return book id containing current verse
+    bid: function() {
+      if (this.parent) {
+        return this.parent.id;
+      }
+      return '';
+    },
+
+    // return the next chapter in the book containing current chapter
+    // return null there are no more
+    next: function() {
+      if (this.parent)
+        return this.parent.getChapter(this.number + 1);
+      return null;
+    },
+
+    // return the previous chapter in the book containing current chapter
+    // return null there are no more
+    prev: function() {
+      if (this.parent)
+        return this.parent.getChapter(this.number - 1);
+      return null;
+    },
+
+    numVerses: function() {
+      return this.verses.length;
+    },
+
+    // insert verse into chapter, throw exception if something went wrong
+    addVerse: function(verse) {
+      verse.parent = this;
+      if (verse.number <= this.numVerses())
+        throw 'Attempt to overwrite existing verse ' + verse.id();
+
+      if ( verse.number - this.numVerses() !== 1 ) {
+        console.warn('detected verse gap while adding verse ' + verse.id());
+        while (verse.number - this.numVerses() > 1) {
+          // add empty verses to fill gap
+          var dummy = new Verse();
+          dummy.parent = this;
+          dummy.number = this.numVerses() + 1;
+          this.verses.push(dummy);
+        }
+      }
+      this.verses.push(verse);
+      return this;
+    },
+
+    getVerse: function(number) {
+      if (number > this.numVerses() || number < 1) {
+        return null;
+      }
+      return this.verses[number - 1];
+    },
+
+    addHeading: function(text) {
+      var loc = this.verses.length;
+      if (_.isUndefined(this.heading[loc]))
+        this.heading[loc] = [];
+      this.heading[loc].push(text);
+    },
+
+    render: function(renderer) {
+      return renderer.renderChapter(this);
+    }
+  };
 
   var Book = function() {
     this.parent   = null;
+    this.index    = 0;    // predefined index from idsmap, unchangeble value
+    this.id       = '';
+    this.abbr     = '';
+    this.name     = '';
+    this.lname    = '';
+    this.desc     = '';
+    this.chapters = [];
+    this.preface  = [];
+  };
+
+  Book.prototype = {
+
+    // get reference {ix: book unchangable index, cn: chapter number, vn: verse number}
+    ref: function() {
+      return {ix: this.index, cn: 0, vn: 0};
+    },
+
+    // return the next book of the bible
+    // return null there are no more
+    next: function() {
+      if (this.parent) {
+        var tocItem = this.parent.getToc().nextItem(this.id);
+        if (tocItem)
+          return this.parent.getBook(tocItem.id);
+      }
+      return null;
+    },
+
+    // return the previous book of the bible
+    // return null there are no more
+    prev: function() {
+      if (this.parent) {
+        var tocItem = this.parent.getToc().prevItem(this.id);
+        if (tocItem)
+          return this.parent.getBook(tocItem.id);
+      }
+      return null;
+    },
+
+    numChapters: function() {
+      return this.chapters.length;
+    },
+
+    addChapter: function(chapter) {
+      chapter.parent = this;
+      if ( chapter.number - this.numChapters() !== 1 ) {
+        throw 'detected chapter gap while adding ' + chapter.id();
+      }
+      this.chapters.push(chapter);
+      return this;
+    },
+
+    getChapter: function(number) {
+      if (number < 1 || number > this.numChapters())
+        return null;
+      return this.chapters[number - 1];
+    },
+
+    render: function(renderer) {
+      return renderer.renderBook(this);
+    }
+
+    // getVerse: function(cn, vn) {
+    //   if (cn > this.chapters.length || cn < 1)
+    //     throw 'invalid chapter for book \"' + this.id + '\": [' + cn + '/' + this.chapters.length + ']';
+    //   return this.chapters[cn - 1].getVerse(vn);
+    // }
+  };
+
+  var Bible = function() {
+    this.ids     = {};
+    this.books   = [];
+    this.abbr    = '';
+    this.name    = '';
+    this.desc    = '';
+    this.year    = '';
+    this.lang    = '';
+    //this.toc     = new TableOfContent();
+  };
+
+  Bible.prototype.render = function(renderer) {
+    return renderer.renderBible(this);
+  };
+
+  Bible.prototype.sort = function() {
+    this.books.sort(function(x, y) {
+      return BBM.instance().entryById(x.id).index - BBM.instance().entryById(y.id).index;
+    });
+
+    var self = this;
+    this.books.forEach(function(b, i) {
+      self.ids[b.id] = i;
+    });
+  };
+
+  // returns books count in the bible
+  Bible.prototype.numBooks = function() {
+    return this.books.length;
+  };
+
+  // add book into bible if it is not added already. duplicate book insertion
+  // will raise an exception
+  Bible.prototype.addBook = function(book) {
+    // make sure that the new book is not exist in the instance of bible
+    if (!_.isUndefined(this.ids[book.id]))
+      throw 'book ' + book.id + ' is already exist in the bible';
+
+    book.parent = this;
+    this.books.push(book);
+    this.ids[book.id] = this.books.length - 1;
+
+    // this.toc.addItem(new TocItem(book.id,
+    //                              book.abbr,
+    //                              book.name,
+    //                              book.lname,
+    //                              book.desc));
+    return this;
+  };
+
+  Bible.prototype.getBook = function(id) {
+    var ref = this.ids[id];
+    if (_.isUndefined(ref))
+      return null;
+    return this.books[ref];
+  };
+
+  Bible.prototype.getToc = function() {
+    return this.toc;
   };
 
 
@@ -175,6 +580,44 @@ function inherit(child, base, props) {
       if (text.length > 0) {
         node.addChild(NH.createText(text, node));
       }
+    };
+
+    var extractHeader = function(header, book) {
+      // extract book headers
+      var re = /(\\\w+)\s+(.*)/gm;
+      var arr = null;
+      while ((arr = re.exec(header)) !== null) {
+        var tag = arr[1];
+        var str = arr[2];
+        if (tag === TAG.ID) {
+          arr = /(\w+)\s+(.+)/gm.exec(str);
+          if (arr === null)
+            throw 'failed to identify book id';
+          book.id = arr[1];
+          book.name = arr[2];
+        } else {
+          if (tag.indexOf(TAG.MT) !== -1 || tag === TAG.TOC1) {
+            book.desc = str.trim();
+          } else if (tag === TAG.TOC2 || tag === TAG.H) {
+            book.name = str.trim();
+          } else if (tag === TAG.TOC3) {
+            book.abbr = str.trim();
+          } else if (tag === TAG.IDE) {
+            if (str !== 'UTF-8')
+              console.warn('unknown encoding %s in %s book.', str, book.id);
+          } else {
+            if (tag.indexOf(TAG.IS) === -1)
+              console.warn('unknown tag \"%s\" in \"%s\" book.', tag, book.id);
+          }
+        }
+      }
+
+      var tmp = BBM.instance().entryById(book.id);
+      book.index = tmp.index;
+      if (!BBM.instance().existsId(book.id))
+        throw 'Invalid book id: ' + book.id;
+      if (book.abbr === '')
+        book.abbr = tmp.abbr;
     };
 
     this.parseVerseImpl = function(str, ind, arr, re, node) {
@@ -308,7 +751,7 @@ function inherit(child, base, props) {
              .trim();
 
     this.vre.lastIndex = 0;
-    var arr = this.vre.exec(str);
+    var arr = this.vre.exec(tmp);
 
     var verse = new Verse();
     this.parseVerseImpl(tmp, 0, arr, this.vre, verse.node);
@@ -357,6 +800,7 @@ function inherit(child, base, props) {
       }
       catch (e) {
         log.error('"%s" file processing failed. Error: %s', file, e);
+        throw e;
       }
     });
 

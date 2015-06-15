@@ -24,18 +24,11 @@
 
   var parser = new lb.Parser();
 
-  console.log(orig);
-  var verse = parser.parseVerse(orig);
-  verse.validate();
+  // var verse = parser.parseVerse(orig);
+  // verse.validate();
 
-
-  // var defRender = new lb.Renderer();
-  // console.log(util.inspect(defRender));
-  // console.log(util.inspect(defRender.__proto__));
-
-  var usfmRender = new lb.USFMRenderer();
-  //console.log(util.inspect(usfmRender.__proto__));
-  console.log(usfmRender.renderVerse(verse));
+  //var usfmRender = new lb.USFMRenderer();
+  //console.log(usfmRender.renderVerse(verse));
 
 
   // bench.begin('creating verses');
@@ -62,11 +55,11 @@
 
   //console.log(cfg.);
 
-  // bench.begin('reading bible from hdd');
-  // for (var i = 0 ; i < 10; ++i) {
-  //   bible = lb.loadBible(cfg.cfg.en_kjv_usfm().from);
-  // }
-  // bench.end();
+  bench.begin('reading bible from hdd');
+  for (var i = 0 ; i < 1; ++i) {
+    bible = lb.loadBible(cfg.cfg.en_kjv_usfm().from);
+  }
+  bench.end();
   // lb.saveBible(folder);
 
 }());
