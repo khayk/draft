@@ -18,12 +18,13 @@
   bench.begin('node ready');
   bench.end();
 
-  var tvs = dataUSFM.verses[0];
+  var tvs = dataUSFM.verses[3];
   var orig = tvs.data.orig;
   var parsed = tvs.data.parsed;
 
   var parser = new lb.Parser();
 
+  console.log(orig);
   var verse = parser.parseVerse(orig);
   verse.validate();
 
@@ -34,7 +35,8 @@
 
   var usfmRender = new lb.USFMRenderer();
   //console.log(util.inspect(usfmRender.__proto__));
-  usfmRender.renderVerse(verse);
+  console.log(usfmRender.renderVerse(verse));
+
 
   // bench.begin('creating verses');
   // var arr= [];
@@ -61,7 +63,9 @@
   //console.log(cfg.);
 
   // bench.begin('reading bible from hdd');
-  // bible = lb.loadBible(cfg.en_kjv_usfm().from);
+  // for (var i = 0 ; i < 10; ++i) {
+  //   bible = lb.loadBible(cfg.cfg.en_kjv_usfm().from);
+  // }
   // bench.end();
   // lb.saveBible(folder);
 
