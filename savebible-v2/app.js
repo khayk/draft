@@ -26,9 +26,9 @@
   var orig       = tvs.data.orig;
   var parsed     = tvs.data.parsed;
 
-  //var verse = parser.parseVerse(orig);
-  //console.log(verse.render(usfmRender));
-  //return;
+  // var verse = parser.parseVerse(orig);
+  // console.log(verse.render(usfmRender));
+  // return;
 
   // var textRender = new lb.TextRenderer();
   // textRender.renderVerse(verse);
@@ -63,11 +63,11 @@
   //log.info(chap.render(usfmRender));
 
 
-  // bench.begin('rendering benchmark');
-  // for (i = 0; i < 100; ++i) {
-  //   book.render(usfmRender);
-  // }
-  // bench.end();
+  bench.begin('rendering benchmark');
+  for (i = 0; i < 100; ++i) {
+    book.render(usfmRender);
+  }
+  bench.end();
 
   // lb.saveBible(folder);
 

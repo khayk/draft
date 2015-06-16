@@ -856,6 +856,52 @@ var USFMParser = function(supportedOnly) {
     }
   };
 
+/*
+  // helps to perform verse parsing
+  // parses str in USFM format and fill node object as an output
+  this.parseVerseHelper = function (str, ind, arr, re, xnode) {
+    var stack = [], node = null;
+    stack.push(xnode);
+
+    while (true) {
+      node = stack[stack.length - 1];
+      if (arr !== null) {
+        // collect the available text
+        if (ind < arr.index && node !== null) {
+          childTextNode(node, str, ind, arr.index);
+        }
+
+        var tag = arr[1];
+        if (Tags.isOpening(tag)) {
+          var compoundNode = new CompoundNode(tag, node);
+
+          // collect supported tags
+          if (this.supportedOnly === false) {
+            node.addChild(compoundNode);
+          } else if (Tags.isSupported(tag)) {
+            node.addChild(compoundNode);
+          }
+
+          ind = arr.index + arr[0].length;
+          arr = re.exec(str);
+          stack.push(compoundNode);
+        } else {
+          // closing tag
+          ind = arr.index + arr[1].length;
+          arr = re.exec(str);
+          stack.pop();
+        }
+      } else {
+        // collect remaining text
+        if (ind < str.length && node !== null) {
+          childTextNode(node, str, ind, str.length);
+        }
+        return;
+      }
+    }
+  };
+*/
+
   // helps to perform chapter parsing
   this.parseChapterHelper = function(str, chap) {
     var re = /((\\p)[\s\S]+?)?(\\v)(\s+)(\d+)/gm;
@@ -1154,6 +1200,11 @@ TextRenderer.prototype.renderNode = function(node) {
       !Tags.isSupported(node.tag) ) {
     return res;
   }
+  // if (_.isUndefined(node.parent) &&
+  //     NH.isCompound(node) &&
+  //     !Tags.isSupported(node.tag) ) {
+  //   return res;
+  // }
 
   res = renderNodeCommon(this, node);
   if (Tags.isTranslator(node.tag))

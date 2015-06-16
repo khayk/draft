@@ -254,11 +254,10 @@ function inherit(child, base, props) {
 
   // Node base class, all verses stored as nodes in a tree like structure
   var Node = function(parent) {
-    this.parent = parent;
   };
 
   Node.prototype.addChild = function(node) {
-    if (this.nodes === null)
+    if (_.isUndefined(this.nodes))
       this.nodes = node;
     else {
       if (this.nodes.constructor !== Array) {
@@ -273,7 +272,7 @@ function inherit(child, base, props) {
   var NH = (function() {
     return {
       isCompound: function(node) {
-        if (!_.isUndefined(node.nodes))
+        if (!_.isUndefined(node.tag))
           return true;
         return false;
       },
@@ -287,7 +286,6 @@ function inherit(child, base, props) {
       createCompound: function(tag, parent) {
         var node = new Node(parent);
         node.tag = tag;
-        node.nodes = null;
         return node;
       },
 
@@ -298,7 +296,7 @@ function inherit(child, base, props) {
       },
 
       normalize: function(node) {
-        if (node === null || node.nodes === null || NH.isText(node))
+        if (node === null || _.isUndefined(node.nodes) || NH.isText(node))
           return;
 
         var current = null;
@@ -744,96 +742,44 @@ function inherit(child, base, props) {
         book.abbr = tmp.abbr;
     };
 
-    // this.parseVerseImpl = function(str, ind, arr, re, node) {
-    //   if (node === null)
-    //     return;
+    this.parseVerseImpl = function(str, ind, arr, re, xnode) {
+      var stack = [], node;
+      stack.push(xnode);
 
-    //   if (arr !== null) {
-
-    //     // collect the available text
-    //     if (ind < arr.index) {
-    //       childTextNode(node, str, ind, arr.index);
-    //     }
-    //     var tag = arr[1];
-    //     if (TH.isOpening(tag)) {
-    //       var compundNode = NH.createCompound(tag, node);
-
-    //       // collect supported tags
-    //       if (this.supportedOnly === false) {
-    //         node.addChild(compundNode);
-    //       } else if (TH.isSupported(tag)) {
-    //         node.addChild(compundNode);
-    //       }
-
-    //       ind = arr.index + arr[0].length;
-    //       arr = re.exec(str);
-    //       this.parseVerseImpl(str, ind, arr, re, compundNode);
-    //     } else {
-    //       // closing tag
-    //       ind = arr.index + arr[1].length;
-    //       arr = re.exec(str);
-
-    //       // search for the first matched opening tag
-    //       // remove last character as the current tag ends with symbol *
-    //       tag = tag.slice(0, -1);
-    //       while (node !== null && node.tag !== tag) {
-    //         node = node.parent;
-    //       }
-    //       this.parseVerseImpl(str, ind, arr, re, node !== null ? node.parent : node);
-    //     }
-    //   } else {
-    //     // collect remaining text
-    //     if (ind < str.length) {
-    //       childTextNode(node, str, ind, str.length);
-    //     }
-    //   }
-    // };
-
-
-    this.parseVerseImpl = function(str, ind, arr, re, node, parent) {
-
-      if (node === null)
-        return;
-
-      if (arr !== null) {
-
-        // collect the available text
-        if (ind < arr.index) {
-          childTextNode(node, str, ind, arr.index);
-        }
-
-        var tag = arr[1];
-        if (TH.isOpening(tag)) {
-          var compundNode = NH.createCompound(tag, node);
-
-          // collect supported tags
-          if (this.supportedOnly === false) {
-            node.addChild(compundNode);
-          } else if (TH.isSupported(tag)) {
-            node.addChild(compundNode);
+      while (true) {
+        node = stack[stack.length - 1];
+        if (arr !== null) {
+          // collect the available text
+          if (ind < arr.index && node !== null) {
+            childTextNode(node, str, ind, arr.index);
           }
 
-          ind = arr.index + arr[0].length;
-          arr = re.exec(str);
-          this.parseVerseImpl(str, ind, arr, re, compundNode, node);
-        } else {
-          // closing tag
-          ind = arr.index + arr[1].length;
-          arr = re.exec(str);
+          var tag = arr[1];
+          if (TH.isOpening(tag)) {
+            var compoundNode = NH.createCompound(tag, node);
 
-          // // search for the first matched opening tag
-          // // remove last character as the current tag ends with symbol *
-          // tag = tag.slice(0, -1);
-          // while (node !== null && node.tag !== tag) {
-          //   node = node.parent;
-          // }
-          this.parseVerseImpl(str, ind, arr, re, parent, null);
-        }
-      }
-      else {
-        // collect remaining text
-        if (ind < str.length) {
-          childTextNode(node, str, ind, str.length);
+            // collect supported tags
+            if (this.supportedOnly === false) {
+              node.addChild(compoundNode);
+            } else if (Tags.isSupported(tag)) {
+              node.addChild(compoundNode);
+            }
+
+            ind = arr.index + arr[0].length;
+            arr = re.exec(str);
+            stack.push(compoundNode);
+          } else {
+            // closing tag
+            ind = arr.index + arr[1].length;
+            arr = re.exec(str);
+            stack.pop();
+          }
+        } else {
+          // collect remaining text
+          if (ind < str.length && node !== null) {
+            childTextNode(node, str, ind, str.length);
+          }
+          return;
         }
       }
     };
@@ -926,9 +872,8 @@ function inherit(child, base, props) {
 
     this.vre.lastIndex = 0;
     var arr = this.vre.exec(tmp);
-
     var verse = new Verse();
-    this.parseVerseImpl(tmp, 0, arr, this.vre, verse.node, null);
+    this.parseVerseImpl(tmp, 0, arr, this.vre, verse.node);
     NH.normalize(verse.node);
     return verse;
   };
@@ -1007,19 +952,67 @@ function inherit(child, base, props) {
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode    = function(node)  {
+    if (!_.isUndefined(node.text))
+      return node.text;
+
+    var res = '', self = this;
+    if (!_.isUndefined(node.nodes)) {
+      // compound node with single node
+      if (node.nodes.constructor !== Array)
+        res = this.renderNode(node.nodes);
+      else {
+        node.nodes.forEach(function(n) {
+          res += self.renderNode(n);
+        });
+      }
+    }
+
+    if (node.tag === '')
+      return res;
+    return node.tag + ' ' + res + node.tag + '*';
   };
 
   Renderer.prototype.renderVerse   = function(verse) {
+    var prefix = '';
+    if (!_.isUndefined(verse.np))
+      prefix = TAG.P + LF;
+    return prefix + TAG.V + ' ' + verse.number + ' ' + this.renderNode(verse.node);
   };
 
   Renderer.prototype.renderChapter = function(chapter) {
+    var res = TAG.C + ' ' + chapter.number;
+    var self = this;
+    chapter.verses.forEach(function(v) {
+      res += LF + v.render(self);
+    });
+    return res;
   };
 
-  Renderer.prototype.renderBook    = function(book, buff) {
+  Renderer.prototype.renderBook    = function(book) {
+    var res = '';
+    res += TAG.ID   + ' ' + book.id   + ' ' + book.name + LF;
+    res += TAG.H    + ' ' + book.name + LF;
+    res += TAG.TOC1 + ' ' + book.desc + LF;
+    res += TAG.TOC2 + ' ' + book.name + LF;
+    res += TAG.TOC3 + ' ' + book.abbr + LF;
+    res += TAG.MT   + ' ' + book.desc;
+    var self = this;
+    book.chapters.forEach(function(c) {
+      res += LF + c.render(self);
+    });
+    return res;
   };
 
   Renderer.prototype.renderBible   = function(bible) {
+    var res = '';
+    var self = this;
 
+    bible.books.forEach(function(b) {
+      if (res !== '')
+        res += LF;
+      res += b.render(self);
+    });
+    return res;
   };
 
 
