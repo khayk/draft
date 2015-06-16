@@ -21,133 +21,156 @@ function inherit(child, base, props) {
 (function() {
   'use strict';
 
-  var LF = '\n'; // line feed
-  var CR = '\r'; // carriage return
+  // Constants for line ending
+  var LF   = '\n';                    // line feed
+  var CR   = '\r';                    // carriage return
+  var CRLF = '\r\n';
 
-  // -----------------------------------------------------------------------
-  //                             BBMEntry
-  // -----------------------------------------------------------------------
+  // Bible book types
+  var BOOK_TYPE_OLD = 1,              // old testament book
+      BOOK_TYPE_NEW = 2,              // new testament book
+      BOOK_TYPE_ADD = 3,              // additional book
+      BOOK_TYPE_SEC = 4;              // secondary book
 
 
-  var BBM_TYPE_OLD = 1;
-  var BBM_TYPE_NEW = 2;
-  var BBM_TYPE_ADD = 3;
-  var BBM_TYPE_SEC = 4;
+  /*------------------------------------------------------------------------*/
 
-  var BBMEntry = function(id, index, abbr, type) {
-    if (!type || type < BBM_TYPE_OLD || type > BBM_TYPE_SEC)
-      throw 'invalid Bible book mapping entry type: ' + type;
 
-    this.id = id;        // book unique id
-    this.index = index;  // book order number
-    this.abbr = abbr;    // book abbreviation
-    this.type = type;    // 1 - old, 2 - new, 3 - additional
+  // BBMRaw represents a single item into book descriptor file
+  //
+  // @param {string} id    book unique id
+  // @param {number} index book order number, ordering
+  // @param {string} abbr  book default abbraviation
+  // @param {string} type  book type, i.e. old, new testaments
+  //
+  var BBMItem = function(id, index, abbr, type) {
+    if (!type || type < BOOK_TYPE_OLD || type > BOOK_TYPE_SEC)
+      throw 'invalid Bible book mapping item type: ' + type;
+
+    this.id    = id;
+    this.index = parseInt(index);
+    this.abbr  = abbr;
+    this.type  = parseInt(type);
   };
 
-  // -----------------------------------------------------------------------
-  //                   BBM (bible books mapping)
-  // -----------------------------------------------------------------------
+
+  // Bible books mapping module,
   var BBM = (function() {
-    var instance_; // instance stores a reference to the Singleton
+    var instance_;        // instance stores a reference to the Singleton
+
 
     function init() {
-      var entries = [];
-      var byId = {}; // sorted by id
-      var byOn = {}; // sorted by order number (i.e. by index)
+      var items = [];
+      var byId  = {};     // sorted by id
+      var byOn  = {};     // sorted by order number (i.e. by index)
+
 
       idsmap.idsmap.forEach(function(e) {
-        var obj = new BBMEntry(e.id, e.index, e.abbr, e.type);
-        entries.push(obj);
+        var obj = new BBMItem(e.id, e.index, e.abbr, e.type);
+        items.push(obj);
       });
 
-      // sort entries in by index
-      entries.sort(function(x, y) {
+      items.sort(function(x, y) {
         return x.index - y.index;
       });
 
       // initialize maps
-      entries.forEach(function(e, i) {
-        byId[e.id] = i;
+      items.forEach(function(e, i) {
+        if (!_.isUndefined(byId[e.id]))
+          throw 'Duplicate book id in idsmap: ' + e.id;
+        byId[e.id]    = i;
+
+        if (!_.isUndefined(byOn[e.index]))
+          throw 'Duplicate index found in idsmap' + e.index;
         byOn[e.index] = i;
       });
 
+
       var advance = function(id, delta) {
-        var ref = instance_.entryById(id);
+        var ref = instance_.itemById(id);
         if (ref) {
-          ref = instance_.entryByOn(ref.index + delta);
+          ref = instance_.itemByOn(ref.index + delta);
           if (ref)
             return ref.id;
         }
         return null;
       };
 
+
       return {
-        // get an entry by given id
-        entryById: function(id) {
+
+        // @returns  bbm item for the book with given `id`
+        //           null if the book with given id does not exists
+        itemById: function(id) {
           var ref = byId[id];
           if (_.isUndefined(ref))
             return null;
-          return entries[ref];
+          return items[ref];
         },
 
-        // get entries by order number (i.e. by index)
-        entryByOn: function(on) {
+        // @returns  bbm item by order number (i.e. by index)
+        //           null if there is no such book with given order number
+        itemByOn: function(on) {
           var ref = byOn[on];
           if (_.isUndefined(ref))
             return null;
-          return entries[ref];
+          return items[ref];
         },
 
-        // entries count
-        numEntries: function() {
-          return entries.length;
+        // @returns  items count
+        numItems: function() {
+          return items.length;
         },
 
+        // @returns  book order number by id
+        //           0 if there is no such book with given id
         onById: function(id) {
-          var ref = this.entryById(id);
+          var ref = this.itemById(id);
           if (ref === null) {
             return 0;
           }
           return ref.index;
         },
 
+        // @returns  book id by order number
+        //           null if there is no such book with given order number
         idByOn: function(on) {
-          var ref = this.entryByOn(on);
+          var ref = this.itemByOn(on);
           if (ref === null)
             return ref;
           return ref.id;
         },
 
-        // check if entry with given id exists
+        // @returns  true if an item with given id exists
         existsId: function(id) {
           if (_.isUndefined(byId[id]))
             return false;
           return true;
         },
 
-        // return entries sorted by order number
-        entries: function() {
-          return entries;
+        // @return  items sorted by order number
+        items: function() {
+          return items;
         },
 
-        // return ids collection
+        // @returns  ids collection
         ids: function() {
           return byId;
         },
 
-        // return order numbers collection
+        // @returns  order numbers collection
         ons: function() {
           return byOn;
         },
 
-        // @returns id that come after the entry with specified id,
-        //          null if there are no more entries
+        // @returns  id that come after the item with specified id,
+        //           null if there are no more items
         nextId: function(id) {
           return advance(id, 1);
         },
 
-        // @returns id that stands before the entry with specified id.
-        //          null returned if there are no more entries
+        // @returns  id that stands before the entry with specified id.
+        //           null returned if there are no more items
         prevId: function(id) {
           return advance(id, -1);
         }
@@ -163,6 +186,10 @@ function inherit(child, base, props) {
       }
     };
   })();
+
+
+  /*------------------------------------------------------------------------*/
+
 
   // all tags should be presented here
   var TAG = {
@@ -186,9 +213,7 @@ function inherit(child, base, props) {
   };
 
 
-  // ------------------------------------------------------------------------
-  //                         TAG manipulation
-  // ------------------------------------------------------------------------
+  // TAG manipulation
   var TH = (function() {
     var supported  = /add|wj|nd|qt/;
     var translator = /add/;
@@ -224,7 +249,10 @@ function inherit(child, base, props) {
   })();
 
 
+  /*------------------------------------------------------------------------*/
 
+
+  // Node base class, all verses stored as nodes in a tree like structure
   var Node = function(parent) {
     this.parent = parent;
   };
@@ -302,6 +330,10 @@ function inherit(child, base, props) {
   })();
 
 
+  /*------------------------------------------------------------------------*/
+
+
+  // Bible verse model
   var Verse = function() {
     this.parent = null;
     this.number = 0;
@@ -309,8 +341,8 @@ function inherit(child, base, props) {
   };
 
   Verse.prototype = {
-    // construct id that will uniquely identify verse in the scope of
-    // the whole bible
+    // @returns  id that will uniquely identify verse in the scope of the
+    //           whole bible
     id: function() {
       if (this.parent === null) {
         return 'null 0: ' + this.number;
@@ -318,7 +350,9 @@ function inherit(child, base, props) {
       return this.parent.id() + ':' + this.number;
     },
 
-    // get reference {ix: book unchangable index, cn: chapter number, vn: verse number}
+    // @returns  Reference {ix: book unchangable index,
+    //                      cn: chapter number,
+    //                      vn: verse number}
     ref: function() {
       if (this.parent === null) {
         return {ix: 0, cn: 0, vn: this.vn()};
@@ -332,45 +366,76 @@ function inherit(child, base, props) {
       return this.number;
     },
 
-    // retuns the chapter number that holds this verse, if no parent 0 returned
+    // @retuns   Chapter number that holds this verse,
+    //           0 for isolated chapters
     cn: function() {
       if (this.parent)
         return this.parent.number;
       return 0;
     },
 
-    // returns id of the book, that holds this verse, if no parent null returned
+    // @returns  id of the book, that holds this verse,
+    //           empty string will be returned if no parent exists
     bid: function() {
       if (this.parent)
         return this.parent.bid();
       return '';
     },
 
-    // return the next verse of the chapter containing current verse
+    // @returns  The next verse of the chapter containing current verse
+    //           null if there is not any more verse after this one
     next: function() {
       if (this.parent)
         return this.parent.getVerse(this.number + 1);
       return null;
     },
 
-    // return the previous verse of the chapter containing current verse
+    // @returns  Previous verse of the chapter containing current verse
     prev: function() {
       if (this.parent)
         return this.parent.getVerse(this.number - 1);
       return null;
     },
 
+    // @returns  Representation of the verse rendered with the give renderer
     render: function(renderer) {
       return renderer.renderVerse(this);
     }
   };
 
 
+  // @param  {string} decodedRef  Object retrived by Verse.ref(),
+  //                              Expected input have a specified form
+  //                              { ix: number,
+  //                                cn: chapter number,
+  //                                vn: verse number }
+  // @returns  8 bytes lenght string of for 'XXCCCVVV'
+  function encodeRef(decodedRef) {
+    return padNumber(decodedRef.ix, 2) +
+      padNumber(decodedRef.cn, 3) +
+      padNumber(decodedRef.vn, 3);
+  }
+
+  // See encodeRef, this function performs opposite job of encodeRef
+  function decodeRef(encodedRef) {
+    return {
+      ix: parseInt(encodedRef.substr(0, 2)),
+      cn: parseInt(encodedRef.substr(2, 3)),
+      vn: parseInt(encodedRef.substr(5, 3))
+    };
+  }
+
+
+  /*------------------------------------------------------------------------*/
+
+
+  // Bible chapter model
   var Chapter = function() {
     this.parent = null;
     this.number = 0;
     this.verses = [];
   };
+
 
   Chapter.prototype = {
     id: function() {
@@ -380,7 +445,10 @@ function inherit(child, base, props) {
       return this.parent.id + ' ' + this.number;
     },
 
-    // get reference {ix: book unchangable index, cn: chapter number, vn: verse number}
+    // @returns  reference for the chapter
+    //           { ix: book unchangable index,
+    //             cn: chapter number,
+    //             vn: verse number }
     ref: function() {
       if (this.parent === null) {
         return {ix: 0, cn: this.number, vn: 0};
@@ -390,7 +458,7 @@ function inherit(child, base, props) {
       return t;
     },
 
-    // return book id containing current verse
+    // @returns  Book id containing current verse
     bid: function() {
       if (this.parent) {
         return this.parent.id;
@@ -398,27 +466,32 @@ function inherit(child, base, props) {
       return '';
     },
 
-    // return the next chapter in the book containing current chapter
-    // return null there are no more
+    // @return   Next chapter in the book containing current chapter
+    //           null there are no more
     next: function() {
       if (this.parent)
         return this.parent.getChapter(this.number + 1);
       return null;
     },
 
-    // return the previous chapter in the book containing current chapter
-    // return null there are no more
+    // @returns  Previous chapter in the book containing current chapter
+    //           null there are no more
     prev: function() {
       if (this.parent)
         return this.parent.getChapter(this.number - 1);
       return null;
     },
 
+    // @returns  Number of verses in the chapter
     numVerses: function() {
       return this.verses.length;
     },
 
-    // insert verse into chapter, throw exception if something went wrong
+    // Insert verse into the chapter, throw exception if something went wrong
+    //
+    // @param {object} verse  Bible verse object
+    // @returns               Reference to chapter object where the verse has
+    //                        been added
     addVerse: function(verse) {
       verse.parent = this;
       if (verse.number <= this.numVerses())
@@ -438,12 +511,15 @@ function inherit(child, base, props) {
       return this;
     },
 
+    // @param  {number} number  Verse number
+    // @return {object}         Verse object, null if no
     getVerse: function(number) {
       if (number > this.numVerses() || number < 1) {
         return null;
       }
       return this.verses[number - 1];
     },
+
 
     addHeading: function(text) {
       var loc = this.verses.length;
@@ -452,15 +528,19 @@ function inherit(child, base, props) {
       this.heading[loc].push(text);
     },
 
+    // @returns  Representation of the chapter rendered with the give renderer
     render: function(renderer) {
       return renderer.renderChapter(this);
     }
   };
 
 
+  /*------------------------------------------------------------------------*/
+
+
   var Book = function() {
     this.parent   = null;
-    this.index    = 0;    // predefined index from idsmap, unchangeble value
+    this.index    = 0;
     this.id       = '';
     this.abbr     = '';
     this.name     = '';
@@ -473,13 +553,15 @@ function inherit(child, base, props) {
 
   Book.prototype = {
 
-    // get reference {ix: book unchangable index, cn: chapter number, vn: verse number}
+    // @returns  Reference for the chapter
+    //           { ix: book unchangable index,
+    //             cn: chapter number,
+    //             vn: verse number }
     ref: function() {
       return {ix: this.index, cn: 0, vn: 0};
     },
 
-    // return the next book of the bible
-    // return null there are no more
+    // @return   Next book of the Bible, null if there are no more books
     next: function() {
       if (this.parent) {
         var tocItem = this.parent.getToc().nextItem(this.id);
@@ -489,8 +571,7 @@ function inherit(child, base, props) {
       return null;
     },
 
-    // return the previous book of the bible
-    // return null there are no more
+    // @return   Previous book of the Bible, null if there are no more books
     prev: function() {
       if (this.parent) {
         var tocItem = this.parent.getToc().prevItem(this.id);
@@ -500,10 +581,12 @@ function inherit(child, base, props) {
       return null;
     },
 
+    // @returns  Number of chapter in the book
     numChapters: function() {
       return this.chapters.length;
     },
 
+    // @todo:comment
     addChapter: function(chapter) {
       chapter.parent = this;
       if ( chapter.number - this.numChapters() !== 1 ) {
@@ -513,12 +596,14 @@ function inherit(child, base, props) {
       return this;
     },
 
+    // @todo:comment
     getChapter: function(number) {
       if (number < 1 || number > this.numChapters())
         return null;
       return this.chapters[number - 1];
     },
 
+    // @todo:comment
     render: function(renderer) {
       return renderer.renderBook(this);
     }
@@ -529,6 +614,10 @@ function inherit(child, base, props) {
     //   return this.chapters[cn - 1].getVerse(vn);
     // }
   };
+
+
+  /*------------------------------------------------------------------------*/
+
 
   var Bible = function() {
     this.ids     = {};
@@ -541,14 +630,20 @@ function inherit(child, base, props) {
     //this.toc     = new TableOfContent();
   };
 
+
   Bible.prototype.render = function(renderer) {
     return renderer.renderBible(this);
   };
 
-  Bible.prototype.sort = function() {
-    this.books.sort(function(x, y) {
-      return BBM.instance().entryById(x.id).index - BBM.instance().entryById(y.id).index;
-    });
+
+  Bible.prototype.reorder = function(fn) {
+    if (_.isUndefined(fn)) {
+      fn = function(x, y) {
+        return BBM.instance().itemById(x.id).index -
+               BBM.instance().itemById(y.id).index;
+      };
+    }
+    this.books.sort(fn);
 
     var self = this;
     this.books.forEach(function(b, i) {
@@ -556,11 +651,12 @@ function inherit(child, base, props) {
     });
   };
 
-  // returns books count in the bible
+  // @returns  Number of book in the Bible
   Bible.prototype.numBooks = function() {
     return this.books.length;
   };
 
+  // @todo:comment
   // add book into bible if it is not added already. duplicate book insertion
   // will raise an exception
   Bible.prototype.addBook = function(book) {
@@ -580,6 +676,7 @@ function inherit(child, base, props) {
     return this;
   };
 
+  // @todo:comment
   Bible.prototype.getBook = function(id) {
     var ref = this.ids[id];
     if (_.isUndefined(ref))
@@ -587,13 +684,18 @@ function inherit(child, base, props) {
     return this.books[ref];
   };
 
+  // @todo:comment
   Bible.prototype.getToc = function() {
     return this.toc;
   };
 
 
+  /*------------------------------------------------------------------------*/
+
+
+  // @todo:comment
   var Parser = function() {
-    this.supportedOnly = true;
+    this.supportedOnly = false;
     this.vre = /(\\\+?(\w+)\*?)\s?/gm;
 
     // deal with child nodes
@@ -634,7 +736,7 @@ function inherit(child, base, props) {
         }
       }
 
-      var tmp = BBM.instance().entryById(book.id);
+      var tmp = BBM.instance().itemById(book.id);
       book.index = tmp.index;
       if (!BBM.instance().existsId(book.id))
         throw 'Invalid book id: ' + book.id;
@@ -642,7 +744,54 @@ function inherit(child, base, props) {
         book.abbr = tmp.abbr;
     };
 
-    this.parseVerseImpl = function(str, ind, arr, re, node) {
+    // this.parseVerseImpl = function(str, ind, arr, re, node) {
+    //   if (node === null)
+    //     return;
+
+    //   if (arr !== null) {
+
+    //     // collect the available text
+    //     if (ind < arr.index) {
+    //       childTextNode(node, str, ind, arr.index);
+    //     }
+    //     var tag = arr[1];
+    //     if (TH.isOpening(tag)) {
+    //       var compundNode = NH.createCompound(tag, node);
+
+    //       // collect supported tags
+    //       if (this.supportedOnly === false) {
+    //         node.addChild(compundNode);
+    //       } else if (TH.isSupported(tag)) {
+    //         node.addChild(compundNode);
+    //       }
+
+    //       ind = arr.index + arr[0].length;
+    //       arr = re.exec(str);
+    //       this.parseVerseImpl(str, ind, arr, re, compundNode);
+    //     } else {
+    //       // closing tag
+    //       ind = arr.index + arr[1].length;
+    //       arr = re.exec(str);
+
+    //       // search for the first matched opening tag
+    //       // remove last character as the current tag ends with symbol *
+    //       tag = tag.slice(0, -1);
+    //       while (node !== null && node.tag !== tag) {
+    //         node = node.parent;
+    //       }
+    //       this.parseVerseImpl(str, ind, arr, re, node !== null ? node.parent : node);
+    //     }
+    //   } else {
+    //     // collect remaining text
+    //     if (ind < str.length) {
+    //       childTextNode(node, str, ind, str.length);
+    //     }
+    //   }
+    // };
+
+
+    this.parseVerseImpl = function(str, ind, arr, re, node, parent) {
+
       if (node === null)
         return;
 
@@ -652,6 +801,7 @@ function inherit(child, base, props) {
         if (ind < arr.index) {
           childTextNode(node, str, ind, arr.index);
         }
+
         var tag = arr[1];
         if (TH.isOpening(tag)) {
           var compundNode = NH.createCompound(tag, node);
@@ -665,21 +815,22 @@ function inherit(child, base, props) {
 
           ind = arr.index + arr[0].length;
           arr = re.exec(str);
-          this.parseVerseImpl(str, ind, arr, re, compundNode);
+          this.parseVerseImpl(str, ind, arr, re, compundNode, node);
         } else {
           // closing tag
           ind = arr.index + arr[1].length;
           arr = re.exec(str);
 
-          // search for the first matched opening tag
-          // remove last character as the current tag ends with symbol *
-          tag = tag.slice(0, -1);
-          while (node !== null && node.tag !== tag) {
-            node = node.parent;
-          }
-          this.parseVerseImpl(str, ind, arr, re, node !== null ? node.parent : node);
+          // // search for the first matched opening tag
+          // // remove last character as the current tag ends with symbol *
+          // tag = tag.slice(0, -1);
+          // while (node !== null && node.tag !== tag) {
+          //   node = node.parent;
+          // }
+          this.parseVerseImpl(str, ind, arr, re, parent, null);
         }
-      } else {
+      }
+      else {
         // collect remaining text
         if (ind < str.length) {
           childTextNode(node, str, ind, str.length);
@@ -777,7 +928,7 @@ function inherit(child, base, props) {
     var arr = this.vre.exec(tmp);
 
     var verse = new Verse();
-    this.parseVerseImpl(tmp, 0, arr, this.vre, verse.node);
+    this.parseVerseImpl(tmp, 0, arr, this.vre, verse.node, null);
     NH.normalize(verse.node);
     return verse;
   };
@@ -800,18 +951,27 @@ function inherit(child, base, props) {
   };
 
 
+  /*------------------------------------------------------------------------*/
+
+
+  // Load bible book from the specified file and construct Book object
+  //
+  // @param  {string} file  Name of file containing Bible book in a usfm format
+  // @return {object}       Book object
+  //
   var loadBook = function(file) {
     var parser = new Parser();
-    var str = fs.readFileSync(file, 'utf8');
-    var book = parser.parseBook(str);
+    var str    = fs.readFileSync(file, 'utf8');
+    var book   = parser.parseBook(str);
     return book;
   };
 
-  /**
-   * Load bible books from the specified directory and construct bible object
-   * @param  {string} dir directory containing usfm files
-   * @return {object}     bible object
-   */
+
+  // Load bible books from the specified directory and construct bible object
+  //
+  // @param  {string} dir directory containing usfm files
+  // @return {object}     bible object
+  //
   var loadBible = function(dir) {
     dir = path.normalize(dir + '/');
     var files = fs.readdirSync(dir, 'utf8');
@@ -830,18 +990,10 @@ function inherit(child, base, props) {
   };
 
 
+  /*------------------------------------------------------------------------*/
+
+
   var Renderer = function() {
-    this.cache = new Buffer(6 * 1024 * 1024);
-    this.offset = 0;
-    this.toBuffer = function(str) {
-      var written = this.cache.write(str, this.offset);
-      this.offset += written;
-    };
-    this.toString = function() {
-      var offset = this.offset;
-      this.offset = 0;
-      return this.cache.toString('utf8', 0, offset);
-    };
   };
 
   // These functions `SHOULD BE` overridden in the derived classes
@@ -855,82 +1007,23 @@ function inherit(child, base, props) {
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode    = function(node)  {
-    if (NH.isText(node)) {
-      this.toBuffer(node.text);
-      return;
-    }
-
-    if (node.tag !== '') {
-      this.toBuffer(node.tag + ' ');
-    }
-
-    var that = this;
-    if (node.nodes.constructor === Array) {
-      node.nodes.forEach(function(n) {
-        that.renderNode(n);
-      });
-    }
-    else {
-      this.renderNode(node.nodes);
-    }
-
-    if (node.tag === '')
-      return;
-    this.toBuffer(node.tag + '*');
   };
 
-
-  Renderer.prototype.renderVerse   = function(verse, buff) {
-    if (!_.isUndefined(verse.np)) {
-      this.toBuffer(TAG.P + LF);
-    }
-
-    this.toBuffer(TAG.V + ' ' + verse.number + ' ');
-    this.renderNode(verse.node);
-
-    if (_.isUndefined(buff)) {
-      return this.toString();
-    }
+  Renderer.prototype.renderVerse   = function(verse) {
   };
 
-  Renderer.prototype.renderChapter = function(chapter, buff) {
-    this.toBuffer(TAG.C);
-    this.toBuffer(' ');
-    this.toBuffer(chapter.number.toString());
-
-    var self = this;
-    chapter.verses.forEach(function(v) {
-      self.toBuffer(LF);
-      self.renderVerse(v, self.cache);
-    });
-
-    if (_.isUndefined(buff)) {
-      return this.toString();
-    }
+  Renderer.prototype.renderChapter = function(chapter) {
   };
 
   Renderer.prototype.renderBook    = function(book, buff) {
-    // var res = '';
-    // res += TAG.ID   + ' ' + book.id   + ' ' + book.name + LF;
-    // res += TAG.H    + ' ' + book.name + LF;
-    // res += TAG.TOC1 + ' ' + book.desc + LF;
-    // res += TAG.TOC2 + ' ' + book.name + LF;
-    // res += TAG.TOC3 + ' ' + book.abbr + LF;
-    // res += TAG.MT   + ' ' + book.desc;
-    var self = this;
-    book.chapters.forEach(function(c) {
-      self.toBuffer(LF);
-      self.renderChapter(c, self.cache);
-    });
-
-    if (_.isUndefined(buff)) {
-      return this.toString();
-    }
   };
 
   Renderer.prototype.renderBible   = function(bible) {
 
   };
+
+
+  /*------------------------------------------------------------------------*/
 
 
   var USFMRenderer = function() {
@@ -939,6 +1032,8 @@ function inherit(child, base, props) {
   inherit(USFMRenderer, Renderer);
 
 
+  /*------------------------------------------------------------------------*/
+
 
   var TextRenderer = function() {
     Renderer.call(this);
@@ -946,13 +1041,22 @@ function inherit(child, base, props) {
   inherit(TextRenderer, Renderer);
 
 
-  exports.loadBible    = loadBible;
+
+
+  exports.BBM          = BBM;
+
   exports.Verse        = Verse;
+  exports.Book         = Book;
+  exports.Chapter      = Chapter;
+  exports.Bible        = Bible;
   exports.Parser       = Parser;
 
   exports.Renderer     = Renderer;
   exports.USFMRenderer = USFMRenderer;
   exports.TextRenderer = TextRenderer;
+
+  exports.loadBook     = loadBook;
+  exports.loadBible    = loadBible;
 
 
 

@@ -35,7 +35,7 @@ var cfg = (function() {
 
   return {
     en_kjv_usfm: function() {
-      var name_ = 'zed';
+      var name_ = 'en-kjv-usfm+';
       return {
         name: name_,
         ext:  'usfm',

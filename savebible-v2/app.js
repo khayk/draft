@@ -1,11 +1,6 @@
 (function () {
   'use strict';
 
-  var dataUSFM = require('./test/dataUSFM.js');
-
-  var util   = require('util');
-  var fs     = require('fs');
-  var _      = require('lodash');
   var log4js = require('log4js');
 
   var cfg    = require('./config');
@@ -15,28 +10,25 @@
   var log    = log4js.getLogger('app');
   var bench  = new help.Benchmark();
 
+
   bench.begin('node ready');
   bench.end();
 
-  var tvs = dataUSFM.verses[3];
-  var orig = tvs.data.orig;
-  var parsed = tvs.data.parsed;
 
-  var parser = new lb.Parser();
-
-  // var verse = parser.parseVerse(orig);
-  // verse.validate();
-
+  var parser     = new lb.Parser();
   var usfmRender = new lb.USFMRenderer();
-  //console.log(usfmRender.renderVerse(verse));
+  var textRender = new lb.TextRenderer();
 
 
-  // bench.begin('creating verses');
-  // var arr= [];
-  // for (var i = 0 ; i < 35000; ++i) {
-  //   arr.push(new lb.Verse());
-  // }
-  // bench.end();
+
+  var dataUSFM = require('./test/dataUSFM.js');
+  var tvs        = dataUSFM.verses[3];
+  var orig       = tvs.data.orig;
+  var parsed     = tvs.data.parsed;
+
+  //var verse = parser.parseVerse(orig);
+  //console.log(verse.render(usfmRender));
+  //return;
 
   // var textRender = new lb.TextRenderer();
   // textRender.renderVerse(verse);
@@ -64,14 +56,18 @@
   var book = bible.getBook('GEN');
   var chap = book.getChapter(1);
   var verse = chap.getVerse(2);
-  // log.info(verse.render(usfmRender));
-  // log.info(chap.render(usfmRender));
 
-  bench.begin('rendering benchmark');
-  for (i = 0; i < 100; ++i) {
-    book.render(usfmRender);
-  }
-  bench.end();
+
+  //log.info(verse.render(usfmRender));
+
+  //log.info(chap.render(usfmRender));
+
+
+  // bench.begin('rendering benchmark');
+  // for (i = 0; i < 100; ++i) {
+  //   book.render(usfmRender);
+  // }
+  // bench.end();
 
   // lb.saveBible(folder);
 
