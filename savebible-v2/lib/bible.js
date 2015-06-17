@@ -776,9 +776,14 @@ function inherit(child, base, props) {
         book.abbr = tmp.abbr;
     };
 
-    this.parseVerseImpl = function(str, ind, arr, re, xnode) {
-      var stack = [], node;
-      stack.push(xnode);
+    this.parseVerseImpl = function(str, vnode) {
+      var ind = 0;
+      var arr = this.vre.exec(str);
+      var re  = this.vre;
+      var stack = [];
+      var node;
+
+      stack.push(vnode);
 
       while (true) {
         node = stack[stack.length - 1];
@@ -905,9 +910,8 @@ function inherit(child, base, props) {
              .trim();
 
     this.vre.lastIndex = 0;
-    var arr = this.vre.exec(tmp);
     var verse = new Verse();
-    this.parseVerseImpl(tmp, 0, arr, this.vre, verse.node);
+    this.parseVerseImpl(tmp, verse.node);
 
     //var before = verse.node.nodesCount();
     verse.node.normalize();

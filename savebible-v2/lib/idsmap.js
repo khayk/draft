@@ -1,4 +1,4 @@
-(function(exports){
+;(function(exports){
   exports.idsmap = [
     {"id":"GEN", "index": 1, "abbr":"Ge",   "type":1},
     {"id":"EXO", "index": 2, "abbr":"Ex",   "type":1},
