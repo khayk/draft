@@ -253,25 +253,89 @@ function inherit(child, base, props) {
 
 
   // Node base class, all verses stored as nodes in a tree like structure
-  var Node = function(parent) {
+  var Node = function() {
   };
 
   Node.prototype.addChild = function(node) {
-    if (_.isUndefined(this.nodes))
-      this.nodes = node;
+    if (this.firstChild() === null) {
+      this.first = node;
+      this.last  = node;
+    }
     else {
-      if (this.nodes.constructor !== Array) {
-        var arr = [];
-        arr.push(this.nodes);
-        this.nodes = arr;
+      this.last.next = node;
+      this.last = node;
+    }
+  };
+
+  Node.prototype.firstChild = function() {
+    if (_.isUndefined(this.first))
+      return null;
+    return this.first;
+  };
+
+  Node.prototype.getNext = function() {
+    if (_.isUndefined(this.next))
+      return null;
+    return this.next;
+  };
+
+  Node.prototype.haveNext = function() {
+    return !_.isUndefined(this.next);
+  };
+
+  Node.prototype.haveChild = function() {
+    return !_.isUndefined(this.first);
+  };
+
+  Node.prototype.nodesCount = function() {
+    var count = 1;
+    if (this.haveChild())
+      count += this.first.nodesCount();
+    if (this.haveNext())
+      count += this.next.nodesCount();
+    return count;
+  };
+
+  Node.prototype.normalize = function() {
+    if (!this.haveChild())
+      return;
+
+    var n = this.first, current = null;
+    while (n !== null) {
+      if (NH.isTag(n)) {
+        current = null;
+        n.normalize();
+      } else {
+        if (current === null)
+          current = n;
+        else {
+          current.text += n.text;
+          n.text = '';
+        }
       }
-      this.nodes.push(node);
+      n = n.getNext();
+    }
+
+    // now remove redundant nodes
+    n = this.first;
+    var prev = null;
+    while (n !== null) {
+      if (NH.isText(n) && n.text === '') {
+        if (prev === null)
+          this.first = n;
+        else if (n.haveNext())
+          prev.next = n.getNext();
+      }
+      else {
+        prev = n;
+      }
+      n = n.getNext();
     }
   };
 
   var NH = (function() {
     return {
-      isCompound: function(node) {
+      isTag: function(node) {
         if (!_.isUndefined(node.tag))
           return true;
         return false;
@@ -283,46 +347,16 @@ function inherit(child, base, props) {
         return false;
       },
 
-      createCompound: function(tag, parent) {
-        var node = new Node(parent);
+      createTag: function(tag) {
+        var node = new Node();
         node.tag = tag;
         return node;
       },
 
-      createText: function(text, parent) {
-        var node = new Node(parent);
+      createText: function(text) {
+        var node = new Node();
         node.text = text;
         return node;
-      },
-
-      normalize: function(node) {
-        if (node === null || _.isUndefined(node.nodes) || NH.isText(node))
-          return;
-
-        var current = null;
-        if (node.nodes.constructor === Array) {
-          node.nodes.forEach(function(n) {
-            if (NH.isCompound(n)) {
-              current = null;
-              NH.normalize(n);
-            } else {
-              if (current === null)
-                current = n;
-              else {
-                current.text += n.text;
-                n.text = '';
-              }
-            }
-          });
-
-          // now remove redundant nodes
-          node.nodes = node.nodes.filter(function(n) {
-            return !(NH.isText(n) && n.text === '');
-          });
-        }
-        else {
-          NH.normalize(node.nodes);
-        }
       }
     };
   })();
@@ -335,7 +369,7 @@ function inherit(child, base, props) {
   var Verse = function() {
     this.parent = null;
     this.number = 0;
-    this.node   = NH.createCompound('', null);
+    this.node   = NH.createTag('', null);
   };
 
   Verse.prototype = {
@@ -692,15 +726,15 @@ function inherit(child, base, props) {
 
 
   // @todo:comment
-  var Parser = function() {
-    this.supportedOnly = false;
+  var Parser = function(supportedOnly) {
+    this.supportedOnly = supportedOnly;
     this.vre = /(\\\+?(\w+)\*?)\s?/gm;
 
     // deal with child nodes
     var childTextNode = function (node, str, from, to) {
       var text = str.substring(from, to);
       if (text.length > 0) {
-        node.addChild(NH.createText(text, node));
+        node.addChild(NH.createText(text));
       }
     };
 
@@ -756,12 +790,12 @@ function inherit(child, base, props) {
 
           var tag = arr[1];
           if (TH.isOpening(tag)) {
-            var compoundNode = NH.createCompound(tag, node);
+            var compoundNode = NH.createTag(tag);
 
             // collect supported tags
             if (this.supportedOnly === false) {
               node.addChild(compoundNode);
-            } else if (Tags.isSupported(tag)) {
+            } else if (TH.isSupported(tag)) {
               node.addChild(compoundNode);
             }
 
@@ -874,7 +908,17 @@ function inherit(child, base, props) {
     var arr = this.vre.exec(tmp);
     var verse = new Verse();
     this.parseVerseImpl(tmp, 0, arr, this.vre, verse.node);
-    NH.normalize(verse.node);
+
+    //var before = verse.node.nodesCount();
+    verse.node.normalize();
+    //var after = verse.node.nodesCount();
+
+    // if (before > after) {
+    //   //console.log('nodes reduced by: %d', before - after);
+    // }
+    // else if (before < after)
+    //   console.log('WHAT????');
+
     return verse;
   };
 
@@ -934,6 +978,14 @@ function inherit(child, base, props) {
     return bible;
   };
 
+  // Save bible books to the specified directory by according to save rules
+  //
+  // @param  {object} bible  Bible object to be stored
+  // @param  {object} opts   Save options
+  // @param  {string} dir    Directory to save usfm files
+  var saveBible = function(bible, dir, opts) {
+
+  };
 
   /*------------------------------------------------------------------------*/
 
@@ -942,63 +994,72 @@ function inherit(child, base, props) {
   };
 
   // These functions `SHOULD BE` overridden in the derived classes
-  Renderer.prototype.renderOpenTag        = function(tag)   {};
-  Renderer.prototype.renderCloseTag       = function(tag)   {};
-  Renderer.prototype.renderOpenParagraph  = function(verse) {};
-  Renderer.prototype.renderCloseParagraph = function(verse) {};
-  Renderer.prototype.renderVerseNumber    = function(verse) {};
-  Renderer.prototype.renderChapterNumber  = function(chap)  {};
-  Renderer.prototype.renderBookHeader     = function(book)  {};
+  Renderer.prototype.renderOpenTag        = function(tag)   { throw 'implement renderOpenTag!'; };
+  Renderer.prototype.renderCloseTag       = function(tag)   { throw 'implement renderCloseTag!'; };
+  Renderer.prototype.renderOpenParagraph  = function(verse) { throw 'implement renderOpenParagraph!'; };
+  Renderer.prototype.renderCloseParagraph = function(verse) { throw 'implement renderCloseParagraph!'; };
+  Renderer.prototype.renderVerseEnd       = function(verse) { throw 'implement renderVerseEnd!'; };
+  Renderer.prototype.renderVerseNumber    = function(verse) { throw 'implement renderVerseNumber!'; };
+  Renderer.prototype.renderChapterEnd     = function(verse) { throw 'implement renderChapterEnd!'; };
+  Renderer.prototype.renderChapterNumber  = function(chap)  { throw 'implement renderChapterNumber!'; };
+  Renderer.prototype.renderBookHeader     = function(book)  { throw 'implement renderBookHeader!'; };
+  Renderer.prototype.renderBookEnd        = function(book)  { throw 'implement renderBookEnd!'; };
+
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode    = function(node)  {
-    if (!_.isUndefined(node.text))
-      return node.text;
-
-    var res = '', self = this;
-    if (!_.isUndefined(node.nodes)) {
-      // compound node with single node
-      if (node.nodes.constructor !== Array)
-        res = this.renderNode(node.nodes);
-      else {
-        node.nodes.forEach(function(n) {
-          res += self.renderNode(n);
-        });
+    var res = '', tail = '';
+    if (NH.isText(node))
+      res += node.text;
+    else {
+      if (node.tag !== '') {
+        res += this.renderOpenTag(node.tag);
+        tail = this.renderCloseTag(node.tag);
       }
     }
 
-    if (node.tag === '')
-      return res;
-    return node.tag + ' ' + res + node.tag + '*';
+    if (node.haveChild())
+      res += this.renderNode(node.first);
+
+    res += tail;
+
+    if (node.haveNext())
+      res += this.renderNode(node.next);
+    return res;
   };
 
   Renderer.prototype.renderVerse   = function(verse) {
-    var prefix = '';
-    if (!_.isUndefined(verse.np))
-      prefix = TAG.P + LF;
-    return prefix + TAG.V + ' ' + verse.number + ' ' + this.renderNode(verse.node);
+    return this.renderVerseNumber(verse) + this.renderNode(verse.node);
   };
 
   Renderer.prototype.renderChapter = function(chapter) {
-    var res = TAG.C + ' ' + chapter.number;
+    var res = this.renderChapterNumber(chapter);
     var self = this;
+
+    var popen  = '';
+    var pclose = '';
+
     chapter.verses.forEach(function(v) {
-      res += LF + v.render(self);
+      if (!_.isUndefined(v.np)) {
+        popen  = self.renderOpenParagraph(v);
+        pclose = self.renderCloseParagraph(v);
+      }
+      else {
+        popen  = '';
+        pclose = '';
+      }
+
+      res += (popen + self.renderVerse(v) + pclose + self.renderVerseEnd(v));
     });
     return res;
   };
 
   Renderer.prototype.renderBook    = function(book) {
-    var res = '';
-    res += TAG.ID   + ' ' + book.id   + ' ' + book.name + LF;
-    res += TAG.H    + ' ' + book.name + LF;
-    res += TAG.TOC1 + ' ' + book.desc + LF;
-    res += TAG.TOC2 + ' ' + book.name + LF;
-    res += TAG.TOC3 + ' ' + book.abbr + LF;
-    res += TAG.MT   + ' ' + book.desc;
+    var res = this.renderBookHeader(book);
     var self = this;
     book.chapters.forEach(function(c) {
-      res += LF + c.render(self);
+      res += self.renderChapter(c);
+      res += self.renderChapterEnd(c);
     });
     return res;
   };
@@ -1008,9 +1069,8 @@ function inherit(child, base, props) {
     var self = this;
 
     bible.books.forEach(function(b) {
-      if (res !== '')
-        res += LF;
-      res += b.render(self);
+      res += self.renderBook(b);
+      res += self.renderBookEnd(b);
     });
     return res;
   };
@@ -1024,6 +1084,53 @@ function inherit(child, base, props) {
   };
   inherit(USFMRenderer, Renderer);
 
+  USFMRenderer.prototype.renderOpenTag = function(tag) {
+    return tag + ' ';
+  };
+
+  USFMRenderer.prototype.renderCloseTag = function(tag) {
+    return tag + '*';
+  };
+
+  USFMRenderer.prototype.renderOpenParagraph = function(verse) {
+    return TAG.P + LF;
+  };
+
+  USFMRenderer.prototype.renderCloseParagraph = function(verse) {
+    return '';
+  };
+
+  USFMRenderer.prototype.renderVerseEnd = function(verse) {
+    return LF;
+  };
+
+  USFMRenderer.prototype.renderVerseNumber = function(verse) {
+    return TAG.V + ' ' + verse.number + ' ';
+  };
+
+  USFMRenderer.prototype.renderChapterEnd = function(verse) {
+    return '';
+  };
+
+  USFMRenderer.prototype.renderChapterNumber = function(chap)  {
+    return TAG.C + ' ' + chap.number + LF;
+  };
+
+  USFMRenderer.prototype.renderBookHeader = function(book)  {
+    var res = '';
+    res += TAG.ID   + ' ' + book.id   + ' ' + book.name + LF;
+    res += TAG.H    + ' ' + book.name + LF;
+    res += TAG.TOC1 + ' ' + book.desc + LF;
+    res += TAG.TOC2 + ' ' + book.name + LF;
+    res += TAG.TOC3 + ' ' + book.abbr + LF;
+    res += TAG.MT   + ' ' + book.desc + LF;
+    return res;
+  };
+
+  USFMRenderer.prototype.renderBookEnd = function(book) {
+    return '';
+  };
+
 
   /*------------------------------------------------------------------------*/
 
@@ -1033,6 +1140,9 @@ function inherit(child, base, props) {
   };
   inherit(TextRenderer, Renderer);
 
+
+
+  /*------------------------------------------------------------------------*/
 
 
 

@@ -268,7 +268,7 @@ function loadUSFMBook(usfmFile) {
   var str = fs.readFileSync(usfmFile, 'utf8');
 
   // supported tags only
-  var parser = new USFMParser(false);
+  var parser = new USFMParser(true);
   var book   = parser.parseBook(str);
 
   return book;

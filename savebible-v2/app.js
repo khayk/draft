@@ -2,6 +2,8 @@
   'use strict';
 
   var log4js = require('log4js');
+  var util   = require('util');
+  var fs     = require('fs');
 
   var cfg    = require('./config');
   var lb     = require('./lib/bible');
@@ -15,40 +17,27 @@
   bench.end();
 
 
-  var parser     = new lb.Parser();
+  var parser     = new lb.Parser(true);
   var usfmRender = new lb.USFMRenderer();
   var textRender = new lb.TextRenderer();
 
 
-
-  var dataUSFM = require('./test/dataUSFM.js');
-  var tvs        = dataUSFM.verses[3];
-  var orig       = tvs.data.orig;
-  var parsed     = tvs.data.parsed;
+  // var dataUSFM = require('./test/dataUSFM.js');
+  // var tvs        = dataUSFM.verses[1];
+  // var orig       = tvs.data.orig;
+  // var parsed     = tvs.data.parsed;
 
   // var verse = parser.parseVerse(orig);
-  // console.log(verse.render(usfmRender));
+  // console.log(verse.node.toString());
+  //console.log(verse.render(usfmRender));
+  // console.log(verse.render(textRender));
+  // console.log(verse.render(htmlRender));
   // return;
-
-  // var textRender = new lb.TextRenderer();
-  // textRender.renderVerse(verse);
-
-  // var bible   = parser.parseBible(str);
-  // bible.validate();
-
-  // var book    = parser.parseBook(str);
-  // book.validate();
-
-  // var chapter = parser.parseChapter(str);
-  // chapter.validate();
 
   var bible = null;
 
-
-  //console.log(cfg.);
-
   bench.begin('reading bible from hdd');
-  for (var i = 0 ; i < 1; ++i) {
+  for (var i = 0; i < 1; ++i) {
     bible = lb.loadBible(cfg.cfg.en_kjv_usfm().from);
   }
   bench.end();
@@ -57,18 +46,17 @@
   var chap = book.getChapter(1);
   var verse = chap.getVerse(2);
 
-
   //log.info(verse.render(usfmRender));
-
   //log.info(chap.render(usfmRender));
 
-
+  var x = '';
   bench.begin('rendering benchmark');
-  for (i = 0; i < 100; ++i) {
-    book.render(usfmRender);
+  for (i = 0; i < 33; ++i) {
+    x = bible.render(usfmRender);
   }
   bench.end();
 
+  fs.writeFileSync('out.txt', x);
   // lb.saveBible(folder);
 
 }());

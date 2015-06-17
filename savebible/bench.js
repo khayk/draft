@@ -1,5 +1,7 @@
 var help   = require('./helpers');
 var utils  = require('./utils/utils.js');
+var fs     = require('fs');
+
 
 var bench         = new help.Benchmark();
 var loadUSFMBible = utils.loadUSFMBible;
@@ -8,7 +10,7 @@ var lb            = require('./lib/bible');
 var dataUSFM       = require('./test/dataUSFM.js').verses;
 
 
-var dropboxDir = 'C:/Users/Hayk/Dropbox';
+var dropboxDir = 'C:/Users/Hayk/Dropbox (Personal)';
 var inputs = [
 //  ['ru-synod-usfm-from-text', 'ru'],
   ['en-kjv-usfm+', 'en']
@@ -22,6 +24,17 @@ var item = inputs[0];
 bench.begin('node ready');
 bench.end();
 
+
+var usfmRender = new lb.USFMRenderer();
+var parser     = new lb.USFMParser(true);
+
+// var ref      = dataUSFM[1].data;
+// var orig     = ref.orig.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+// var verse    = parser.parseVerse(ref.orig);
+
+// console.log('\nrendered: %s', verse.render(usfmRender));
+// return;
+
 var bibles = [];
 
 bench.begin('loadign bible');
@@ -31,23 +44,17 @@ for (var i = 0; i < 1; ++i) {
 }
 bench.end();
 
-var usfmRender = new lb.USFMRenderer();
-// var parser     = new lb.USFMParser(false);
-
-// var ref      = dataUSFM[1].data;
-// var orig     = ref.orig.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-// var verse    = parser.parseVerse(ref.orig);
-
-// console.log('\nrendered: %s', verse.render(usfmRender));
-
 var book = bible.getBook('GEN');
 var chap = book.getChapter(1);
 var verse = chap.getVerse(2);
 
+var x = '';
 bench.begin('rendering benchmark');
 for (i = 0; i < 100; ++i) {
-  book.render(usfmRender);
+  x = bible.render(usfmRender);
 }
 bench.end();
+
+fs.writeFileSync('out.txt', x);
 
 
