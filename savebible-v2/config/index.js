@@ -1,5 +1,5 @@
-var nconf = require('nconf');
-var path  = require('path');
+var nconf  = require('nconf');
+var path   = require('path');
 var mkdirp = require('mkdirp');
 var log4js = require('log4js');
 var _      = require('lodash');
@@ -11,6 +11,7 @@ nconf.argv()
     file: path.join(__dirname, 'config.json')
   });
 
+var root = path.dirname(__dirname);
 
 // make sure that logging directory do exists
 function createLogDirectory(logConfig) {
@@ -33,6 +34,11 @@ log4js.configure(logConfig, {});
 var cfg = (function() {
   var data = nconf.get('data');
 
+  if (!path.isAbsolute(data.temp))
+    data.temp = path.join(root, data.temp);
+  mkdirp.sync(data.temp);
+  data.media = path.join(root, data.media);
+
   return {
     en_kjv_usfm: function() {
       var name_ = 'en-kjv-usfm+';
@@ -44,14 +50,25 @@ var cfg = (function() {
       };
     },
 
+    inputDir: function() {
+      return data.input;
+    },
+
+    tmpDir: function() {
+      return data.temp;
+    },
+
+    mediaDir: function() {
+      return data.media;
+    },
+
     test_usfm: function() {
       return {dir: '', files: ''};
     }
   };
 })();
 
-var root = path.dirname(__dirname);
-//log4js.getLogger().info('root dir: ' + root);
+log4js.getLogger().info('root dir: ' + root);
 
 function logFileLoading(filename) {
   var relative = path.relative(root, filename);

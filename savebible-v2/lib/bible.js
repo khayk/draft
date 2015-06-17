@@ -29,7 +29,7 @@ function inherit(child, base, props) {
   // Bible book types
   var BOOK_TYPE_OLD = 1,              // old testament book
       BOOK_TYPE_NEW = 2,              // new testament book
-      BOOK_TYPE_ADD = 3,              // additional book
+      BOOK_TYPE_DEU = 3,              // deuterocanon book
       BOOK_TYPE_SEC = 4;              // secondary book
 
 
@@ -40,16 +40,14 @@ function inherit(child, base, props) {
   //
   // @param {string} id    book unique id
   // @param {number} index book order number, ordering
-  // @param {string} abbr  book default abbraviation
   // @param {string} type  book type, i.e. old, new testaments
   //
-  var BBMItem = function(id, index, abbr, type) {
+  var BBMItem = function(id, index, type) {
     if (!type || type < BOOK_TYPE_OLD || type > BOOK_TYPE_SEC)
       throw 'invalid Bible book mapping item type: ' + type;
 
     this.id    = id;
     this.index = parseInt(index);
-    this.abbr  = abbr;
     this.type  = parseInt(type);
   };
 
@@ -66,7 +64,7 @@ function inherit(child, base, props) {
 
 
       idsmap.idsmap.forEach(function(e) {
-        var obj = new BBMItem(e.id, e.index, e.abbr, e.type);
+        var obj = new BBMItem(e.id, e.index, e.type);
         items.push(obj);
       });
 
@@ -552,7 +550,7 @@ function inherit(child, base, props) {
       return this.verses[number - 1];
     },
 
-
+    // @todo:comment
     addHeading: function(text) {
       var loc = this.verses.length;
       if (_.isUndefined(this.heading[loc]))
@@ -580,6 +578,7 @@ function inherit(child, base, props) {
     this.desc     = '';
     this.chapters = [];
     this.preface  = [];
+    this.header   = [];
   };
 
 
@@ -750,11 +749,10 @@ function inherit(child, base, props) {
           if (arr === null)
             throw 'failed to identify book id';
           book.id = arr[1];
-          book.name = arr[2];
         } else {
-          if (tag.indexOf(TAG.MT) !== -1 || tag === TAG.TOC1) {
+          if (tag === TAG.TOC1) {
             book.desc = str.trim();
-          } else if (tag === TAG.TOC2 || tag === TAG.H) {
+          } else if (tag === TAG.TOC2) {
             book.name = str.trim();
           } else if (tag === TAG.TOC3) {
             book.abbr = str.trim();
@@ -762,18 +760,18 @@ function inherit(child, base, props) {
             if (str !== 'UTF-8')
               console.warn('unknown encoding %s in %s book.', str, book.id);
           } else {
-            if (tag.indexOf(TAG.IS) === -1)
-              console.warn('unknown tag \"%s\" in \"%s\" book.', tag, book.id);
+            book.header.push({tag: tag, value: str});
           }
         }
       }
 
+      // @todo: fill abbreviation based on default values
       var tmp = BBM.instance().itemById(book.id);
       book.index = tmp.index;
       if (!BBM.instance().existsId(book.id))
         throw 'Invalid book id: ' + book.id;
-      if (book.abbr === '')
-        book.abbr = tmp.abbr;
+      // if (book.abbr === '')
+      //   book.abbr = tmp.abbr;
     };
 
     this.parseVerseImpl = function(str, vnode) {
