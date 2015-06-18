@@ -1,10 +1,23 @@
 ;(function(exports){
+
+  // Book ordering according to https://en.wikipedia.org/wiki/Books_of_the_Bible
   exports.idsmap = [
+
+    // Type have the meaning described below
+    //
+    // 1 - Canonical of Old Testament
+    // 2 - Canonical book of New Testament
+    // 3 - Deuterocanonical Books of Old Testament
+    // 4 - Apocryphal Books
+
+    // Pentateuch or teh Five Books of Moses
     {"id":"GEN", "index": 1, "type":1},
     {"id":"EXO", "index": 2, "type":1},
     {"id":"LEV", "index": 3, "type":1},
     {"id":"NUM", "index": 4, "type":1},
     {"id":"DEU", "index": 5, "type":1},
+
+    // Historical books
     {"id":"JOS", "index": 6, "type":1},
     {"id":"JDG", "index": 7, "type":1},
     {"id":"RUT", "index": 8, "type":1},
@@ -14,73 +27,92 @@
     {"id":"2KI", "index":12, "type":1},
     {"id":"1CH", "index":13, "type":1},
     {"id":"2CH", "index":14, "type":1},
-    {"id":"EZR", "index":15, "type":1},
-    {"id":"1ES", "index":16, "type":3},
+    {"id":"1ES", "index":15, "type":3},
+    {"id":"EZR", "index":16, "type":1},
     {"id":"NEH", "index":17, "type":1},
-    {"id":"EST", "index":18, "type":1},
+    {"id":"TOB", "index":18, "type":3},
     {"id":"JDT", "index":19, "type":3},
-    {"id":"TOB", "index":20, "type":3},
+    {"id":"EST", "index":20, "type":1},
     {"id":"1MA", "index":21, "type":3},
     {"id":"2MA", "index":22, "type":3},
     {"id":"3MA", "index":23, "type":3},
-    {"id":"PSA", "index":24, "type":1},
-    {"id":"PRO", "index":25, "type":1},
-    {"id":"ECC", "index":26, "type":1},
-    {"id":"SNG", "index":27, "type":1},
-    {"id":"WIS", "index":28, "type":3},
-    {"id":"SIR", "index":29, "type":3},
-    {"id":"JOB", "index":30, "type":1},
-    {"id":"ISA", "index":31, "type":1},
-    {"id":"HOS", "index":32, "type":1},
-    {"id":"AMO", "index":33, "type":1},
-    {"id":"MIC", "index":34, "type":1},
-    {"id":"JOL", "index":35, "type":1},
-    {"id":"OBA", "index":36, "type":1},
-    {"id":"JON", "index":37, "type":1},
-    {"id":"NAM", "index":38, "type":1},
-    {"id":"HAB", "index":39, "type":1},
-    {"id":"ZEP", "index":40, "type":1},
-    {"id":"HAG", "index":41, "type":1},
-    {"id":"ZEC", "index":42, "type":1},
-    {"id":"MAL", "index":43, "type":1},
-    {"id":"JER", "index":44, "type":1},
-    {"id":"BAR", "index":45, "type":3},
-    {"id":"LAM", "index":46, "type":1},
-    {"id":"DAN", "index":47, "type":1},
-    {"id":"EZK", "index":48, "type":1},
-    {"id":"MAT", "index":49, "type":2},
-    {"id":"MRK", "index":50, "type":2},
-    {"id":"LUK", "index":51, "type":2},
-    {"id":"JHN", "index":52, "type":2},
-    {"id":"ACT", "index":53, "type":2},
-    {"id":"ROM", "index":54, "type":2},
-    {"id":"1CO", "index":55, "type":2},
-    {"id":"2CO", "index":56, "type":2},
-    {"id":"GAL", "index":57, "type":2},
-    {"id":"EPH", "index":58, "type":2},
-    {"id":"PHP", "index":59, "type":2},
-    {"id":"COL", "index":60, "type":2},
-    {"id":"1TH", "index":61, "type":2},
-    {"id":"2TH", "index":62, "type":2},
-    {"id":"1TI", "index":63, "type":2},
-    {"id":"2TI", "index":64, "type":2},
-    {"id":"TIT", "index":65, "type":2},
-    {"id":"PHM", "index":66, "type":2},
-    {"id":"HEB", "index":67, "type":2},
-    {"id":"JAS", "index":68, "type":2},
-    {"id":"1PE", "index":69, "type":2},
-    {"id":"2PE", "index":70, "type":2},
-    {"id":"1JN", "index":71, "type":2},
-    {"id":"2JN", "index":72, "type":2},
-    {"id":"3JN", "index":73, "type":2},
-    {"id":"JUD", "index":74, "type":2},
-    {"id":"REV", "index":75, "type":2},
-    {"id":"ESG", "index":76, "type":4},
-    {"id":"LJE", "index":77, "type":4},
-    {"id":"S3Y", "index":78, "type":4},
-    {"id":"SUS", "index":79, "type":4},
-    {"id":"BEL", "index":80, "type":4},
-    {"id":"MAN", "index":81, "type":4},
-    {"id":"2ES", "index":82, "type":4}
+    {"id":"4MA", "index":24, "type":4},
+
+    // Wisdom books
+    {"id":"JOB", "index":25, "type":1},
+    {"id":"PSA", "index":26, "type":1},
+    {"id":"MAN", "index":27, "type":3},
+    {"id":"PRO", "index":28, "type":1},
+    {"id":"ECC", "index":29, "type":1},
+    {"id":"SNG", "index":30, "type":1},
+    {"id":"WIS", "index":31, "type":3},
+    {"id":"SIR", "index":32, "type":3},
+
+    // Major prophets
+    {"id":"ISA", "index":33, "type":1},
+    {"id":"JER", "index":34, "type":1},
+    {"id":"LAM", "index":35, "type":1},
+    {"id":"BAR", "index":36, "type":3},
+    {"id":"LJE", "index":37, "type":3},
+    {"id":"EZK", "index":38, "type":1},
+    {"id":"DAN", "index":39, "type":1},
+
+    // Twelve Minor Prophets
+    {"id":"HOS", "index":40, "type":1},
+    {"id":"JOL", "index":41, "type":1},
+    {"id":"AMO", "index":42, "type":1},
+    {"id":"OBA", "index":43, "type":1},
+    {"id":"JON", "index":44, "type":1},
+    {"id":"MIC", "index":45, "type":1},
+    {"id":"NAM", "index":46, "type":1},
+    {"id":"HAB", "index":47, "type":1},
+    {"id":"ZEP", "index":48, "type":1},
+    {"id":"HAG", "index":49, "type":1},
+    {"id":"ZEC", "index":50, "type":1},
+    {"id":"MAL", "index":51, "type":1},
+
+    // Canonical gospels
+    {"id":"MAT", "index":52, "type":2},
+    {"id":"MRK", "index":53, "type":2},
+    {"id":"LUK", "index":54, "type":2},
+    {"id":"JHN", "index":55, "type":2},
+
+    // Apostolic History
+    {"id":"ACT", "index":56, "type":2},
+
+    // Pauline epistles
+    {"id":"ROM", "index":57, "type":2},
+    {"id":"1CO", "index":58, "type":2},
+    {"id":"2CO", "index":59, "type":2},
+    {"id":"GAL", "index":60, "type":2},
+    {"id":"EPH", "index":61, "type":2},
+    {"id":"PHP", "index":62, "type":2},
+    {"id":"COL", "index":63, "type":2},
+    {"id":"1TH", "index":64, "type":2},
+    {"id":"2TH", "index":65, "type":2},
+    {"id":"1TI", "index":66, "type":2},
+    {"id":"2TI", "index":67, "type":2},
+    {"id":"TIT", "index":68, "type":2},
+    {"id":"PHM", "index":69, "type":2},
+
+    // General epistles
+    {"id":"HEB", "index":70, "type":2},
+    {"id":"JAS", "index":71, "type":2},
+    {"id":"1PE", "index":72, "type":2},
+    {"id":"2PE", "index":73, "type":2},
+    {"id":"1JN", "index":74, "type":2},
+    {"id":"2JN", "index":75, "type":2},
+    {"id":"3JN", "index":76, "type":2},
+    {"id":"JUD", "index":77, "type":2},
+
+    // Apocalypse
+    {"id":"REV", "index":78, "type":2},
+
+    //
+    {"id":"ESG", "index":79, "type":4},
+    {"id":"S3Y", "index":80, "type":4},
+    {"id":"SUS", "index":81, "type":4},
+    {"id":"BEL", "index":82, "type":4},
+    {"id":"2ES", "index":83, "type":3}
   ];
 })(typeof exports === 'undefined' ? this.idsmap = {} : exports);
