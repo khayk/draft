@@ -31,3 +31,5 @@ node_modules
 # Non repo data
 savebible/attempt2/
 savebible/attempt3/
+savebible-v2/config/config.json
+/savebible-v2/tmp
