@@ -21,6 +21,25 @@
 
   var BBM        = lb.BBM;
 
+  var MetaItem = function() {
+  };
+
+  var Meta = function() {
+  };
+
+  var TocItem = function() {
+  };
+
+  var Toc = function() {
+  };
+
+// var bible = loadBible();
+// var meta  = loadMeta();
+
+// // {mode: overwrite | missing}
+// var report  = populate(bible, mapping, opt);
+
+
   var parser     = new lb.Parser(true);
   var usfmRender = new lb.USFMRenderer();
   var textRender = new lb.TextRenderer();
@@ -45,10 +64,6 @@
   }
   bench.end();
 
-  // var book = bible.getBook('GEN');
-  // var chap = book.getChapter(1);
-  // var verse = chap.getVerse(2);
-
   var usfm = '';
   bench.begin('rendering benchmark');
   for (i = 0; i < 1; ++i) {
@@ -57,13 +72,6 @@
   bench.end();
 
   fs.writeFileSync(cfg.tmpDir() + 'out.txt', usfm);
-
-
-// var bible = loadBible();
-// var defMeta = loadDefaultMeta();
-
-// // {mode: overwrite | missing}
-// var report  = populate(bible, mapping, opt);
 
   //lb.saveBible(folder);
 

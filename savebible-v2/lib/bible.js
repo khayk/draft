@@ -268,24 +268,34 @@ function inherit(child, base, props) {
     var jesusWord  = /wj/;
 
     return {
+      // @param {string} tag  usfm tag, like this \tag, \+tag, \tag*
+      // @returns             true if the specified tag is supported by the
+      //                      application, otherwise false
       isSupported: function(tag) {
         return supported.test(tag) !== false;
       },
 
+      // @param {string} tag  see above
+      // @returns             true if the tag is not closing, i.e. ends with *
       isOpening: function(tag) {
         return tag[tag.length - 1] !== '*';
       },
 
+      // @returns   true for translator tags
       isTranslator: function(tag) {
         return translator.test(tag) !== false;
       },
 
+      // @returns   true for tags identifying Jesus Words
       isJesusWord: function(tag) {
         return jesusWord.test(tag) !== false;
       },
 
-      // returns tag's name without special symbols (\wj -> wj, \+add -> add)
-      // if the tag is not supported, the default value will be returned
+      // name of tag
+      // @param  {string} tag tag string
+      // @param  {string} def value to be returned, if tag is not supported
+      // @return {string}     tag's name without special symbols (\wj -> wj,
+      //                      \+add -> add)
       name: function(tag, def) {
         var d = def || 'unknown';
         var mt = tag.match(supported);
@@ -483,7 +493,6 @@ function inherit(child, base, props) {
     }
   };
 
-
   // @param  {string} decodedRef  Object retrived by Verse.ref(),
   //                              Expected input have a specified form
   //                              { ix: number,
@@ -491,9 +500,9 @@ function inherit(child, base, props) {
   //                                vn: verse number }
   // @returns  8 bytes lenght string of for 'XXCCCVVV'
   function encodeRef(decodedRef) {
-    return padNumber(decodedRef.ix, 2) +
-      padNumber(decodedRef.cn, 3) +
-      padNumber(decodedRef.vn, 3);
+    return _.padLeft(decodedRef.ix, 2, '0') +
+           _.padLeft(decodedRef.cn, 3, '0') +
+           _.padLeft(decodedRef.vn, 3, '0');
   }
 
   // See encodeRef, this function performs opposite job of encodeRef
@@ -1199,6 +1208,7 @@ function inherit(child, base, props) {
 
 
   exports.BBM          = BBM;
+  exports.TH           = TH;
 
   exports.Verse        = Verse;
   exports.Book         = Book;
@@ -1210,8 +1220,12 @@ function inherit(child, base, props) {
   exports.USFMRenderer = USFMRenderer;
   exports.TextRenderer = TextRenderer;
 
+  // functions
+  exports.encodeRef    = encodeRef;
+  exports.decodeRef    = decodeRef;
   exports.loadBook     = loadBook;
   exports.loadBible    = loadBible;
+
 
 
 
