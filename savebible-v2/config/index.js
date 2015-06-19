@@ -4,6 +4,7 @@ var mkdirp = require('mkdirp');
 var log4js = require('log4js');
 var _      = require('lodash');
 
+var pathIsAbsolute = require('path-is-absolute');
 
 nconf.argv()
   .env()
@@ -38,7 +39,7 @@ log4js.configure(loggerConfig, {});
 var cfg = (function() {
   var data = nconf.get('data');
 
-  if (!path.isAbsolute(data.temp))
+  if (pathIsAbsolute(data.temp))  // if (!path.isAbsolute(data.temp))
     data.temp = path.join(root, data.temp);
   mkdirp.sync(data.temp);
   data.media = path.join(root, data.media);
