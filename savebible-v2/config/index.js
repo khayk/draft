@@ -1,3 +1,5 @@
+/// <reference path="../typings/node/node.d.ts"/>
+
 var nconf  = require('nconf');
 var path   = require('path');
 var mkdirp = require('mkdirp');

@@ -1006,11 +1006,12 @@ function inherit(child, base, props) {
 
   // Load bible book from the specified file and construct Book object
   //
-  // @param  {string} file  Name of file containing Bible book in a usfm format
-  // @return {object}       Book object
+  // @param  {string} file    Name of file containing Bible book in a usfm format
+  // @param  {object} parser  Parser object [optional]
+  // @return {object}         Book object
   //
-  var loadBook = function(file) {
-    var parser = new Parser();
+  var loadBook = function(file, parser) {
+    parser     = parser || new Parser(false);
     var str    = fs.readFileSync(file, 'utf8');
     var book   = parser.parseBook(str);
     return book;
