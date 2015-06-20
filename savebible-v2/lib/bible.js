@@ -251,23 +251,12 @@ function inherit(child, base, props) {
   // @param {string} desc  book description
   //
   var TocEntry = function(id, abbr, name, lname, desc) {
-    this.id    = id.trim() || '';
+    this.id    = id || '';
     this.abbr  = abbr || '';
-    this.name  = name.trim() || '';
+    this.name  = name || '';
     this.lname = lname || '';
     this.desc  = desc || '';
-
-    if (this.lname) {
-      this.lname = this.lname.trim();
-      // if, after all, long name is empty get the value from name
-      if (this.lname === '')
-        this.lname = this.name;
-    }
-
-    if (this.desc)
-      this.desc = this.desc.trim();
   };
-
 
   // Populate TocEntry as it is requested
   //
@@ -276,7 +265,7 @@ function inherit(child, base, props) {
   //                            otherwise only missing fields will be
   //                            populated
   TocEntry.prototype.populate = function(te, overwrite) {
-    if (_.isUndefined(overwrite) && overwrite === true) {
+    if (!_.isUndefined(overwrite) && overwrite === true) {
       if (this.id !== te.id)
         throw 'Unable to populate attributes from the source with different id';
       this.abbr  = te.abbr;
@@ -298,20 +287,18 @@ function inherit(child, base, props) {
     }
   };
 
-
   // Compare current object with specified one
   //
   // @param  {object} te table of content single entry
   // @return {bool}   true if all field are the same, otherwise false
-  //
-  TocEntry.prototype.equal = function(te) {
-    return  this.id === te.id &&
-            this.abbr === te.abbr &&
-            this.name === te.name &&
-            this.lname === te.lname &&
-            this.desc === te.desc;
-  };
-
+  // //
+  // TocEntry.prototype.equal = function(te) {
+  //   return  this.id === te.id &&
+  //           this.abbr === te.abbr &&
+  //           this.name === te.name &&
+  //           this.lname === te.lname &&
+  //           this.desc === te.desc;
+  // };
 
   // Make sure the the current object is a valid table of content
   // entry: i.e. all mandatory fields are presented and not empty
@@ -319,13 +306,24 @@ function inherit(child, base, props) {
     if (this.id === '')
       throw 'missing id';
     if (this.abbr === '')
-      throw 'missing abbr';
+      throw 'missing abbr with id: ' + this.id;
     if (this.name === '')
-      throw 'missing name';
+      throw 'missing name with id: ' + this.id;
     if (this.lname === '')
-      throw 'missing lname';
+      throw 'missing lname with id: ' + this.id;
   };
 
+  TocEntry.prototype.normalize = function() {
+    this.id    = this.id.trim();
+    this.abbr  = this.abbr.trim();
+    this.name  = this.name.trim();
+    this.lname = this.lname.trim();
+    this.desc  = this.desc.trim();
+
+    // borrow name for long name if it is empty
+    if (this.lname === '')
+      this.lname = this.name;
+  };
 
   /*------------------------------------------------------------------------*/
 
@@ -392,7 +390,7 @@ function inherit(child, base, props) {
         var cid = id;
         while (cid) {
           cid = BBM.instance().prevId(cid);
-          var te = this.getEntry(cid);
+          var te = this.get(cid);
           if (te)
             return te;
         }
@@ -1199,10 +1197,10 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
-  var decodeFileName = function(file) {
+  function decodeFileName(file) {
     // NN-IIIaaa-vvv.usfm   strict check
     return {on: 1, id: 'AAA', lang: 'ln', bibleName: 'kjv'};
-  };
+  }
 
   // Load bible book from the specified file and construct Book object
   //
@@ -1210,17 +1208,16 @@ function inherit(child, base, props) {
   // @param  {object} opts  Control book loader behaviour with various options
   // @return {object}       Book object
   //
-  var loadBook = function(file, opts) {
+  function loadBook(file, opts) {
     if (_.isUndefined(opts)) {
       opts = {supportedOnly: true};
     }
 
-    parser     = parser || new Parser(opts.supportedOnly);
+    var parser = new Parser(opts.supportedOnly);
     var str    = fs.readFileSync(file, 'utf8');
     var book   = parser.parseBook(str);
     return book;
-  };
-
+  }
 
   // Load bible books from the specified directory and construct bible object
   //
@@ -1228,9 +1225,12 @@ function inherit(child, base, props) {
   // @param  {object} opts  Control bible loader behaviour with various options
   // @return {object}       Bible object
   //
-  var loadBible = function(dir, opts) {
+  function loadBible(dir, opts) {
     if (_.isUndefined(opts)) {
-      opts = {supportedOnly: true};
+      opts = {
+        supportedOnly: true,
+        strictFilename: true
+      };
     }
 
     dir        = path.normalize(dir + '/');
@@ -1239,9 +1239,18 @@ function inherit(child, base, props) {
     var parser = new Parser(opts.supportedOnly);
 
     files.forEach(function(file) {
+      // skip files that are not usfm
+      if (path.extname(file).toLowerCase() !== '.usfm')
+        return;
       try {
+        var info = decodeFileName(file);
         var str  = fs.readFileSync(dir + file, 'utf8');
         var book = parser.parseBook(str);
+
+        // make sure that filename and content are synchronized
+        if (book.id !== info.id) {
+          log.warn('book id from "%s" file does not match with file name id');
+        }
         bible.addBook(book);
       }
       catch (e) {
@@ -1250,7 +1259,7 @@ function inherit(child, base, props) {
     });
 
     return bible;
-  };
+  }
 
   // Save bible books to the specified directory by according to save rules
   //

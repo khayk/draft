@@ -1,7 +1,10 @@
+/// <reference path="../typings/mocha/mocha.d.ts"/>
 var _      = require('lodash');
 var expect = require('chai').expect;
+
 var lb     = require('../lib/bible.js');
 var tc     = require('./dataCreators.js');
+var dusfm  = require('./dataUSFM.js');
 
 var BBM             = lb.BBM;
 var TocEntry        = lb.TocEntry;
@@ -11,6 +14,11 @@ var Verse           = lb.Verse;
 var Chapter         = lb.Chapter;
 var Book            = lb.Book;
 var Bible           = lb.Bible;
+var Parser          = lb.Parser;
+
+var USFMRenderer    = lb.USFMRenderer;
+var TextRenderer    = lb.TextRenderer;
+
 
 var encodeRef       = lb.encodeRef;
 var decodeRef       = lb.decodeRef;
@@ -132,7 +140,6 @@ describe('module BBM', function() {
 
     var activator = function(mapping) {
       BBM.activate(mapping);
-      //return new BBMItem(id, index, type);
     };
 
     expect(activator.bind(activator, duplicateId)).to.throw('Duplicate book id in the ids mapping: HEB');
@@ -168,6 +175,14 @@ describe('module BBM', function() {
 /*------------------------------------------------------------------------*/
 
 
+describe('module Lexical', function() {
+  // @todo:implement
+});
+
+
+/*------------------------------------------------------------------------*/
+
+
 describe('module TableOfContents', function() {
   it('functionality', function() {
     var GEN = 'GEN';
@@ -191,45 +206,74 @@ describe('module TableOfContents', function() {
     expect(toc.add(new TocEntry(EXO, '', 'name2', 'lname2', 'desc2')));
     expect(toc.length()).to.equal(2);
 
-
     var toc2 = new TableOfContents();
 
     toc2.add(new TocEntry(GEN, undefined, 'name3', 'lname3', 'desc3'));
     toc2.add(new TocEntry(EXO, undefined, '', '', ''));
+
+    itm = toc2.get(EXO);
+    itm.normalize();
 
     // after borrow only missing fields should be copied
     toc2.populate(toc, false);
 
     // nothing should be changed in this entry
     itm = toc2.get(GEN);
+    itm.normalize();
     expect(itm.name).to.equal('name3');
     expect(itm.lname).to.equal('lname3');
     expect(itm.desc).to.equal('desc3');
 
     // expect to see borrowed values from first table of content
     itm = toc2.get(EXO);
+    itm.normalize();
+
     expect(itm.name).to.equal('name2');
     expect(itm.lname).to.equal('lname2');
     expect(itm.desc).to.equal('desc2');
 
-
     toc.get(GEN).abbr = 'Gen';
-/*
-    expect(toc.validate.bind()).not.throw();
-    expect(toc2.validate.bind()).not.throw();
+    toc.get(EXO).abbr = 'Exo';
+
+    expect(toc.validate.bind(toc)).not.throw();
+    expect(toc2.validate.bind(toc2)).to.throw();
+
+    toc2.populate(toc, true);
+    expect(toc2.validate.bind(toc2)).not.throw();
 
     itm = toc.first();
     expect(itm.id).to.equal('GEN');
 
     itm = toc.next(itm.id);
     expect(itm.id).to.equal('EXO');
+    expect(toc.next(itm.id)).to.be.equal(null);
 
     itm = toc.prev(itm.id);
     expect(itm.id).to.equal('GEN');
+    expect(toc.prev(itm.id)).to.be.equal(null);
 
     itm = toc.prev(itm.id);
     expect(itm).to.equal(null);
-    toc.verify();*/
+    expect(toc.validate.bind(toc)).not.throw();
+
+    var itm1 = toc.get(GEN);
+    var itm2 = toc2.get(EXO);
+
+    // invalid tries to populate from item with different id
+    expect(itm1.populate.bind(itm1, itm2, false)).to.throw();
+    expect(itm1.populate.bind(itm1, itm2, true)).to.throw();
+
+    // invalid construction
+    itm = new TocEntry();
+    expect(itm.validate.bind(itm)).to.throw('missing id');
+    itm.id = GEN;
+    expect(itm.validate.bind(itm)).to.throw('missing abbr with id: GEN');
+    itm.abbr = 'Gen';
+    expect(itm.validate.bind(itm)).to.throw('missing name with id: GEN');
+    itm.name = 'Genesis';
+    expect(itm.validate.bind(itm)).to.throw('missing lname with id: GEN' );
+    itm.normalize();
+    expect(itm.validate.bind(itm)).not.throw();
   });
 
   it('performance', function() {
@@ -274,7 +318,7 @@ describe('module TAGs', function() {
 
 describe('meta', function() {
   it('loading', function() {
-
+    // @todo:implement
   });
 });
 
@@ -283,150 +327,231 @@ describe('meta', function() {
 
 
 describe('core components', function() {
-  var v1 = new Verse();
-  var v2 = new Verse();
-  var c1 = new Chapter();
-  var c2 = new Chapter();
-  var b1 = new Book();
-  var b2 = new Book();
-  var bb = new Bible();
 
-  describe('isolated behavior', function() {
-    it('verse', function() {
-      expect(v1.id()).to.be.equal('null 0: 0');
-      expect(v1.vn()).to.be.equal(0);
-      expect(v1.cn()).to.be.equal(0);
-      expect(v1.bid()).to.be.equal('');
-      expect(v1.next()).to.be.equal(null);
-      expect(v1.prev()).to.be.equal(null);
+  describe('bible interface', function() {
+    var v1 = new Verse();
+    var v2 = new Verse();
+    var c1 = new Chapter();
+    var c2 = new Chapter();
+    var b1 = new Book();
+    var b2 = new Book();
+    var bb = new Bible();
+
+    describe('isolated behavior', function() {
+      it('verse', function() {
+        expect(v1.id()).to.be.equal('null 0: 0');
+        expect(v1.vn()).to.be.equal(0);
+        expect(v1.cn()).to.be.equal(0);
+        expect(v1.bid()).to.be.equal('');
+        expect(v1.next()).to.be.equal(null);
+        expect(v1.prev()).to.be.equal(null);
+        expect(v1.ref()).to.be.deep.equal({
+          ix: 0,
+          cn: 0,
+          vn: 0
+        });
+      });
+
+      it('chapter', function() {
+        expect(c1.id()).to.be.equal('null 0');
+        expect(c1.bid()).to.be.equal('');
+        expect(c1.next()).to.be.equal(null);
+        expect(c1.prev()).to.be.equal(null);
+        expect(c1.numVerses()).to.be.equal(0);
+        expect(c1.ref()).to.be.deep.equal({
+          ix: 0,
+          cn: 0,
+          vn: 0
+        });
+      });
+
+      it('book', function() {
+        expect(b1.id).to.be.equal('');
+        expect(b1.next()).to.be.equal(null);
+        expect(b1.prev()).to.be.equal(null);
+        expect(b1.numChapters()).to.be.equal(0);
+        expect(b1.ref()).to.be.deep.equal({
+          ix: 0,
+          cn: 0,
+          vn: 0
+        });
+      });
+
+      it('bible', function() {});
     });
 
-    it('chapter', function() {
-      expect(c1.id()).to.be.equal('null 0');
-      expect(c1.bid()).to.be.equal('');
-      expect(c1.next()).to.be.equal(null);
-      expect(c1.prev()).to.be.equal(null);
-      expect(c1.numVerses()).to.be.equal(0);
-    });
+    describe('combined behavior', function() {
+      var tid1 = 'MAT';
+      var tid2 = 'MRK';
 
-    it('book', function() {
-      expect(b1.id).to.be.equal('');
-      expect(b1.next()).to.be.equal(null);
-      expect(b1.prev()).to.be.equal(null);
-      expect(b1.numChapters()).to.be.equal(0);
-    });
+      before(function() {
+        v1.number = 1;
+        c1.number = 1;
+        c1.addVerse(v1);
+        b1.id = tid1;
+        b1.addChapter(c1);
+        b2.id = tid2;
+        bb.addBook(b1);
+        bb.addBook(b2);
+      });
 
-    it('bible', function() {
-    });
-  });
+      it('exceptions', function() {
+        v2.number = 1;
+        expect(c1.addVerse.bind(c1, v2)).to.throw();
+        c2.number = 3;
+        expect(b1.addChapter.bind(b1, c2)).to.throw();
 
-  describe('combined behavior', function() {
-    var tid1 = 'MAT';
-    var tid2 = 'MRK';
+        v2.number = 2;
+        expect(c1.addVerse.bind(c1, v2)).to.not.throw();
+        c2.number = 2;
+        expect(b1.addChapter.bind(b1, c2)).to.not.throw();
+        v2.number = 2;
+        expect(c1.addVerse.bind(c1, v2)).to.throw();
+      });
 
-    before(function() {
-      v1.number = 1;
-      c1.number = 1;
-      c1.addVerse(v1);
-      b1.id = tid1;
-      b1.addChapter(c1);
-      b2.id = tid2;
-      bb.addBook(b1);
-      bb.addBook(b2);
-    });
+      it('verse', function() {
+        expect(v1.id()).to.be.equal(tid1 + ' 1:1');
+        expect(v2.id()).to.be.equal(tid1 + ' 1:2');
+        expect(v1.next()).to.be.equal(v2);
+        expect(v2.next()).to.be.equal(null);
+        expect(v2.prev()).to.be.equal(v1);
+        expect(v1.prev()).to.be.equal(null);
+        expect(v1.vn()).to.be.equal(1);
+        expect(v1.cn()).to.be.equal(1);
+        expect(v1.bid()).to.be.equal(tid1);
+      });
 
-    it('exceptions', function() {
-      v2.number = 1;
-      expect(c1.addVerse.bind(c1, v2)).to.throw();
-      c2.number = 3;
-      expect(b1.addChapter.bind(b1, c2)).to.throw();
+      it('chapter', function() {
+        expect(c1.id()).to.be.equal(tid1 + ' 1');
+        expect(c2.id()).to.be.equal(tid1 + ' 2');
+        expect(c2.bid()).to.be.equal(tid1);
+        expect(c1.next()).to.be.equal(c2);
+        expect(c2.next()).to.be.equal(null);
+        expect(c2.prev()).to.be.equal(c1);
+        expect(c1.prev()).to.be.equal(null);
+        expect(c1.numVerses()).to.be.equal(2);
+        expect(c2.numVerses()).to.be.equal(0);
+      });
 
-      v2.number = 2;
-      expect(c1.addVerse.bind(c1, v2)).to.not.throw();
-      c2.number = 2;
-      expect(b1.addChapter.bind(b1, c2)).to.not.throw();
-      v2.number = 2;
-      expect(c1.addVerse.bind(c1, v2)).to.throw();
-    });
+      it('book', function() {
+        // expect(b1.prev()).to.be.equal(null);
+        // expect(b1.next()).to.be.equal(b2);
+        // expect(b2.prev()).to.be.equal(b1);
+        // expect(b2.next()).to.be.equal(null);
+        // expect(b1.numChapters()).to.be.equal(2);
+        // expect(b1.getChapter(c1.number)).to.be.equal(c1);
+        // expect(b1.getChapter(c2.number)).to.be.equal(c2);
+        // expect(b2.numChapters()).to.be.equal(0);
+      });
 
-    it('verse', function() {
-      expect(v1.id()).to.be.equal(tid1 + ' 1:1');
-      expect(v2.id()).to.be.equal(tid1 + ' 1:2');
-      expect(v1.next()).to.be.equal(v2);
-      expect(v2.next()).to.be.equal(null);
-      expect(v2.prev()).to.be.equal(v1);
-      expect(v1.prev()).to.be.equal(null);
-      expect(v1.vn()).to.be.equal(1);
-      expect(v1.cn()).to.be.equal(1);
-      expect(v1.bid()).to.be.equal(tid1);
-    });
+      it('bible', function() {
+        // @todo:implement
+      });
 
-    it('chapter', function() {
-      expect(c1.id()).to.be.equal(tid1 + ' 1');
-      expect(c2.id()).to.be.equal(tid1 + ' 2');
-      expect(c2.bid()).to.be.equal(tid1);
-      expect(c1.next()).to.be.equal(c2);
-      expect(c2.next()).to.be.equal(null);
-      expect(c2.prev()).to.be.equal(c1);
-      expect(c1.prev()).to.be.equal(null);
-      expect(c1.numVerses()).to.be.equal(2);
-      expect(c2.numVerses()).to.be.equal(0);
-    });
+      it('references', function() {
+        var tid = 'REV';
+        var numChaps = 3;
+        var numVerses = 11;
+        var book = tc.createBook(tid, numChaps, numVerses);
 
-    it('book', function() {
-      // expect(b1.prev()).to.be.equal(null);
-      // expect(b1.next()).to.be.equal(b2);
-      // expect(b2.prev()).to.be.equal(b1);
-      // expect(b2.next()).to.be.equal(null);
-      // expect(b1.numChapters()).to.be.equal(2);
-      // expect(b1.getChapter(c1.number)).to.be.equal(c1);
-      // expect(b1.getChapter(c2.number)).to.be.equal(c2);
-      // expect(b2.numChapters()).to.be.equal(0);
-    });
+        for (var i = 1; i < numChaps; ++i) {
+          for (var j = 1; j < numVerses; ++j) {
+            var chap = book.getChapter(i);
+            var verse = chap.getVerse(j);
 
-    it('bible', function() {
+            var rb = book.ref();
+            expect(rb.ix).to.be.equal(book.index);
+            expect(rb.cn).to.be.equal(0);
+            expect(rb.vn).to.be.equal(0);
 
-    });
+            var rc = chap.ref();
+            expect(rc.ix).to.be.equal(book.index);
+            expect(rc.cn).to.be.equal(chap.number);
+            expect(rc.vn).to.be.equal(0);
 
-    it('references', function() {
-      var tid = 'REV';
-      var numChaps = 3;
-      var numVerses = 11;
-      var book = tc.createBook(tid, numChaps, numVerses);
+            var vc = verse.ref();
+            expect(vc.ix).to.be.equal(book.index);
+            expect(vc.cn).to.be.equal(chap.number);
+            expect(vc.vn).to.be.equal(verse.vn());
 
-      for (var i = 1; i < numChaps; ++i) {
-        for (var j = 1; j < numVerses; ++j) {
-          var chap  = book.getChapter(i);
-          var verse = chap.getVerse(j);
+            var ref = verse.ref();
+            var encRef = encodeRef(ref);
 
-          var rb = book.ref();
-          expect(rb.ix).to.be.equal(book.index);
-          expect(rb.cn).to.be.equal(0);
-          expect(rb.vn).to.be.equal(0);
+            // references have 8 bytes length
+            expect(encRef.length).to.be.equal(8);
 
-          var rc = chap.ref();
-          expect(rc.ix).to.be.equal(book.index);
-          expect(rc.cn).to.be.equal(chap.number);
-          expect(rc.vn).to.be.equal(0);
-
-          var vc = verse.ref();
-          expect(vc.ix).to.be.equal(book.index);
-          expect(vc.cn).to.be.equal(chap.number);
-          expect(vc.vn).to.be.equal(verse.vn());
-
-          var ref = verse.ref();
-          var encRef  = encodeRef(ref);
-
-          // references have 8 bytes length
-          expect(encRef.length).to.be.equal(8);
-
-          var decRef = decodeRef(encRef);
-          expect(ref).to.deep.equal(decRef);
+            var decRef = decodeRef(encRef);
+            expect(ref).to.deep.equal(decRef);
+          }
         }
-      }
+      });
     });
   });
 
+  describe('usfm format', function() {
+    var parser    = new Parser(true);
+    var parserAll = new Parser(false);
+    var usfmRndr  = new USFMRenderer();
+    var textRndr  = new TextRenderer();
+
+    describe('parse and', function() {
+      it('save as usfm', function() {
+        dusfm.verses.forEach(function(o) {
+          var ref      = o.data;
+          var orig     = ref.orig.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+
+          // @todo:implement
+          var verse    = parser.parseVerse(ref.orig);
+          var restored = verse.render(usfmRndr);
+          expect('\\v 0 ' + ref.parsed).to.equal(restored);
+
+          verse        = parserAll.parseVerse(ref.orig);
+          restored     = verse.render(usfmRndr);
+          expect('\\v 0 ' + orig).to.equal(restored);
+        });
+      });
+
+      it('save as text', function() {
+        dusfm.verses.forEach(function(o) {
+          var ref = o.data;
+          var orig = ref.orig.replace(/\n/g, ' ').trim();
+          var verse = parser.parseVerse(orig);
+          var restored = verse.render(textRndr);
+          expect(ref.text).to.equal(restored);
+        });
+      });
+    });
+
+    it('reading from hdd', function(done) {
+      done();
+      //core.PackManager.scan('./data/test/', true, stub(done).onScanned);
+    });
+  });
+
+  describe('rendering', function() {
+/*    it('usfm', function() {
+      var usfmRndr = new USFMRenderer();
+      var str = bible.render(usfmRndr);
+    });
+
+    it('text', function() {
+      var textRndr = new TextRenderer();
+      var str = bible.render(textRndr);
+    });
+
+    var samples = 100;
+    it('usfm performance', function() {
+      var usfmRndr = new USFMRenderer();
+      for (var i = 0; i < samples; ++i)
+        bible.render(usfmRndr);
+    });
+
+    it('text performance', function() {
+      var textRndr = new TextRenderer();
+      for (var i = 0; i < samples; ++i)
+        bible.render(textRndr);
+    });*/
+  });
 
 });
 
@@ -436,6 +561,7 @@ describe('core components', function() {
 
 describe('new test scenario', function() {
   it('simple case', function() {
+    // @todo:implement
   });
 });
 

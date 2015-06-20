@@ -5,3 +5,4 @@
 mt.txt binary
 output.usfm binary
 *.ts binary
+*.usfm binary

@@ -30,8 +30,12 @@ function createLogDirectory(loggerConfig) {
   });
 }
 
+
 var loggerConfig = nconf.get('log4js');
 createLogDirectory(loggerConfig);
+
+var cmd = nconf.argv().get('$0');
+// @todo: check if started from mocha we can disable logging
 
 // configure logging and process with our modules
 log4js.configure(loggerConfig, {});
