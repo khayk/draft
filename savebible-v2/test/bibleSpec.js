@@ -3,15 +3,17 @@ var expect = require('chai').expect;
 var lb     = require('../lib/bible.js');
 var tc     = require('./dataCreators.js');
 
-var BBM       = lb.BBM;
-var TH        = lb.TH;
-var Verse     = lb.Verse;
-var Chapter   = lb.Chapter;
-var Book      = lb.Book;
-var Bible     = lb.Bible;
+var BBM             = lb.BBM;
+var TocEntry        = lb.TocEntry;
+var TableOfContents = lb.TableOfContents;
+var TH              = lb.TH;
+var Verse           = lb.Verse;
+var Chapter         = lb.Chapter;
+var Book            = lb.Book;
+var Bible           = lb.Bible;
 
-var encodeRef = lb.encodeRef;
-var decodeRef = lb.decodeRef;
+var encodeRef       = lb.encodeRef;
+var decodeRef       = lb.decodeRef;
 
 
 /*------------------------------------------------------------------------*/
@@ -159,6 +161,78 @@ describe('module BBM', function() {
         id = BBM.instance().nextId(id);
       }
     }
+  });
+});
+
+
+/*------------------------------------------------------------------------*/
+
+
+describe('module TableOfContents', function() {
+  it('functionality', function() {
+    var GEN = 'GEN';
+    var EXO = 'EXO';
+
+    var toc = new TableOfContents();
+    expect(toc.first()).to.equal(null);
+
+    toc.add(new TocEntry(GEN, undefined, 'name1', 'lname1', 'desc1'));
+    expect(toc.length()).to.equal(1);
+    expect(toc.have(GEN)).to.equal(true);
+
+    var itm = toc.get(GEN);
+    expect(itm.abbr).to.equal('');
+    expect(itm.name).to.equal('name1');
+    expect(itm.lname).to.equal('lname1');
+    expect(itm.desc).to.equal('desc1');
+
+    expect(toc.add.bind(toc,
+           new TocEntry(GEN, undefined, '', '', ''))).to.throw();
+    expect(toc.add(new TocEntry(EXO, '', 'name2', 'lname2', 'desc2')));
+    expect(toc.length()).to.equal(2);
+
+
+    var toc2 = new TableOfContents();
+
+    toc2.add(new TocEntry(GEN, undefined, 'name3', 'lname3', 'desc3'));
+    toc2.add(new TocEntry(EXO, undefined, '', '', ''));
+
+    // after borrow only missing fields should be copied
+    toc2.populate(toc, false);
+
+    // nothing should be changed in this entry
+    itm = toc2.get(GEN);
+    expect(itm.name).to.equal('name3');
+    expect(itm.lname).to.equal('lname3');
+    expect(itm.desc).to.equal('desc3');
+
+    // expect to see borrowed values from first table of content
+    itm = toc2.get(EXO);
+    expect(itm.name).to.equal('name2');
+    expect(itm.lname).to.equal('lname2');
+    expect(itm.desc).to.equal('desc2');
+
+
+    toc.get(GEN).abbr = 'Gen';
+/*
+    expect(toc.validate.bind()).not.throw();
+    expect(toc2.validate.bind()).not.throw();
+
+    itm = toc.first();
+    expect(itm.id).to.equal('GEN');
+
+    itm = toc.next(itm.id);
+    expect(itm.id).to.equal('EXO');
+
+    itm = toc.prev(itm.id);
+    expect(itm.id).to.equal('GEN');
+
+    itm = toc.prev(itm.id);
+    expect(itm).to.equal(null);
+    toc.verify();*/
+  });
+
+  it('performance', function() {
   });
 });
 

@@ -21,17 +21,15 @@
 
   var BBM        = lb.BBM;
 
-  var MetaItem = function() {
+  var MetaBlock = function() {
   };
 
   var Meta = function() {
   };
 
-  var TocItem = function() {
+  var Lexical = function() {
   };
 
-  var Toc = function() {
-  };
 
 
 // var bible = loadBible();
@@ -40,8 +38,6 @@
 // // {mode: overwrite | missing}
 // var report  = populate(bible, mapping, opt);
 
-
-  var parser     = new lb.Parser(true);
   var usfmRender = new lb.USFMRenderer();
   var textRender = new lb.TextRenderer();
 
@@ -61,7 +57,7 @@
 
   bench.begin('reading bible from hdd');
   for (var i = 0; i < 1; ++i) {
-    bible = lb.loadBible(cfg.inputDir() + 'en-kjv-usfm+/');
+    bible = lb.loadBible(cfg.inputDir() + 'en-kjv-usfm+/', {supportedOnly: true});
   }
   bench.end();
 

@@ -41,7 +41,7 @@ log4js.configure(loggerConfig, {});
 var cfg = (function() {
   var data = nconf.get('data');
 
-  if (pathIsAbsolute(data.temp))  // if (!path.isAbsolute(data.temp))
+  if (!pathIsAbsolute(data.temp))  // if (!path.isAbsolute(data.temp))
     data.temp = path.join(root, data.temp);
   mkdirp.sync(data.temp);
   data.media = path.join(root, data.media);

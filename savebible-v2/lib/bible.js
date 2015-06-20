@@ -239,6 +239,196 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
+  var Lexical = function() {
+  };
+
+
+  // Table of content single entry
+  // @param {string} id    book id
+  // @param {string} abbr  book abbreviation
+  // @param {string} name  book name
+  // @param {string} lname book long name
+  // @param {string} desc  book description
+  //
+  var TocEntry = function(id, abbr, name, lname, desc) {
+    this.id    = id.trim() || '';
+    this.abbr  = abbr || '';
+    this.name  = name.trim() || '';
+    this.lname = lname || '';
+    this.desc  = desc || '';
+
+    if (this.lname) {
+      this.lname = this.lname.trim();
+      // if, after all, long name is empty get the value from name
+      if (this.lname === '')
+        this.lname = this.name;
+    }
+
+    if (this.desc)
+      this.desc = this.desc.trim();
+  };
+
+
+  // Populate TocEntry as it is requested
+  //
+  // @param  {object} te        table of content single entry
+  // @param  {bool}   overwrite to overwrite existing values set to true,
+  //                            otherwise only missing fields will be
+  //                            populated
+  TocEntry.prototype.populate = function(te, overwrite) {
+    if (_.isUndefined(overwrite) && overwrite === true) {
+      if (this.id !== te.id)
+        throw 'Unable to populate attributes from the source with different id';
+      this.abbr  = te.abbr;
+      this.name  = te.name;
+      this.lname = te.lname;
+      this.desc  = te.desc;
+    }
+    else {
+      // write only missing entries
+      if (this.id !== te.id)
+        throw 'Unable to populate attributes from the source with different id';
+
+      if (this.name === '')
+        this.name = te.name;
+      if (this.lname === '')
+        this.lname = te.lname;
+      if (this.desc === '')
+        this.desc = te.desc;
+    }
+  };
+
+
+  // Compare current object with specified one
+  //
+  // @param  {object} te table of content single entry
+  // @return {bool}   true if all field are the same, otherwise false
+  //
+  TocEntry.prototype.equal = function(te) {
+    return  this.id === te.id &&
+            this.abbr === te.abbr &&
+            this.name === te.name &&
+            this.lname === te.lname &&
+            this.desc === te.desc;
+  };
+
+
+  // Make sure the the current object is a valid table of content
+  // entry: i.e. all mandatory fields are presented and not empty
+  TocEntry.prototype.validate = function() {
+    if (this.id === '')
+      throw 'missing id';
+    if (this.abbr === '')
+      throw 'missing abbr';
+    if (this.name === '')
+      throw 'missing name';
+    if (this.lname === '')
+      throw 'missing lname';
+  };
+
+
+  /*------------------------------------------------------------------------*/
+
+
+  // Table of content object for the Bible object
+  var TableOfContents = function() {
+    var content_ = {};
+    var size_ = 0;
+
+    return {
+      // @return number of entries
+      length: function() {
+        return size_;
+      },
+
+      // Add new entry
+      // @param {object} te TocEntry object
+      //
+      // throws an exception if detected addition of duplicate entry
+      add: function(te) {
+        if (!_.isUndefined(content_[te.id]))
+          throw 'id ' + te.id + ' already exists';
+        content_[te.id] = te;
+        ++size_;
+      },
+
+      // @param  {string} id  book id
+      // @return {object}     reference to TocEntry object
+      get: function(id) {
+        var te = content_[id];
+        if (_.isUndefined(te))
+          return null;
+        return te;
+      },
+
+      // @returns  first entry from the table of content
+      first: function() {
+        var cid = BBM.instance().firstId();
+        while (cid) {
+          var te = this.get(cid);
+          if (te)
+            return te;
+          cid = BBM.instance().nextId(cid);
+        }
+        return null;
+      },
+
+      // @param {string} id  entry id
+      // @returns  entry that stands after the entry with specified id
+      next: function(id) {
+        var cid = id;
+        while (cid) {
+          cid = BBM.instance().nextId(cid);
+          var te = this.get(cid);
+          if (te)
+            return te;
+        }
+        return null;
+      },
+
+      // @param {string} id  entry id
+      // @returns  entry that stands before the entry with specified id
+      prev: function(id) {
+        var cid = id;
+        while (cid) {
+          cid = BBM.instance().prevId(cid);
+          var te = this.getEntry(cid);
+          if (te)
+            return te;
+        }
+        return null;
+      },
+
+      // @returns  true if the table of content contains an entry with given id,
+      //           otherwise false
+      have: function(id) {
+        return !_.isUndefined(content_[id]);
+      },
+
+      // populate current table of content existing entries with
+      //
+      // @param {object}  toc  object to copy from
+      populate: function(toc, overwrite) {
+        _.each(content_, function(val, key) {
+          var ti = toc.get(key);
+          if (ti !== null)
+            val.populate(ti, overwrite);
+        });
+      },
+
+      // verify that core attributes are presented in the table of content
+      validate: function() {
+        _.each(content_, function(val, key) {
+          val.validate();
+        });
+      }
+    };
+  };
+
+
+  /*------------------------------------------------------------------------*/
+
+
   // all tags should be presented here
   var TAG = {
     H:    '\\h',       // Running header text.
@@ -654,7 +844,7 @@ function inherit(child, base, props) {
     // @return   Next book of the Bible, null if there are no more books
     next: function() {
       if (this.parent) {
-        var tocItem = this.parent.getToc().nextItem(this.id);
+        var tocEntry = this.parent.getToc().nextItem(this.id);
         if (tocItem)
           return this.parent.getBook(tocItem.id);
       }
@@ -691,6 +881,11 @@ function inherit(child, base, props) {
       if (number < 1 || number > this.numChapters())
         return null;
       return this.chapters[number - 1];
+    },
+
+    // @todo:comment
+    getTocEntry: function() {
+
     },
 
     // @todo:comment
@@ -758,7 +953,7 @@ function inherit(child, base, props) {
     this.books.push(book);
     this.ids[book.id] = this.books.length - 1;
 
-    // this.toc.addItem(new TocItem(book.id,
+    // this.toc.addItem(new TocEntry(book.id,
     //                              book.abbr,
     //                              book.name,
     //                              book.lname,
@@ -1004,14 +1199,23 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
+  var decodeFileName = function(file) {
+    // NN-IIIaaa-vvv.usfm   strict check
+    return {on: 1, id: 'AAA', lang: 'ln', bibleName: 'kjv'};
+  };
+
   // Load bible book from the specified file and construct Book object
   //
-  // @param  {string} file    Name of file containing Bible book in a usfm format
-  // @param  {object} parser  Parser object [optional]
-  // @return {object}         Book object
+  // @param  {string} file  Name of file containing Bible book in a usfm format
+  // @param  {object} opts  Control book loader behaviour with various options
+  // @return {object}       Book object
   //
-  var loadBook = function(file, parser) {
-    parser     = parser || new Parser(false);
+  var loadBook = function(file, opts) {
+    if (_.isUndefined(opts)) {
+      opts = {supportedOnly: true};
+    }
+
+    parser     = parser || new Parser(opts.supportedOnly);
     var str    = fs.readFileSync(file, 'utf8');
     var book   = parser.parseBook(str);
     return book;
@@ -1020,23 +1224,31 @@ function inherit(child, base, props) {
 
   // Load bible books from the specified directory and construct bible object
   //
-  // @param  {string} dir directory containing usfm files
-  // @return {object}     bible object
+  // @param  {string} dir   Directory path containing usfm files
+  // @param  {object} opts  Control bible loader behaviour with various options
+  // @return {object}       Bible object
   //
-  var loadBible = function(dir) {
-    dir = path.normalize(dir + '/');
-    var files = fs.readdirSync(dir, 'utf8');
+  var loadBible = function(dir, opts) {
+    if (_.isUndefined(opts)) {
+      opts = {supportedOnly: true};
+    }
 
-    var bible = new Bible();
+    dir        = path.normalize(dir + '/');
+    var files  = fs.readdirSync(dir, 'utf8');
+    var bible  = new Bible();
+    var parser = new Parser(opts.supportedOnly);
+
     files.forEach(function(file) {
       try {
-        var book = loadBook(dir + file);
+        var str  = fs.readFileSync(dir + file, 'utf8');
+        var book = parser.parseBook(str);
         bible.addBook(book);
       }
       catch (e) {
         log.error('"%s" file processing failed. Error: %s', file, e.message);
       }
     });
+
     return bible;
   };
 
@@ -1208,24 +1420,26 @@ function inherit(child, base, props) {
 
 
 
-  exports.BBM          = BBM;
-  exports.TH           = TH;
+  exports.BBM             = BBM;
+  exports.TocEntry        = TocEntry;
+  exports.TableOfContents = TableOfContents;
+  exports.TH              = TH;
 
-  exports.Verse        = Verse;
-  exports.Book         = Book;
-  exports.Chapter      = Chapter;
-  exports.Bible        = Bible;
-  exports.Parser       = Parser;
+  exports.Verse           = Verse;
+  exports.Book            = Book;
+  exports.Chapter         = Chapter;
+  exports.Bible           = Bible;
+  exports.Parser          = Parser;
 
-  exports.Renderer     = Renderer;
-  exports.USFMRenderer = USFMRenderer;
-  exports.TextRenderer = TextRenderer;
+  exports.Renderer        = Renderer;
+  exports.USFMRenderer    = USFMRenderer;
+  exports.TextRenderer    = TextRenderer;
 
   // functions
-  exports.encodeRef    = encodeRef;
-  exports.decodeRef    = decodeRef;
-  exports.loadBook     = loadBook;
-  exports.loadBible    = loadBible;
+  exports.encodeRef       = encodeRef;
+  exports.decodeRef       = decodeRef;
+  exports.loadBook        = loadBook;
+  exports.loadBible       = loadBible;
 
 
 

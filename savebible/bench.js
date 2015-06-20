@@ -26,7 +26,7 @@ bench.end();
 
 
 var usfmRender = new lb.USFMRenderer();
-var parser     = new lb.USFMParser(true);
+var parser     = new lb.USFMParser(false);
 
 // var ref      = dataUSFM[1].data;
 // var orig     = ref.orig.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
@@ -50,7 +50,7 @@ var verse = chap.getVerse(2);
 
 var x = '';
 bench.begin('rendering benchmark');
-for (i = 0; i < 100; ++i) {
+for (i = 0; i < 1; ++i) {
   x = bible.render(usfmRender);
 }
 bench.end();
