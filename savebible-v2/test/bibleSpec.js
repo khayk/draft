@@ -1,6 +1,9 @@
 /// <reference path="../typings/mocha/mocha.d.ts"/>
 var _      = require('lodash');
 var expect = require('chai').expect;
+var path   = require('path');
+var util   = require('util');
+
 
 var lb     = require('../lib/bible.js');
 var tc     = require('./dataCreators.js');
@@ -16,10 +19,11 @@ var Book            = lb.Book;
 var Bible           = lb.Bible;
 var Parser          = lb.Parser;
 
+var Renderer        = lb.Renderer;
 var USFMRenderer    = lb.USFMRenderer;
 var TextRenderer    = lb.TextRenderer;
 
-
+var loadBible       = lb.loadBible;
 var encodeRef       = lb.encodeRef;
 var decodeRef       = lb.decodeRef;
 
@@ -366,7 +370,7 @@ describe('core components', function() {
       });
 
       it('book', function() {
-        expect(b1.id).to.be.equal('');
+        //expect(b1.id).to.be.equal('');
         expect(b1.next()).to.be.equal(null);
         expect(b1.prev()).to.be.equal(null);
         expect(b1.numChapters()).to.be.equal(0);
@@ -388,9 +392,9 @@ describe('core components', function() {
         v1.number = 1;
         c1.number = 1;
         c1.addVerse(v1);
-        b1.id = tid1;
+        b1.te.id = tid1;
         b1.addChapter(c1);
-        b2.id = tid2;
+        b2.te.id = tid2;
         bb.addBook(b1);
         bb.addBook(b2);
       });
@@ -407,6 +411,14 @@ describe('core components', function() {
         expect(b1.addChapter.bind(b1, c2)).to.not.throw();
         v2.number = 2;
         expect(c1.addVerse.bind(c1, v2)).to.throw();
+
+        var cx = new Chapter();
+        var vx = new Verse();
+        vx.number = 1;
+        var v4 = new Verse();
+        v4.number = 4;
+        expect(cx.addVerse.bind(cx, vx)).to.not.throw();
+        expect(cx.addVerse.bind(cx, v4)).to.not.throw();
       });
 
       it('verse', function() {
@@ -434,18 +446,21 @@ describe('core components', function() {
       });
 
       it('book', function() {
-        // expect(b1.prev()).to.be.equal(null);
-        // expect(b1.next()).to.be.equal(b2);
-        // expect(b2.prev()).to.be.equal(b1);
-        // expect(b2.next()).to.be.equal(null);
-        // expect(b1.numChapters()).to.be.equal(2);
-        // expect(b1.getChapter(c1.number)).to.be.equal(c1);
-        // expect(b1.getChapter(c2.number)).to.be.equal(c2);
-        // expect(b2.numChapters()).to.be.equal(0);
+        expect(b1.prev()).to.be.equal(null);
+        expect(b1.next()).to.be.equal(b2);
+        expect(b2.prev()).to.be.equal(b1);
+        expect(b2.next()).to.be.equal(null);
+        expect(b1.numChapters()).to.be.equal(2);
+        expect(b1.getChapter(c1.number)).to.be.equal(c1);
+        expect(b1.getChapter(c2.number)).to.be.equal(c2);
+        expect(b2.numChapters()).to.be.equal(0);
       });
 
       it('bible', function() {
         // @todo:implement
+        expect(bb.numBooks()).to.be.equal(2);
+        expect(bb.addBook.bind(bb, b1)).to.throw();
+        expect(bb.getBook('ABS')).to.be.equal(null);
       });
 
       it('references', function() {
@@ -494,7 +509,26 @@ describe('core components', function() {
     var usfmRndr  = new USFMRenderer();
     var textRndr  = new TextRenderer();
 
-    describe('parse and', function() {
+    it('node count monitoring', function() {
+      var verse = null;
+      verse = parserAll.parseVerse('');
+      expect(verse.node.count()).to.be.equal(1);
+
+      verse = parserAll.parseVerse('\\x \\x*');
+      expect(verse.node.count()).to.be.equal(2);
+
+      verse = parserAll.parseVerse('\\x text \\x*');
+      expect(verse.node.count()).to.be.equal(3);
+
+      verse = parserAll.parseVerse('\\x this \\y is \\y*a\\x*sample.');
+      expect(verse.node.count()).to.be.equal(7);
+
+      var complex = '\\a  \\a*B';
+      verse = parserAll.parseVerse(complex);
+      expect(verse.node.count()).to.be.equal(3);
+    });
+
+    describe('parse verses and', function() {
       it('save as usfm', function() {
         dusfm.verses.forEach(function(o) {
           var ref      = o.data;
@@ -521,36 +555,90 @@ describe('core components', function() {
         });
       });
     });
+  });
 
-    it('reading from hdd', function(done) {
-      done();
-      //core.PackManager.scan('./data/test/', true, stub(done).onScanned);
+  describe('parse book', function() {
+    var parser = new Parser();
+    var tmp = dusfm.bookTemplate;
+    it('with invalid input', function() {
+      var str = tmp.replace('{{ID}}', 'id ');
+      expect(parser.parseBook.bind(parser, str)).to.throw('Failed to identify book id');
+
+      str = tmp.replace('{{ID}}', 'id GEN');
+      str = str.replace('{{ENCODING}}', 'ide UTF-7');
+      expect(parser.parseBook.bind(parser, str)).to.throw();
+
+      str = tmp.replace('{{ID}}', 'id KKK');
+      expect(parser.parseBook.bind(parser, str)).to.throw('Invalid book id: KKK');
+
+      expect(parser.parseBook.bind(parser, {obj:1})).to.throw('parseBook expects a string argument');
     });
   });
 
   describe('rendering', function() {
-/*    it('usfm', function() {
-      var usfmRndr = new USFMRenderer();
+    var bible          = null;
+    var textAndIdsRndr = new TextRenderer({textOnly: false});
+    var textRndr       = new TextRenderer();
+    var usfmRndr       = new USFMRenderer();
+
+    it('reading from hdd', function() {
+      bible = loadBible(path.join(__dirname, 'usfm/'));
+    });
+
+    it('usfm', function() {
       var str = bible.render(usfmRndr);
     });
 
     it('text', function() {
-      var textRndr = new TextRenderer();
-      var str = bible.render(textRndr);
+      var str = bible.render(textAndIdsRndr);
+      str = bible.render(textRndr);
     });
 
     var samples = 100;
     it('usfm performance', function() {
-      var usfmRndr = new USFMRenderer();
       for (var i = 0; i < samples; ++i)
         bible.render(usfmRndr);
     });
 
     it('text performance', function() {
-      var textRndr = new TextRenderer();
       for (var i = 0; i < samples; ++i)
         bible.render(textRndr);
-    });*/
+    });
+
+    it('text with bad argumets', function() {
+
+    });
+
+    it('complain for incomplete renderer', function() {
+      // creating custom rendere
+      var CustomRenderer = function() {
+      };
+      lb.inherit(CustomRenderer, Renderer);
+      var customRndr = new CustomRenderer();
+
+      var listOfMethodsToImplement = [
+        'renderBookHeader',
+        'renderChapterNumber',
+        'renderOpenParagraph',
+        'renderCloseParagraph',
+        'renderVerseNumber',
+        'renderVerseEnd',
+        'renderOpenTag',
+        'renderCloseTag',
+        'renderChapterEnd',
+        'renderBookEnd'
+      ];
+
+      listOfMethodsToImplement.forEach(function(methodName) {
+        expect(bible.render.bind(bible, customRndr)).to.throw();
+
+        // add function per iteration to our renderer
+        customRndr[methodName] = function() { return ''; };
+      });
+
+      // but now our renderer is properly formed, have all required methods
+      bible.render(customRndr);
+    });
   });
 
 });

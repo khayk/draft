@@ -146,13 +146,15 @@
 
 
   // sample book
+  // @todo do not like this, change, refactor 
   exports.bookTemplate = '' +
-    '\\id GEN  Genesis\n' +
+    '\\{{ID}}  Genesis\n' +
     '\\h Genesis\n' +
     '\\toc1 The First Book of Moses, called Genesis\n' +
     '\\toc2 Genesis\n' +
     '\\toc3 Gen\n' +
     '\\mt The First Book of Moses, called Genesis\n' +
+    '\\{{ENCODING}}\n' +
     '\\c 1\n' +
     '\\p\n' +
     '\\v 1  first\n' +

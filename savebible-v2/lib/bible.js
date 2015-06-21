@@ -533,12 +533,12 @@ function inherit(child, base, props) {
     return !_.isUndefined(this.first);
   };
 
-  Node.prototype.nodesCount = function() {
+  Node.prototype.count = function() {
     var count = 1;
     if (this.haveChild())
-      count += this.first.nodesCount();
+      count += this.first.count();
     if (this.haveNext())
-      count += this.next.nodesCount();
+      count += this.next.count();
     return count;
   };
 
@@ -567,10 +567,9 @@ function inherit(child, base, props) {
     var prev = null;
     while (n !== null) {
       if (NH.isText(n) && n.text === '') {
-        if (prev === null)
-          this.first = n;
-        else if (n.haveNext())
+        if (n.haveNext()) {
           prev.next = n.getNext();
+        }
       }
       else {
         prev = n;
@@ -719,7 +718,7 @@ function inherit(child, base, props) {
       if (this.parent === null) {
         return 'null ' + this.number;
       }
-      return this.parent.id + ' ' + this.number;
+      return this.parent.te.id + ' ' + this.number;
     },
 
     // @returns  reference for the chapter
@@ -738,7 +737,7 @@ function inherit(child, base, props) {
     // @returns  Book id containing current verse
     bid: function() {
       if (this.parent) {
-        return this.parent.id;
+        return this.parent.te.id;
       }
       return '';
     },
@@ -775,7 +774,7 @@ function inherit(child, base, props) {
         throw 'Attempt to overwrite existing verse ' + verse.id();
 
       if ( verse.number - this.numVerses() !== 1 ) {
-        console.warn('detected verse gap while adding verse ' + verse.id());
+        log.warn('detected verse gap while adding verse ' + verse.id());
         while (verse.number - this.numVerses() > 1) {
           // add empty verses to fill gap
           var dummy = new Verse();
@@ -798,12 +797,12 @@ function inherit(child, base, props) {
     },
 
     // @todo:comment
-    addHeading: function(text) {
-      var loc = this.verses.length;
-      if (_.isUndefined(this.heading[loc]))
-        this.heading[loc] = [];
-      this.heading[loc].push(text);
-    },
+    // addHeading: function(text) {
+    //   var loc = this.verses.length;
+    //   if (_.isUndefined(this.heading[loc]))
+    //     this.heading[loc] = [];
+    //   this.heading[loc].push(text);
+    // },
 
     // @returns  Representation of the chapter rendered with the give renderer
     render: function(renderer) {
@@ -818,11 +817,7 @@ function inherit(child, base, props) {
   var Book = function() {
     this.parent   = null;
     this.index    = 0;
-    this.id       = '';
-    this.abbr     = '';
-    this.name     = '';
-    this.lname    = '';
-    this.desc     = '';
+    this.te       = new TocEntry();
     this.chapters = [];
     this.preface  = [];
     this.header   = [];
@@ -842,9 +837,9 @@ function inherit(child, base, props) {
     // @return   Next book of the Bible, null if there are no more books
     next: function() {
       if (this.parent) {
-        var tocEntry = this.parent.getToc().nextItem(this.id);
-        if (tocItem)
-          return this.parent.getBook(tocItem.id);
+        var te = this.parent.getToc().next(this.te.id);
+        if (te)
+          return this.parent.getBook(te.id);
       }
       return null;
     },
@@ -852,9 +847,9 @@ function inherit(child, base, props) {
     // @return   Previous book of the Bible, null if there are no more books
     prev: function() {
       if (this.parent) {
-        var tocItem = this.parent.getToc().prevItem(this.id);
-        if (tocItem)
-          return this.parent.getBook(tocItem.id);
+        var te = this.parent.getToc().prev(this.te.id);
+        if (te)
+          return this.parent.getBook(te.id);
       }
       return null;
     },
@@ -881,12 +876,7 @@ function inherit(child, base, props) {
       return this.chapters[number - 1];
     },
 
-    // @todo:comment
-    getTocEntry: function() {
-
-    },
-
-    // @todo:comment
+    // @returns  Representation of the book rendered with the give renderer
     render: function(renderer) {
       return renderer.renderBook(this);
     }
@@ -910,28 +900,12 @@ function inherit(child, base, props) {
     this.desc    = '';
     this.year    = '';
     this.lang    = '';
-    //this.toc     = new TableOfContent();
+    this.toc     = new TableOfContents();
   };
 
-
+  // @returns  Representation of the bible rendered with the give renderer
   Bible.prototype.render = function(renderer) {
     return renderer.renderBible(this);
-  };
-
-
-  Bible.prototype.reorder = function(fn) {
-    if (_.isUndefined(fn)) {
-      fn = function(x, y) {
-        return BBM.instance().itemById(x.id).index -
-               BBM.instance().itemById(y.id).index;
-      };
-    }
-    this.books.sort(fn);
-
-    var self = this;
-    this.books.forEach(function(b, i) {
-      self.ids[b.id] = i;
-    });
   };
 
   // @returns  Number of book in the Bible
@@ -944,18 +918,13 @@ function inherit(child, base, props) {
   // will raise an exception
   Bible.prototype.addBook = function(book) {
     // make sure that the new book is not exist in the instance of bible
-    if (!_.isUndefined(this.ids[book.id]))
-      throw 'book ' + book.id + ' is already exist in the bible';
+    if (!_.isUndefined(this.ids[book.te.id]))
+      throw 'book ' + book.te.id + ' is already exist in the bible';
 
     book.parent = this;
     this.books.push(book);
-    this.ids[book.id] = this.books.length - 1;
-
-    // this.toc.addItem(new TocEntry(book.id,
-    //                              book.abbr,
-    //                              book.name,
-    //                              book.lname,
-    //                              book.desc));
+    this.ids[book.te.id] = this.books.length - 1;
+    this.toc.add(book.te);
     return this;
   };
 
@@ -999,18 +968,18 @@ function inherit(child, base, props) {
         if (tag === TAG.ID) {
           arr = /(\w+)\s+(.+)/gm.exec(str);
           if (arr === null)
-            throw 'failed to identify book id';
-          book.id = arr[1];
+            throw 'Failed to identify book id';
+          book.te.id = arr[1];
         } else {
           if (tag === TAG.TOC1) {
-            book.desc = str.trim();
+            book.te.desc = str.trim();
           } else if (tag === TAG.TOC2) {
-            book.name = str.trim();
+            book.te.name = str.trim();
           } else if (tag === TAG.TOC3) {
-            book.abbr = str.trim();
+            book.te.abbr = str.trim();
           } else if (tag === TAG.IDE) {
             if (str !== 'UTF-8')
-              console.warn('unknown encoding %s in %s book.', str, book.id);
+              throw util.format('Unknown encoding %s in %s book.', str, book.te.id);
           } else {
             book.header.push({tag: tag, value: str});
           }
@@ -1018,12 +987,9 @@ function inherit(child, base, props) {
       }
 
       // @todo: fill abbreviation based on default values
-      var tmp = BBM.instance().itemById(book.id);
-      book.index = tmp.index;
-      if (!BBM.instance().existsId(book.id))
-        throw 'Invalid book id: ' + book.id;
-      // if (book.abbr === '')
-      //   book.abbr = tmp.abbr;
+      var tmp = BBM.instance().itemById(book.te.id);
+      if (!BBM.instance().existsId(book.te.id))
+        throw 'Invalid book id: ' + book.te.id;
     };
 
     this.parseVerseImpl = function(str, vnode) {
@@ -1124,8 +1090,6 @@ function inherit(child, base, props) {
         extractHeader(header, book);
         lastIndex = re.lastIndex;
         cn = arr[1];
-      } else {
-        throw 'Empty USFM book';
       }
 
       // find chapters
@@ -1162,17 +1126,7 @@ function inherit(child, base, props) {
     this.vre.lastIndex = 0;
     var verse = new Verse();
     this.parseVerseImpl(tmp, verse.node);
-
-    //var before = verse.node.nodesCount();
     verse.node.normalize();
-    //var after = verse.node.nodesCount();
-
-    // if (before > after) {
-    //   //console.log('nodes reduced by: %d', before - after);
-    // }
-    // else if (before < after)
-    //   console.log('WHAT????');
-
     return verse;
   };
 
@@ -1248,8 +1202,8 @@ function inherit(child, base, props) {
         var book = parser.parseBook(str);
 
         // make sure that filename and content are synchronized
-        if (book.id !== info.id) {
-          log.warn('book id from "%s" file does not match with file name id');
+        if (book.te.id !== info.id) {
+          //log.warn('book id from "%s" file does not match with file name id');
         }
         bible.addBook(book);
       }
@@ -1332,7 +1286,7 @@ function inherit(child, base, props) {
         pclose = '';
       }
 
-      res += (popen + self.renderVerse(v) + pclose + self.renderVerseEnd(v));
+      res += (popen + v.render(self) + pclose + self.renderVerseEnd(v));
     });
     return res;
   };
@@ -1341,7 +1295,7 @@ function inherit(child, base, props) {
     var res = this.renderBookHeader(book);
     var self = this;
     book.chapters.forEach(function(c) {
-      res += self.renderChapter(c);
+      res += c.render(self);
       res += self.renderChapterEnd(c);
     });
     return res;
@@ -1352,7 +1306,7 @@ function inherit(child, base, props) {
     var self = this;
 
     bible.books.forEach(function(b) {
-      res += self.renderBook(b);
+      res += b.render(self);
       res += self.renderBookEnd(b);
     });
     return res;
@@ -1401,12 +1355,12 @@ function inherit(child, base, props) {
 
   USFMRenderer.prototype.renderBookHeader = function(book)  {
     var res = '';
-    res += TAG.ID   + ' ' + book.id   + ' ' + book.name + LF;
-    res += TAG.H    + ' ' + book.name + LF;
-    res += TAG.TOC1 + ' ' + book.desc + LF;
-    res += TAG.TOC2 + ' ' + book.name + LF;
-    res += TAG.TOC3 + ' ' + book.abbr + LF;
-    res += TAG.MT   + ' ' + book.desc + LF;
+    res += TAG.ID   + ' ' + book.te.id   + ' ' + book.te.name + LF;
+    res += TAG.H    + ' ' + book.te.name + LF;
+    res += TAG.TOC1 + ' ' + book.te.desc + LF;
+    res += TAG.TOC2 + ' ' + book.te.name + LF;
+    res += TAG.TOC3 + ' ' + book.te.abbr + LF;
+    res += TAG.MT   + ' ' + book.te.desc + LF;
     return res;
   };
 
@@ -1418,11 +1372,61 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
-  var TextRenderer = function() {
+  var TextRenderer = function(opts) {
+    if (!opts)
+      opts = { textOnly: true };
+    else if (typeof opts !== 'object')
+      throw new TypeError('Bad arguments');
+    this.textOnly = opts.textOnly;
     Renderer.call(this);
   };
   inherit(TextRenderer, Renderer);
 
+  TextRenderer.prototype.renderOpenTag = function(tag) {
+    if (TH.isTranslator(tag))
+      return '[';
+    return '';
+  };
+
+  TextRenderer.prototype.renderCloseTag = function(tag) {
+    if (TH.isTranslator(tag))
+      return ']';
+    return '';
+  };
+
+  TextRenderer.prototype.renderOpenParagraph = function(verse) {
+    return '';
+  };
+
+  TextRenderer.prototype.renderCloseParagraph = function(verse) {
+    return '';
+  };
+
+  TextRenderer.prototype.renderVerseEnd = function(verse) {
+    return LF;
+  };
+
+  TextRenderer.prototype.renderVerseNumber = function(verse) {
+    if (this.textOnly)
+      return '';
+    return verse.id() + ' ';
+  };
+
+  TextRenderer.prototype.renderChapterEnd = function(verse) {
+    return '';
+  };
+
+  TextRenderer.prototype.renderChapterNumber = function(chap)  {
+    return '';
+  };
+
+  TextRenderer.prototype.renderBookHeader = function(book)  {
+    return '';
+  };
+
+  TextRenderer.prototype.renderBookEnd = function(book) {
+    return '';
+  };
 
 
   /*------------------------------------------------------------------------*/
@@ -1449,9 +1453,7 @@ function inherit(child, base, props) {
   exports.decodeRef       = decodeRef;
   exports.loadBook        = loadBook;
   exports.loadBible       = loadBible;
-
-
-
+  exports.inherit         = inherit;
 
 }.call(this));
 
