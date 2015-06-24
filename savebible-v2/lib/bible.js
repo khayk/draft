@@ -1150,26 +1150,82 @@ function inherit(child, base, props) {
 
   /*------------------------------------------------------------------------*/
 
+  // Parse file name and return object with meta information contained in
+  // the name of file, in the description below the followin abbreviations
+  // are used
+  //
+  // N     two digist number containing book index (order number)
+  // ID    string with 3 characters containing the book id
+  // LN    string with 2 or 3 characters indicating book language,
+  // NAME  string containing containing bible book name abbreviation
+  //
+  // @param  {string}  file   Name of the file to parse
+  // @param  {boolean} strict Parsing mode, in the strict mode
+  //                          only allowed format is
+  //                          {N}-{ID}{LN}-{NAME}.usfm
+  //                          otherwise format will be allowed
+  //                          {N}-{ID}.usfm
+  // @return {object}         {on: N, id: ID, lang: LN, bibleAbbr: NAME} for
+  //                          strict mode, or {on: N, id: ID} non-strict
+  //                          mode, or null if the format is not recognized
+  function decodeFileName(file, strict) {
+    if (_.isUndefined(strict) || (typeof strict !== 'boolean')) {
+      strict = true;
+    }
 
-  function decodeFileName(file) {
-    // NN-IIIaaa-vvv.usfm   strict check
-    return {on: 1, id: 'AAA', lang: 'ln', bibleName: 'kjv'};
+    file = path.basename(file);
+    var arr = /(\d+)-(\w{3})(\w{2,3})-(\w+)/g.exec(file);
+    if (arr !== null) {
+      return {
+        on: parseInt(arr[1]),
+        id: arr[2].toUpperCase(),
+        lang: arr[3].toLowerCase(),
+        bibleAbbr: arr[4].toUpperCase()
+      };
+    }
+
+    if (!strict) {
+      arr = /(\d+)-(\w{3})/g.exec(file);
+      if (arr !== null) {
+        return {
+          on: parseInt(arr[1]),
+          id: arr[2].toUpperCase()
+        };
+      }
+    }
+
+    return null;
   }
 
   // Load bible book from the specified file and construct Book object
   //
-  // @param  {string} file  Name of file containing Bible book in a usfm format
-  // @param  {object} opts  Control book loader behaviour with various options
-  // @return {object}       Book object
+  // @param  {string} file   Name of file containing Bible book in a usfm format
+  // @param  {object} opts   Control book loader behaviour with various options
+  // @param  {object} parser Parser object to reuse
+  // @return {object}        Book object
   //
-  function loadBook(file, opts) {
+  function loadBook(file, opts, parser) {
     if (_.isUndefined(opts)) {
-      opts = {supportedOnly: true};
+      opts = {
+        supportedOnly: true,
+        strictFilename: true
+      };
     }
 
-    var parser = new Parser(opts.supportedOnly);
+    if (_.isUndefined(parser))
+      parser = new Parser(opts.supportedOnly);
+
+    var info = decodeFileName(file, opts.strictFilename);
+    if (info === null)
+      throw 'File name requiremens are not met: ' + file;
     var str    = fs.readFileSync(file, 'utf8');
     var book   = parser.parseBook(str);
+
+    // make sure that filename and content are synchronized
+    if (book.te.id !== info.id) {
+      log.warn('Book id from "%s" file does not match with id from file name');
+    }
+
     return book;
   }
 
@@ -1197,18 +1253,21 @@ function inherit(child, base, props) {
       if (path.extname(file).toLowerCase() !== '.usfm')
         return;
       try {
-        var info = decodeFileName(file);
-        var str  = fs.readFileSync(dir + file, 'utf8');
-        var book = parser.parseBook(str);
+        var book = loadBook(dir + file, opts, parser);
 
-        // make sure that filename and content are synchronized
-        if (book.te.id !== info.id) {
-          //log.warn('book id from "%s" file does not match with file name id');
+        // add meta information into bible if it is available through file name
+        var info = decodeFileName(file, opts.strictFilename);
+        if (info !== null) {
+          if (!_.isUndefined(info.lang))
+            bible.lang = info.lang;
+          if (!_.isUndefined(info.bibleAbbr))
+            bible.abbr = info.bibleAbbr;
         }
+
         bible.addBook(book);
       }
       catch (e) {
-        log.error('"%s" file processing failed. Error: %s', file, e.message);
+        log.error('"%s" file processing failed. Error: %s', file, e);
       }
     });
 
@@ -1453,6 +1512,8 @@ function inherit(child, base, props) {
   exports.decodeRef       = decodeRef;
   exports.loadBook        = loadBook;
   exports.loadBible       = loadBible;
+  exports.decodeFileName  = decodeFileName;
+
   exports.inherit         = inherit;
 
 }.call(this));

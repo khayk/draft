@@ -16,21 +16,22 @@
   var bench  = new help.Benchmark();
 
 
+
+
   bench.begin('node ready');
   bench.end();
 
   var BBM        = lb.BBM;
 
-  var MetaBlock = function() {
+  var Meta = function() {
+    this.lang = '';
   };
 
-  var Meta = function() {
+  var MetaCollection = function() {
   };
 
   var Lexical = function() {
   };
-
-
 
 // var bible = loadBible();
 // var meta  = loadMeta();

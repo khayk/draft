@@ -26,7 +26,7 @@ var TextRenderer    = lb.TextRenderer;
 var loadBible       = lb.loadBible;
 var encodeRef       = lb.encodeRef;
 var decodeRef       = lb.decodeRef;
-
+var decodeFileName  = lb.decodeFileName;
 
 /*------------------------------------------------------------------------*/
 
@@ -508,6 +508,23 @@ describe('core components', function() {
     var parserAll = new Parser(false);
     var usfmRndr  = new USFMRenderer();
     var textRndr  = new TextRenderer();
+
+    it('file name info', function() {
+      var info = decodeFileName('02-OnEru-synod.usfm');
+      expect(info.on).to.be.equal(2);
+      expect(info.id).to.be.equal('ONE');
+      expect(info.lang).to.be.equal('ru');
+      expect(info.bibleAbbr).to.be.equal('SYNOD');
+
+      info = decodeFileName('132-OnE.usfm');
+      expect(info).to.be.a('null');
+
+      info = decodeFileName('132-OnE.usfm', false);
+      expect(info.on).to.be.equal(132);
+      expect(info.id).to.be.equal('ONE');
+      expect(info.lang).to.be.an('undefined');
+      expect(info.bibleAbbr).to.be.an('undefined');
+    });
 
     it('node count monitoring', function() {
       var verse = null;
