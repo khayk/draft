@@ -23,15 +23,27 @@
 
   var BBM        = lb.BBM;
 
-  var Meta = function() {
+  var Lexical = function() {
     this.lang = '';
   };
+
+  var Meta = function() {
+    this.lex = '';
+    this.toc = new TableOfContents();
+  };
+
+  // load meta data from the give json file
+  Meta.prototype.load = function(file) {
+  };
+
 
   var MetaCollection = function() {
   };
 
-  var Lexical = function() {
+  MetaCollection.prototype.load = function(dir) {
   };
+
+
 
 // var bible = loadBible();
 // var meta  = loadMeta();
