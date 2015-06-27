@@ -34,14 +34,18 @@ function createLogDirectory(loggerConfig) {
 var loggerConfig = nconf.get('log4js');
 createLogDirectory(loggerConfig);
 
+
+// if started from mocha we can disable logging
 var cmd = nconf.argv().get('$0');
-// @todo: check if started from mocha we can disable logging
+if (path.basename(cmd) === '_mocha') {
+  // disable logging for all loggers
+  loggerConfig.levels = {"[all]": "ERROR"};
+}
 
 // configure logging and process with our modules
 log4js.configure(loggerConfig, {});
 
 // now logging is configured and can be used throughout of the application
-
 var cfg = (function() {
   var data = nconf.get('data');
 

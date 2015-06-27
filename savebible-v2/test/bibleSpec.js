@@ -5,11 +5,13 @@ var path   = require('path');
 var util   = require('util');
 
 
+var cfg    = require('../config').cfg;
 var lb     = require('../lib/bible.js');
 var tc     = require('./dataCreators.js');
 var dusfm  = require('./dataUSFM.js');
 
 var BBM             = lb.BBM;
+var MC              = lb.MC;
 var TocEntry        = lb.TocEntry;
 var TableOfContents = lb.TableOfContents;
 var TH              = lb.TH;
@@ -24,6 +26,7 @@ var USFMRenderer    = lb.USFMRenderer;
 var TextRenderer    = lb.TextRenderer;
 
 var loadBible       = lb.loadBible;
+var loadBook        = lb.loadBook;
 var encodeRef       = lb.encodeRef;
 var decodeRef       = lb.decodeRef;
 var decodeFileName  = lb.decodeFileName;
@@ -179,8 +182,88 @@ describe('module BBM', function() {
 /*------------------------------------------------------------------------*/
 
 
-describe('module Lexical', function() {
-  // @todo:implement
+describe('module MetaCollection', function() {
+
+  var en = '';
+  var ru = '';
+  var hy = '';
+  // TODO: var puncts = '`!@?\'\",-_«»';
+
+  // initialize language letters
+  before(function() {
+    function insert(str, index, value) {
+      return str.substr(0, index) + value + str.substr(index);
+    }
+
+    var alphabetLength, firstLower, firstUpper, i, lo, hi;
+
+    // english alphabet 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    alphabetLength = 26;
+    firstLower = 0x61;  // english lowercase `a`
+    firstUpper = 0x41;  // english capital `A`
+    lo = hi = '';
+    for (i = 0; i < alphabetLength; ++i) {
+      lo += String.fromCharCode(firstLower + i);
+      hi += String.fromCharCode(firstUpper + i);
+    }
+    en = lo + hi;
+
+
+    //console.log(en);
+    // russian alphabet 'абвгдеёжзийклмнопрстуфхцчшщьъыэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЪЫЭЮЯ';
+    alphabetLength = 32;
+    firstLower = 0x430;  // russian lowercase `a`
+    firstUpper = 0x410;  // russian capital `A`
+    lo = hi = '';
+    for (i = 0; i < alphabetLength; ++i) {
+      lo += String.fromCharCode(firstLower + i);
+      hi += String.fromCharCode(firstUpper + i);
+    }
+    lo = insert(lo, 6, String.fromCharCode(0x451)); // append ё
+    hi = insert(hi, 6, String.fromCharCode(0x401)); // append Ё
+    ru = lo + hi;
+
+
+    // armenian alphabet 'աբգդեզէըթժիլխծկհչղճմյնշոչպջռսվտրցւփքևօֆԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՉՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖ';
+    alphabetLength = 38;
+    firstLower = 0x561;  // armenian lowercase `ա`
+    firstUpper = 0x531;  // armenian capital `Ա`
+    lo = hi = '';
+    for (i = 0; i < alphabetLength; ++i) {
+      lo += String.fromCharCode(firstLower + i);
+      hi += String.fromCharCode(firstUpper + i);
+    }
+    lo = insert(lo, 36, String.fromCharCode(0x587)); // append և
+    hy = lo + hi;
+  });
+
+  it('loading', function() {
+    var MCO = MC.instance();
+    MCO.load(path.join(cfg.mediaDir(), 'meta'));
+    var languages = MCO.getLanguages();
+
+    var obj = {'ru': ru, 'en': en, 'hy': hy};
+
+    _.each(obj, function(val, key) {
+      var meta = MCO.getMeta(key);
+      var lex  = meta.lex;
+      var res = lex.removePunctuations(en + ru + hy);
+      expect(res).to.be.equal(val);
+      expect(languages.indexOf(key)).to.not.be.equal(-1);
+    });
+
+    expect(MCO.getMeta('hy').lex.removeLetters(en + ru + hy)).to.be.equal(en + ru);
+    expect(MCO.getMeta('en').lex.getLetters()).to.be.equal('A-Za-z');
+
+    expect(MCO.getMeta('absent')).to.be.equal(null);
+    expect(MCO.haveMeta('not')).to.be.equal(false);
+
+    var lex = MCO.getMeta('ru').lex;
+    expect(lex).to.not.be.equal(null);
+    expect(MCO.addMeta.bind(MCO, MCO.getMeta('en'))).to.throw();
+    expect(MCO.linkTo.bind(MCO, 'eng', 'absent')).to.throw();
+    expect(MCO.linkTo.bind(MCO, 'eng', 'en')).to.not.throw();
+  });
 });
 
 
@@ -278,6 +361,21 @@ describe('module TableOfContents', function() {
     expect(itm.validate.bind(itm)).to.throw('missing lname with id: GEN' );
     itm.normalize();
     expect(itm.validate.bind(itm)).not.throw();
+
+    var arr = [
+      {"id":"JOS", "name":"Joshua", "abbr":"Jos",  "lname":"Joshua", "desc":"The Book of Joshua"},
+      {"id":"JDG", "name":"Judges", "abbr":"Jdg",  "lname":"Judges", "desc":"The Book of Judges"},
+      {"id":"RUT", "name":"Ruth",   "abbr":"Rut",  "lname":"Ruth",   "desc":"The Book of Ruth"  }
+    ];
+    var tocFromArray = new TableOfContents(arr);
+    expect(tocFromArray.length()).to.be.equal(arr.length);
+    arr.forEach(function(e) {
+      var te = tocFromArray.get(e.id);
+      expect(te.name).to.be.equal(e.name);
+      expect(te.abbr).to.be.equal(e.abbr);
+      expect(te.lname).to.be.equal(e.lname);
+      expect(te.desc).to.be.equal(e.desc);
+    });
   });
 
   it('performance', function() {
@@ -599,7 +697,9 @@ describe('core components', function() {
     var usfmRndr       = new USFMRenderer();
 
     it('reading from hdd', function() {
-      bible = loadBible(path.join(__dirname, 'usfm/'));
+      var filesDir = path.join(__dirname, 'usfm/');
+      bible = loadBible(filesDir);
+      expect(function() { loadBook('invalid fname'); }).to.throw();
     });
 
     it('usfm', function() {

@@ -2,6 +2,10 @@
 	"folders":
 	[
 		{
+			"file_exclude_patterns":
+			[
+				"tmp/out.txt"
+			],
 			"folder_exclude_patterns":
 			[
 				"logs",

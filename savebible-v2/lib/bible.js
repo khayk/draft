@@ -239,8 +239,35 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
-  var Lexical = function() {
+  // Lexical information for a single language
+  // @param {object} data  js object containing lexical specific data
+  var Lexical = function(data) {
+    this.data_ = {
+      reLetters    : new RegExp('['  + data.letters + ']', 'gm'),
+      reNonLetters : new RegExp('[^' + data.letters + '\\s]', 'gm'),
+      question     : data.question,
+      emphasis     : data.emphasis,
+      letters      : data.letters
+    };
   };
+
+  // @returns language letters with regex definition rules
+  Lexical.prototype.getLetters = function() {
+    return this.data_.letters;
+  };
+
+  // @returns string without punctuations
+  Lexical.prototype.removePunctuations = function(str) {
+    return str.replace(this.data_.reNonLetters, '');
+  };
+
+  // @return string without langage letters
+  Lexical.prototype.removeLetters = function(str) {
+    return str.replace(this.data_.reLetters, '');
+  };
+
+
+  /*------------------------------------------------------------------------*/
 
 
   // Table of content single entry
@@ -329,99 +356,248 @@ function inherit(child, base, props) {
 
 
   // Table of content object for the Bible object
-  var TableOfContents = function() {
-    var content_ = {};
-    var size_ = 0;
+  var TableOfContents = function(tocArray) {
+    this.content_ = {};
+    this.size_ = 0;
+
+    if (!_.isUndefined(tocArray)) {
+      var that = this;
+      tocArray.forEach(function(e) {
+        var te = new TocEntry(e.id, e.abbr, e.name, e.lname, e.desc);
+        that.add(te);
+      });
+    }
+  };
+
+  TableOfContents.prototype = {
+    // @return number of entries
+    length: function() {
+      return this.size_;
+    },
+
+    // Add new entry
+    // @param {object} te TocEntry object
+    //
+    // throws an exception if detected addition of duplicate entry
+    add: function(te) {
+      if (!_.isUndefined(this.content_[te.id]))
+        throw 'id ' + te.id + ' already exists';
+      this.content_[te.id] = te;
+      ++this.size_;
+    },
+
+    // @param  {string} id  book id
+    // @return {object}     reference to TocEntry object
+    get: function(id) {
+      var te = this.content_[id];
+      if (_.isUndefined(te))
+        return null;
+      return te;
+    },
+
+    // @returns  first entry from the table of content
+    first: function() {
+      var cid = BBM.instance().firstId();
+      while (cid) {
+        var te = this.get(cid);
+        if (te)
+          return te;
+        cid = BBM.instance().nextId(cid);
+      }
+      return null;
+    },
+
+    // @param {string} id  entry id
+    // @returns  entry that stands after the entry with specified id
+    next: function(id) {
+      var cid = id;
+      while (cid) {
+        cid = BBM.instance().nextId(cid);
+        var te = this.get(cid);
+        if (te)
+          return te;
+      }
+      return null;
+    },
+
+    // @param {string} id  entry id
+    // @returns  entry that stands before the entry with specified id
+    prev: function(id) {
+      var cid = id;
+      while (cid) {
+        cid = BBM.instance().prevId(cid);
+        var te = this.get(cid);
+        if (te)
+          return te;
+      }
+      return null;
+    },
+
+    // @returns  true if the table of content contains an entry with given id,
+    //           otherwise false
+    have: function(id) {
+      return !_.isUndefined(this.content_[id]);
+    },
+
+    // populate current table of content existing entries with
+    //
+    // @param {object}  toc  object to copy from
+    populate: function(toc, overwrite) {
+      _.each(this.content_, function(val, key) {
+        var ti = toc.get(key);
+        if (ti !== null)
+          val.populate(ti, overwrite);
+      });
+    },
+
+    // verify that core attributes are presented in the table of content
+    validate: function() {
+      _.each(this.content_, function(val, key) {
+        val.validate();
+      });
+    }
+  };
+
+
+  /*------------------------------------------------------------------------*/
+
+
+  // Kind of storage where we collect bible specific data for a given language
+  // like, table of content, language specific lexical data and so on.
+  var Meta = function() {
+    this.lex  = null;
+    this.toc  = null;
+    this.lang = '';
+  };
+
+  // load meta data from the given json file
+  // @returns  this object
+  Meta.prototype.load = function(file) {
+
+    // load file content
+    var data = fs.readFileSync(file, 'utf8');
+    var js = JSON.parse(data);
+
+    // identify language
+    var ext   = path.extname(file);
+    this.lang = path.basename(file, ext);
+    this.lex  = new Lexical(js.lexical);
+    this.toc  = new TableOfContents(js.toc);
+
+    return this;
+  };
+
+
+  /*------------------------------------------------------------------------*/
+
+
+  // Collection of Meta objects, each entry represent a single language
+  var MC = (function() {
+    var instance_;      // instance stores a reference to the Singleton
+    var metas_ = {};    // key is a language for a meta
+
+    function init() {
+      return {
+
+        // Loads all available meta object in the given directory
+        //
+        // @param  {string} dir  directory where meta dates are located
+        // @return {object}      returns itself, that are initialized
+        load: function(dir) {
+          // clean previous call
+          this.clean();
+          var that = this;
+
+          dir = path.normalize(dir + '/');
+          var files  = fs.readdirSync(dir, 'utf8');
+
+          files.forEach(function(file) {
+            if (path.extname(file).toLowerCase() === '.json') {
+              try {
+                var meta = new Meta();
+                meta.load(dir + file);
+                that.addMeta(meta);
+              } catch (e) {
+                log.error('"%s" file processing failed. Error: %s', file, e);
+                throw e;
+              }
+            }
+          });
+        },
+
+        // @brief  clean all data stored in the container
+        clean: function() {
+          metas_ = {};
+        },
+
+        // @brief  add meta object to the collection
+        addMeta: function(meta) {
+          var lang = meta.lang;
+          if (_.isUndefined(metas_[lang])) {
+            metas_[lang] = meta;
+          }
+          else {
+            throw 'Language \"' + lang + '\" is already exists';
+          }
+        },
+
+        // @param {string}  lang  meta language
+        // @return          meta object that predestined for given language
+        getMeta: function(lang) {
+          var ref = metas_[lang];
+          if (_.isUndefined(ref))
+            return null;
+          return ref;
+        },
+
+        // @param {string}  lang  meta language
+        // @returns  true if MC collection store meta object with given language
+        haveMeta: function(lang) {
+          return !_.isUndefined(metas_[lang]);
+        },
+
+        // @returns  array of all languages contained in the collection
+        getLanguages: function() {
+          return Object.keys(this.getAll());
+        },
+
+        // @returns  object that holds all meta specific information
+        getAll: function() {
+          return metas_;
+        },
+
+        // It is common that several versions of the bible use the same
+        // meta information, or we want to share some meta object between
+        // other languages
+        //
+        // @param  {string} ln  language name that is going to be linked
+        // @param  {string} to  language name that is already contained in
+        //                      the MC, its meta will be used for new language
+        // @return {object}     new Meta object that is connection with new
+        //                      language
+        linkTo: function(ln, to) {
+          var ref = this.getMeta(to);
+          if (ref === null)
+            throw 'You can only link to an existing language. Absent: ' + to;
+          var meta = new Meta();
+          meta.lex = ref.lex;
+          meta.toc = ref.toc;
+          meta.lang = ln;
+          this.addMeta(meta);
+          return meta;
+        }
+      };
+    }
 
     return {
-      // @return number of entries
-      length: function() {
-        return size_;
-      },
-
-      // Add new entry
-      // @param {object} te TocEntry object
-      //
-      // throws an exception if detected addition of duplicate entry
-      add: function(te) {
-        if (!_.isUndefined(content_[te.id]))
-          throw 'id ' + te.id + ' already exists';
-        content_[te.id] = te;
-        ++size_;
-      },
-
-      // @param  {string} id  book id
-      // @return {object}     reference to TocEntry object
-      get: function(id) {
-        var te = content_[id];
-        if (_.isUndefined(te))
-          return null;
-        return te;
-      },
-
-      // @returns  first entry from the table of content
-      first: function() {
-        var cid = BBM.instance().firstId();
-        while (cid) {
-          var te = this.get(cid);
-          if (te)
-            return te;
-          cid = BBM.instance().nextId(cid);
+      instance: function() {
+        if (!instance_) {
+          instance_ = init();
         }
-        return null;
-      },
-
-      // @param {string} id  entry id
-      // @returns  entry that stands after the entry with specified id
-      next: function(id) {
-        var cid = id;
-        while (cid) {
-          cid = BBM.instance().nextId(cid);
-          var te = this.get(cid);
-          if (te)
-            return te;
-        }
-        return null;
-      },
-
-      // @param {string} id  entry id
-      // @returns  entry that stands before the entry with specified id
-      prev: function(id) {
-        var cid = id;
-        while (cid) {
-          cid = BBM.instance().prevId(cid);
-          var te = this.get(cid);
-          if (te)
-            return te;
-        }
-        return null;
-      },
-
-      // @returns  true if the table of content contains an entry with given id,
-      //           otherwise false
-      have: function(id) {
-        return !_.isUndefined(content_[id]);
-      },
-
-      // populate current table of content existing entries with
-      //
-      // @param {object}  toc  object to copy from
-      populate: function(toc, overwrite) {
-        _.each(content_, function(val, key) {
-          var ti = toc.get(key);
-          if (ti !== null)
-            val.populate(ti, overwrite);
-        });
-      },
-
-      // verify that core attributes are presented in the table of content
-      validate: function() {
-        _.each(content_, function(val, key) {
-          val.validate();
-        });
+        return instance_;
       }
     };
-  };
+  })();
 
 
   /*------------------------------------------------------------------------*/
@@ -502,6 +678,8 @@ function inherit(child, base, props) {
   var Node = function() {
   };
 
+  // @param {object} node  object that is going to become child
+  // @return this
   Node.prototype.addChild = function(node) {
     if (this.firstChild() === null) {
       this.first = node;
@@ -511,28 +689,34 @@ function inherit(child, base, props) {
       this.last.next = node;
       this.last = node;
     }
+    return this;
   };
 
+  // @returns  first child node of the current node
   Node.prototype.firstChild = function() {
     if (_.isUndefined(this.first))
       return null;
     return this.first;
   };
 
+  // @returns  next node of the current node
   Node.prototype.getNext = function() {
     if (_.isUndefined(this.next))
       return null;
     return this.next;
   };
 
+  // @returns  true if the current node have element following itself
   Node.prototype.haveNext = function() {
     return !_.isUndefined(this.next);
   };
 
+  // @returns  true if the current node have at least one child node
   Node.prototype.haveChild = function() {
     return !_.isUndefined(this.first);
   };
 
+  // @returns  number of all nodes contained in the nodes tree
   Node.prototype.count = function() {
     var count = 1;
     if (this.haveChild())
@@ -542,6 +726,8 @@ function inherit(child, base, props) {
     return count;
   };
 
+  // @brief  normalize tree structure by eliminating nodes that can be merged
+  //         into one
   Node.prototype.normalize = function() {
     if (!this.haveChild())
       return;
@@ -580,24 +766,29 @@ function inherit(child, base, props) {
 
   var NH = (function() {
     return {
+      // @returns  true if the specified node contain usfm tag, otherwise false
       isTag: function(node) {
         if (!_.isUndefined(node.tag))
           return true;
         return false;
       },
 
+      // @returns  true if the specified node is a text node
       isText: function(node) {
         if (!_.isUndefined(node.text))
           return true;
         return false;
       },
 
+      // @param {string} tag  usfm tag of form \\tag, or \\+tag
+      // @returns  new Node object that is contains specified tag
       createTag: function(tag) {
         var node = new Node();
         node.tag = tag;
         return node;
       },
 
+      // @param {string} text
       createText: function(text) {
         var node = new Node();
         node.text = text;
@@ -898,7 +1089,6 @@ function inherit(child, base, props) {
     this.abbr    = '';
     this.name    = '';
     this.desc    = '';
-    this.year    = '';
     this.lang    = '';
     this.toc     = new TableOfContents();
   };
@@ -1197,6 +1387,22 @@ function inherit(child, base, props) {
     return null;
   }
 
+  function fillMissingOptions(opts) {
+    if (_.isUndefined(opts)) {
+      opts = {};
+    }
+
+    // setup default values for options missing entities
+    if (_.isUndefined(opts.supportedOnly))
+      opts.supportedOnly = true;
+    if (_.isUndefined(opts.strictFilename))
+      opts.strictFilename = true;
+    if (_.isUndefined(opts.lang))
+      opts.lang = '';
+    if (_.isUndefined(opts.tocOverwrite))
+    return opts;
+  }
+
   // Load bible book from the specified file and construct Book object
   //
   // @param  {string} file   Name of file containing Bible book in a usfm format
@@ -1205,13 +1411,7 @@ function inherit(child, base, props) {
   // @return {object}        Book object
   //
   function loadBook(file, opts, parser) {
-    if (_.isUndefined(opts)) {
-      opts = {
-        supportedOnly: true,
-        strictFilename: true
-      };
-    }
-
+    opts = fillMissingOptions(opts);
     if (_.isUndefined(parser))
       parser = new Parser(opts.supportedOnly);
 
@@ -1236,13 +1436,9 @@ function inherit(child, base, props) {
   // @return {object}       Bible object
   //
   function loadBible(dir, opts) {
-    if (_.isUndefined(opts)) {
-      opts = {
-        supportedOnly: true,
-        strictFilename: true
-      };
-    }
+    opts = fillMissingOptions(opts);
 
+    // preparing to load books
     dir        = path.normalize(dir + '/');
     var files  = fs.readdirSync(dir, 'utf8');
     var bible  = new Bible();
@@ -1271,6 +1467,16 @@ function inherit(child, base, props) {
       }
     });
 
+    if (opts.strictFilename === true) {
+      // tocOverwrite controls the method of population of bible.toc
+      // if `true` all entries will be overwritten with values from appropriate
+      // meta object
+      var meta = MC.instance().getMeta(bible.lang);
+      if (meta !== null)
+        bible.toc.populate(meta.toc, opts.tocOverwrite);
+      else
+        log.warn('Meta object for language `%s` is missing.', bible.lang);
+    }
     return bible;
   }
 
@@ -1496,6 +1702,8 @@ function inherit(child, base, props) {
   exports.TocEntry        = TocEntry;
   exports.TableOfContents = TableOfContents;
   exports.TH              = TH;
+  exports.MC              = MC;
+
 
   exports.Verse           = Verse;
   exports.Book            = Book;

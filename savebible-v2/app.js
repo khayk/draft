@@ -15,39 +15,24 @@
   var log    = log4js.getLogger('app');
   var bench  = new help.Benchmark();
 
-
-
-
-  bench.begin('node ready');
-  bench.end();
-
   var BBM        = lb.BBM;
+  var MC         = lb.MC;
 
-  var Lexical = function() {
-    this.lang = '';
+
+  var startupInitialization = function() {
+    MC.instance().load(path.join(cfg.mediaDir(), 'meta'));
+
+    bench.begin('node ready');
+    bench.end();
   };
 
-  var Meta = function() {
-    this.lex = '';
-    this.toc = new TableOfContents();
-  };
+  startupInitialization();
 
-  // load meta data from the give json file
-  Meta.prototype.load = function(file) {
-  };
-
-
-  var MetaCollection = function() {
-  };
-
-  MetaCollection.prototype.load = function(dir) {
-  };
-
-
+  console.log(JSON.stringify(MC.instance().getAll(), null, ' '));
+  return;
 
 // var bible = loadBible();
 // var meta  = loadMeta();
-
 // // {mode: overwrite | missing}
 // var report  = populate(bible, mapping, opt);
 
