@@ -76,6 +76,10 @@ var Benchmark = function() {
                 bytesToSize(usage.heapUsed));
     //log.log(util.inspect(process.memoryUsage()) + '\n');
   };
+
+  this.elapsed = function() {
+    return timer.elapsed();
+  };
 };
 
 

@@ -19,8 +19,23 @@
   var MC         = lb.MC;
 
 
+  var stress = function(fn, str, count) {
+    if (_.isUndefined(count))
+      count = 1;
+    else if (!_.isNumber(count))
+      count = 1;
+
+    bench.begin(str);
+    for (var i = 0; i < count; ++i) {
+      fn();
+    }
+    bench.end();
+  };
+
+
   var startupInitialization = function() {
     MC.instance().load(path.join(cfg.mediaDir(), 'meta'));
+    MC.instance().linkTo('eng', 'en');
 
     bench.begin('node ready');
     bench.end();
@@ -28,47 +43,22 @@
 
   startupInitialization();
 
-  console.log(JSON.stringify(MC.instance().getAll(), null, ' '));
-  return;
-
-// var bible = loadBible();
-// var meta  = loadMeta();
-// // {mode: overwrite | missing}
-// var report  = populate(bible, mapping, opt);
-
   var usfmRender = new lb.USFMRenderer();
   var textRender = new lb.TextRenderer();
-
-  // var dataUSFM = require('./test/dataUSFM.js');
-  // var tvs        = dataUSFM.verses[1];
-  // var orig       = tvs.data.orig;
-  // var parsed     = tvs.data.parsed;
-
-  // var verse = parser.parseVerse(orig);
-  // console.log(verse.node.toString());
-  //console.log(verse.render(usfmRender));
-  // console.log(verse.render(textRender));
-  // console.log(verse.render(htmlRender));
-  // return;
-
   var bible = null;
 
-  bench.begin('reading bible from hdd');
-  for (var i = 0; i < 1; ++i) {
+  stress(function() {
     bible = lb.loadBible(cfg.inputDir() + 'en-kjv-usfm+/', {supportedOnly: true});
-  }
-  bench.end();
+  }, 'reading bible from hdd', 1);
+
 
   var usfm = '';
-  bench.begin('rendering benchmark');
-  for (i = 0; i < 1; ++i) {
+  stress(function() {
     usfm = bible.render(usfmRender);
-  }
-  bench.end();
+  }, 'rendering benchmark', 1);
 
   fs.writeFileSync(cfg.tmpDir() + 'out.txt', usfm);
-
-  //lb.saveBible(folder);
+  lb.saveBible(folder);
 
 }());
 

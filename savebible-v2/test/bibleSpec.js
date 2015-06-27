@@ -658,6 +658,11 @@ describe('core components', function() {
           restored     = verse.render(usfmRndr);
           expect('\\v 0 ' + orig).to.equal(restored);
         });
+
+        var vstrAndNumber = '\\v 15 Understand';
+        verse = parser.parseVerse(vstrAndNumber);
+        restored = verse.render(usfmRndr);
+        expect(vstrAndNumber).to.be.equal(restored);
       });
 
       it('save as text', function() {

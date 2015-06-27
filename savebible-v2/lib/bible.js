@@ -1103,7 +1103,6 @@ function inherit(child, base, props) {
     return this.books.length;
   };
 
-  // @todo:comment
   // add book into bible if it is not added already. duplicate book insertion
   // will raise an exception
   Bible.prototype.addBook = function(book) {
@@ -1118,7 +1117,7 @@ function inherit(child, base, props) {
     return this;
   };
 
-  // @todo:comment
+  // @returns bible book object with specified id
   Bible.prototype.getBook = function(id) {
     var ref = this.ids[id];
     if (_.isUndefined(ref))
@@ -1126,7 +1125,7 @@ function inherit(child, base, props) {
     return this.books[ref];
   };
 
-  // @todo:comment
+  // @returns bible table of content object
   Bible.prototype.getToc = function() {
     return this.toc;
   };
@@ -1135,7 +1134,9 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
-  // @todo:comment
+  // @brief  Create parser object
+  // @param  supportedOnly  the parser will collect only tags that we support
+  //                        list of supported tags are controlled by TH module
   var Parser = function(supportedOnly) {
     this.supportedOnly = supportedOnly;
     this.vre = /(\\\+?(\w+)\*?)\s?/gm;
@@ -1303,12 +1304,22 @@ function inherit(child, base, props) {
     };
   };
 
-
+  // @param {string} str  string in a USFM format
   Parser.prototype.parseVerse = function(str) {
+    // extract verse number if it is provided
+
+    var vn  = 0;
+    var re  = /\\v\s(\d+)/g;
+    var arr = re.exec(str);
+    var tmp = str;
+    if (arr !== null) {
+      vn = parseInt(arr[1]);
+      tmp = str.substring(re.lastIndex);
+    }
 
     // get rid of CR (carriage return) character, and replace
     // LF (line feed) characters with space
-    var tmp = str.replace(/\r/gm, '')
+    tmp = tmp.replace(/\r/gm, '')
              .replace(/\n|¶/gm, ' ')
              .replace(/\s{2,}/gm, ' ')
              .trim();
@@ -1317,6 +1328,7 @@ function inherit(child, base, props) {
     var verse = new Verse();
     this.parseVerseImpl(tmp, verse.node);
     verse.node.normalize();
+    verse.number = vn;
     return verse;
   };
 
