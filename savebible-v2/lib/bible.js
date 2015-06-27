@@ -1709,7 +1709,6 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
-
   exports.BBM             = BBM;
   exports.TocEntry        = TocEntry;
   exports.TableOfContents = TableOfContents;
