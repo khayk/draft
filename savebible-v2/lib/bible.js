@@ -1181,6 +1181,7 @@ function inherit(child, base, props) {
       var tmp = BBM.instance().itemById(book.te.id);
       if (!BBM.instance().existsId(book.te.id))
         throw 'Invalid book id: ' + book.te.id;
+      book.index = BBM.instance().onById(book.te.id);
     };
 
     this.parseVerseImpl = function(str, vnode) {
@@ -1712,6 +1713,7 @@ function inherit(child, base, props) {
   exports.BBM             = BBM;
   exports.TocEntry        = TocEntry;
   exports.TableOfContents = TableOfContents;
+  exports.Lexical         = Lexical;
   exports.TH              = TH;
   exports.MC              = MC;
 
@@ -1722,6 +1724,7 @@ function inherit(child, base, props) {
   exports.Bible           = Bible;
   exports.Parser          = Parser;
 
+
   exports.Renderer        = Renderer;
   exports.USFMRenderer    = USFMRenderer;
   exports.TextRenderer    = TextRenderer;
@@ -1731,6 +1734,7 @@ function inherit(child, base, props) {
   exports.decodeRef       = decodeRef;
   exports.loadBook        = loadBook;
   exports.loadBible       = loadBible;
+  exports.saveBible       = saveBible;
   exports.decodeFileName  = decodeFileName;
 
   exports.inherit         = inherit;

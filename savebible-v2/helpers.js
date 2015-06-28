@@ -48,8 +48,8 @@ var HiResTimer = function() {
 };
 
 
-/// Benchmarking functionality
-var Benchmark = function() {
+/// Measuring functionality
+var Measurer = function() {
   var timer = new HiResTimer();
   var len = 80; // padding length
   var heapTotal = 0;
@@ -86,6 +86,6 @@ var Benchmark = function() {
 exports.timeToStr      = timeToStr;
 exports.bytesToSize    = bytesToSize;
 exports.HiResTimer     = HiResTimer;
-exports.Benchmark      = Benchmark;
+exports.Measurer       = Measurer;
 
 require('./config').logFileLoading(__filename);

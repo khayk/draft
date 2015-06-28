@@ -7,6 +7,7 @@ var util   = require('util');
 
 var cfg    = require('../config').cfg;
 var lb     = require('../lib/bible.js');
+var search = require('../lib/search.js');
 var tc     = require('./dataCreators.js');
 var dusfm  = require('./dataUSFM.js');
 
@@ -30,6 +31,17 @@ var loadBook        = lb.loadBook;
 var encodeRef       = lb.encodeRef;
 var decodeRef       = lb.decodeRef;
 var decodeFileName  = lb.decodeFileName;
+
+var Dictionary      = search.Dictionary;
+var Search          = search.Search;
+
+
+function toTitleCase(str) {
+  return str.replace(/\w\S*/g, function(txt) {
+    return txt.charAt(0).toUpperCase() +
+           txt.substr(1).toLowerCase();
+  });
+}
 
 /*------------------------------------------------------------------------*/
 
@@ -705,6 +717,9 @@ describe('core components', function() {
       var filesDir = path.join(__dirname, 'usfm/');
       bible = loadBible(filesDir);
       expect(function() { loadBook('invalid fname'); }).to.throw();
+
+      var book = loadBook(path.join(filesDir, '70-MATeng-kjv.usfm'));
+      expect(book.ref()).to.be.deep.equal({ix: BBM.instance().onById('MAT'), cn: 0, vn: 0});
     });
 
     it('usfm', function() {
@@ -763,6 +778,221 @@ describe('core components', function() {
     });
   });
 
+});
+
+
+/*------------------------------------------------------------------------*/
+
+
+describe('search functionality', function() {
+  it('dictionary', function() {
+    var dict = new Dictionary();
+
+    var text = {
+      'a an apple an apricot an ariplane': '01',
+      'apple is a fruit': '02',
+      'ok': '03',
+      'yes no': '04',
+      'no no no': '05',
+      'aaa': '06',
+      'apple': '07'
+    };
+
+    _.each(text, function(value, key) {
+      key.split(' ').forEach(function(e) {
+        dict.add(e, value);
+      });
+    });
+    dict.optimize();
+    expect(dict.count()).to.be.equal(11);
+
+    // each word should be found in the dictionary
+    dict.words().forEach(function(word) {
+      expect(dict.find(word)).is.not.equal(null);
+    });
+
+    // should fail to find
+    expect(dict.find('not exists')).is.equal(null);
+
+    // should succeed to find
+    var ref = dict.find('a');
+    expect(ref.indexOf('01')).is.not.equal(-1);
+    expect(ref.indexOf('02')).is.not.equal(-1);
+    expect(ref.indexOf('07')).is.equal(-1);
+  });
+
+  describe('algorithms', function() {
+    var cases = [
+      {a: [1, 2, 4, 6, 7, 8, 99], b: [3, 4, 5, 6, 7, 20, 24, 27]},
+      {a: [],  b: []},
+      {a: [1], b: []},
+      {a: [],  b: [2]},
+      {a: [1], b: [1]},
+      {a: [2, 3], b: [1, 2, 3]},
+      {a: [1, 2], b: []},
+      {a: [1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 17, 19, 20, 22, 25, 27, 30], b: [-1, 1, 2, 3, 4, 5, 6, 10, 30, 31, 99, 102]}
+    ];
+
+    function sortNumber(a, b) {
+      return a - b;
+    }
+
+    it('intersection', function() {
+      cases.forEach(function(elem) {
+        var x  = search.algo.intersectSortedUniqueArrays(elem.a, elem.b);
+        var x1 = search.algo.intersectSortedUniqueArrays(elem.b, elem.a);
+        var y  = _.intersection(elem.a, elem.b);
+        expect(x).to.deep.equal(y);
+        expect(x1).to.deep.equal(y);
+      });
+    });
+
+    it('union', function() {
+      cases.forEach(function(elem) {
+        var x = search.algo.combineSortedUniqueArrays(elem.a, elem.b);
+        var x1 = search.algo.combineSortedUniqueArrays(elem.b, elem.a);
+        var y = _.union(elem.a, elem.b);
+        y.sort(sortNumber);
+        expect(x).to.deep.equal(y);
+        expect(x1).to.deep.equal(y);
+      });
+    });
+  });
+
+  describe('search', function() {
+    var srch = new Search();
+    var words = [
+      {w: 'EARTH', r: '1'},
+      {w: 'temp',  r: '2'},
+      {w: 'Other', r: '3'}
+    ];
+    var opts, res, xref, axref, i;
+    var orig, tcase, lcase, ucase;
+
+    // add some words into dictionary
+    before(function(){
+      words.forEach(function(w) {
+        srch.add(w.w, w.r);
+      });
+    });
+
+    function prepareResults(item) {
+      orig  = item.w;
+      xref  = item.r;
+      axref = [xref];
+      tcase = toTitleCase(orig);
+      lcase = orig.toLowerCase();
+      ucase = orig.toUpperCase();
+    }
+
+    it('remind to build index', function() {
+      // expect to throw
+      expect(srch.query.bind(srch, 'dont mind')).to.throw();
+      srch.buildIndex();
+      srch.query('dont mind 2');
+    });
+
+    it('case sensitive && whole word', function() {
+      // search with case sensitive and whole word options
+      opts = {cs: true,  ww: true};
+
+      words.forEach(function(item) {
+        prepareResults(item);
+
+        res = srch.query(orig, opts);
+        expect(res).to.deep.equal(axref);
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.query(orig.substr(0, i), opts);
+          expect(res).to.be.equal(null);
+        }
+        if (lcase !== orig)
+          expect(srch.query(lcase, opts)).to.be.equal(null);
+        else
+          expect(srch.query(lcase, opts)).to.deep.equal(axref);
+        if (tcase !== orig)
+          expect(srch.query(tcase, opts)).to.be.equal(null);
+        else
+          expect(srch.query(tcase, opts)).to.deep.equal(axref);
+        if (ucase !== orig)
+          expect(srch.query(ucase, opts)).to.be.equal(null);
+        else
+          expect(srch.query(ucase, opts)).to.deep.equal(axref);
+      });
+    });
+
+    it('case sensitive', function() {
+      // search with case sensitive options only
+      opts = {cs: true,  ww: false};
+
+      words.forEach(function(item) {
+        prepareResults(item);
+
+        res = srch.query(orig, opts);
+        expect(res).to.deep.equal(axref);
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.query(orig.substr(0, i), opts);
+          expect(res).to.deep.equal(axref);
+        }
+        if (lcase !== orig)
+          expect(srch.query(lcase, opts)).to.be.equal(null);
+        else
+          expect(srch.query(lcase, opts)).to.deep.equal(axref);
+        if (tcase !== orig)
+          expect(srch.query(tcase, opts)).to.be.equal(null);
+        else
+          expect(srch.query(tcase, opts)).to.deep.equal(axref);
+        if (ucase !== orig)
+          expect(srch.query(ucase, opts)).to.be.equal(null);
+        else
+          expect(srch.query(ucase, opts)).to.deep.equal(axref);
+      });
+    });
+
+    it('whole word', function() {
+      // search with whole word option only
+      opts = {cs: false,  ww: true};
+
+      words.forEach(function(item) {
+        prepareResults(item);
+
+        res = srch.query(orig, opts);
+        expect(res).to.deep.equal(axref);
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.query(orig.substr(0, i), opts);
+          expect(res).to.be.equal(null);
+        }
+        expect(srch.query(lcase, opts)).to.deep.equal(axref);
+        expect(srch.query(tcase, opts)).to.deep.equal(axref);
+        expect(srch.query(ucase, opts)).to.deep.equal(axref);
+      });
+    });
+
+    it('options turned off', function() {
+      // search with whole word option only
+      opts = {cs: false,  ww: false};
+
+      words.forEach(function(item) {
+        prepareResults(item);
+
+        res = srch.query(orig, opts);
+        expect(res).to.deep.equal(axref);
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.query(orig.substr(0, i), opts);
+          expect(res).to.deep.equal(axref);
+        }
+
+        orig = orig.toLowerCase();
+        for (i = 3; i < orig.length; ++i) {
+          res = srch.query(orig.substr(0, i), opts);
+          expect(res).to.deep.equal(axref);
+        }
+
+        expect(srch.query(lcase, opts)).to.deep.equal(axref);
+        expect(srch.query(tcase, opts)).to.deep.equal(axref);
+        expect(srch.query(ucase, opts)).to.deep.equal(axref);
+      });
+    });
+  });
 });
 
 

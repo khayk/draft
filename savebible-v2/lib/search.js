@@ -1,14 +1,13 @@
-var util   = require('util');
 var colors = require('colors');
-var _      = require('underscore');
+var util   = require('util');
+var _      = require('lodash');
 var lb     = require('./bible.js');
-var common = require('./common.js');
 var log    = require('log4js').getLogger('srch');
 
-
+var Lexical      = lb.Lexical;
+var MC           = lb.MC;
+var BBM          = lb.BBM;
 var TextRenderer = lb.TextRenderer;
-var BBM = lb.BBM;
-var MC = lb.MC;
 
 
 (function() {
@@ -581,9 +580,9 @@ var MC = lb.MC;
     // initialize bible search module
     function initialize(bible) {
       bible_ = bible;
-      lexic_ = LC.instance().getLexical(bible_.lang);
+      lexic_ = MC.instance().getMeta(bible_.lang).lex;
 
-      if (lexic_ === null)
+      if (!(lexic_ instanceof Lexical))
         throw 'Bible language is not specified or supported: ' + bible_.lang;
 
       search_   = new Search();
@@ -600,7 +599,7 @@ var MC = lb.MC;
             var verse = chap.getVerse(1);
             while (verse !== null) {
               var text = verse.render(renderer_);
-              var ref = bibl.encodeRef(verse.ref());
+              var ref = lb.encodeRef(verse.ref());
               text = lexic_.removePunctuations(text);
 
               // process every single word
@@ -706,7 +705,7 @@ var MC = lb.MC;
 
         result.refs.forEach(function(ref) {
 
-          var dref = bibl.decodeRef(ref);
+          var dref = lb.decodeRef(ref);
           var book = bible_.getBook(BBM.instance().idByOn(dref.ix));
           var chap = book ? book.getChapter(dref.cn) : null;
           var verse = chap ? chap.getVerse(dref.vn) : null;
@@ -716,7 +715,7 @@ var MC = lb.MC;
               res = colorize(res, w, bible_.lang, result.opts.cs, result.opts.ww);
             });
 
-            console.log('%s.  %s', common.padString(verse.id(), '           ', true), res);
+            console.log('%s.  %s', _.padRight(verse.id(), 11, ' '), res);
           }
         });
       },
@@ -745,6 +744,7 @@ var MC = lb.MC;
 
 
   exports.algo        = algo;
+  exports.Dictionary  = Dictionary;
   exports.Search      = Search;
   exports.BibleSearch = BibleSearch;
 

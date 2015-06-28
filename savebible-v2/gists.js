@@ -42,3 +42,9 @@ logger.info('info');
 logger.warn('warn');
 logger.error('error');
 logger.fatal('fatal');
+
+
+/*------------------------------------------------------------------------*/
+// launch istanbul windows
+// istanbul cover %APPDATA%/npm/node_modules/mocha/bin/_mocha -- -R spec
+// linux: istanbul cover _mocha -- -R spec

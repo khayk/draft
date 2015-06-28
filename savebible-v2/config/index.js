@@ -19,7 +19,7 @@ var root = path.dirname(__dirname);
 // make sure that logging directory do exists
 function createLogDirectory(loggerConfig) {
   if (_.isUndefined(loggerConfig)) {
-    throw 'Application is not configured properly! Check if `config/config.json` file exists.';
+    throw 'Application is not configured properly! Check file `config/config.json`.';
   }
 
   loggerConfig.appenders.forEach(function(entry) {
@@ -55,13 +55,12 @@ var cfg = (function() {
   data.media = path.join(root, data.media);
 
   return {
-    en_kjv_usfm: function() {
-      var name_ = 'en-kjv-usfm+';
+    bibleDir: function(name) {
       return {
-        name: name_,
+        name: name,
         ext:  'usfm',
-        from: data.input  + name_ + '/',
-        to:   data.output + name_ + '/'
+        from: data.input  + name + '/',
+        to:   data.output + name + '/'
       };
     },
 
