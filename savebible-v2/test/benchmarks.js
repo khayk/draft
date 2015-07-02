@@ -1,3 +1,4 @@
+return;
 var cfg    = require('../config').cfg;
 var path   = require('path');
 var help   = require('../helpers');

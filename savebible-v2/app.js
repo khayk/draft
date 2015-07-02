@@ -14,7 +14,6 @@
   var log    = log4js.getLogger('app');
   var measur = new help.Measurer();
 
-  var BBM         = lb.BBM;
   var MC          = lb.MC;
   var BibleSearch = search.BibleSearch;
 
@@ -30,10 +29,8 @@
 
   var opts = {cs: false, ww: false, op: 'and'};
 
-
   var bible = lb.loadBible(cfg.bibleDir('zed').from, {supportedOnly: true});
   var bs = new BibleSearch(bible);
-
 
   var res = bs.query('help', opts);
   bs.expend(res);

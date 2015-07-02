@@ -151,8 +151,8 @@ var TextRenderer = lb.TextRenderer;
     // @brief  Optimizes dictionary, i.e. remove any duplicate references from
     //         the array of each key and sort them
     this.optimize = function() {
-      if (_.isUndefined(index_))
-        return null;
+      if (optimized_)
+        return;
 
       _.each(index_, function(value, key) {
         // we need to sort refs and make them unique

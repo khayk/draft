@@ -34,6 +34,7 @@ var decodeFileName  = lb.decodeFileName;
 
 var Dictionary      = search.Dictionary;
 var Search          = search.Search;
+var BibleSearch     = search.BibleSearch;
 
 
 function toTitleCase(str) {
@@ -789,11 +790,11 @@ describe('search functionality', function() {
     var dict = new Dictionary();
 
     var text = {
+      'no no no': '05',
       'a an apple an apricot an ariplane': '01',
       'apple is a fruit': '02',
       'ok': '03',
       'yes no': '04',
-      'no no no': '05',
       'aaa': '06',
       'apple': '07'
     };
@@ -803,8 +804,18 @@ describe('search functionality', function() {
         dict.add(e, value);
       });
     });
+
+    expect(dict.words.bind(dict)).to.throw();
+    expect(dict.count()).to.be.equal(11);
+
+    // verification should fail before optimize
+    expect(dict.verify.bind(dict)).to.throw();
+
     dict.optimize();
     expect(dict.count()).to.be.equal(11);
+
+    // optimize call on optimized array has no efffect
+    dict.optimize();
 
     // each word should be found in the dictionary
     dict.words().forEach(function(word) {
@@ -819,6 +830,9 @@ describe('search functionality', function() {
     expect(ref.indexOf('01')).is.not.equal(-1);
     expect(ref.indexOf('02')).is.not.equal(-1);
     expect(ref.indexOf('07')).is.equal(-1);
+
+    expect(dict.verify.bind(dict)).not.throw();
+    expect(dict.clear.bind(dict)).not.throw();
   });
 
   describe('algorithms', function() {
@@ -829,6 +843,7 @@ describe('search functionality', function() {
       {a: [],  b: [2]},
       {a: [1], b: [1]},
       {a: [2, 3], b: [1, 2, 3]},
+      {a: [5, 7], b: [4]},
       {a: [1, 2], b: []},
       {a: [1, 2, 3, 4, 5, 6, 7, 8, 9, 15, 17, 19, 20, 22, 25, 27, 30], b: [-1, 1, 2, 3, 4, 5, 6, 10, 30, 31, 99, 102]}
     ];
@@ -992,6 +1007,148 @@ describe('search functionality', function() {
         expect(srch.query(ucase, opts)).to.deep.equal(axref);
       });
     });
+  });
+
+  describe('advanced search', function() {
+    var srch = new Search();
+    var text = [
+      {s: 'In the beginning God created the heaven and the earth', r: '1'},
+      {s: 'And the serpent said unto the woman Ye shall not surely die', r: '2'},
+      {s: 'And to rule over the day and over the night', r: '3'},
+      {s: 'And the evening and the morning were the third day', r: '4'},
+      {s: 'thee anda Intro Evenin', r: '5'},
+      {s: 'into', r: '6'},
+      {s: 'Even', r: '7'},
+      {s: '', r: '8'}
+    ];
+
+    var opts, res, xref, axref, i, orig, tcase, lcase, ucase;
+
+    // add some words into dictionary
+    before(function() {
+      text.forEach(function(ti) {
+        ti.s.split(' ').forEach(function(w) {
+          srch.add(w, ti.r);
+        });
+      });
+      srch.buildIndex();
+    });
+
+    function initWordVariations(word) {
+      tcase = cmn.toTitleCase(word);
+      lcase = word.toLowerCase();
+      ucase = word.toUpperCase();
+    }
+
+
+    it('cs && ww', function() {
+      opts = {cs: true,  ww: true};
+      expect(srch.query('and', opts)).to.deep.equal(['1', '3', '4']);
+      expect(srch.query('third', opts)).to.deep.equal(['4']);
+      expect(srch.query('And', opts)).to.deep.equal(['2', '3', '4']);
+      expect(srch.query('the', opts)).to.deep.equal(['1', '2', '3', '4']);
+      expect(srch.query('The', opts)).to.deep.equal(null);
+    });
+
+    it('cs', function() {
+      opts = {cs: true,  ww: false};
+      expect(srch.query('And', opts)).to.deep.equal(['2', '3', '4']);
+      expect(srch.query('and', opts)).to.deep.equal(['1', '3', '4', '5']);
+      expect(srch.query('third', opts)).to.deep.equal(['4']);
+      expect(srch.query('the', opts)).to.deep.equal(['1', '2', '3', '4', '5']);
+      expect(srch.query('int', opts)).to.deep.equal(['6']);
+      expect(srch.query('Int', opts)).to.deep.equal(['5']);
+    });
+
+    it('ww', function() {
+      opts = {cs: false,  ww: true};
+      expect(srch.query('and', opts)).to.deep.equal(['1', '2', '3', '4']);
+      expect(srch.query('And', opts)).to.deep.equal(['1', '2', '3', '4']);
+    });
+
+    it('options turned off', function() {
+      opts = {cs: false,  ww: false};
+      expect(srch.query('int', opts)).to.deep.equal(['5', '6']);
+      expect(srch.query('eve', opts)).to.deep.equal(['4', '5', '7']);
+      expect(srch.query('the', opts)).to.deep.equal(['1', '2', '3', '4', '5']);
+    });
+
+    it('invalid args', function() {
+      opts = {cs: 'false',  ww: 'false'};
+      expect(srch.query('int', opts)).to.deep.equal(null);
+      expect(srch.query.bind(srch, {}, opts)).to.throw();
+      expect(srch.query.bind(srch, 'int', 'aaaa')).to.throw();
+    });
+  });
+});
+
+
+/*------------------------------------------------------------------------*/
+
+
+describe('module BibleSearch', function() {
+  var text = [
+    {s: 'And Isaac loved Esau, because he did eat of [his] venison: but Rebekah loved Jacob.', r: 1},
+    {s: 'And he went, and fetched, and brought [them] to his mother: and his mother made savoury meat, such as his father loved.', r: 2},
+    {s: 'And Jacob loved Rachel; and said, I will serve thee seven years for Rachel thy younger daughter.', r: 3},
+    {s: 'And he went in also unto Rachel, and he loved also Rachel more than Leah, and served with him yet seven other years.', r: 4}
+  ];
+
+  var bs    = null;
+  var opts  = {cs: true, ww: true}; // for correct usage provide boolean values
+
+  // add words into dictionary
+  before(function() {
+    var bible  = new Bible();
+    var book   = new Book();
+    var chap   = new Chapter();
+    var parser = new Parser();
+
+    book.te.id = 'GEN';
+    book.index = BBM.instance().onById(book.te.id);
+    chap.number = 1;
+
+    bible.addBook(book.addChapter(chap));
+
+    text.forEach(function(ti) {
+      var v = parser.parseVerse(ti.s);
+      v.number = ti.r;
+      chap.addVerse(v);
+      ti.r = encodeRef(v.ref());
+    });
+
+    bible.lang = 'en';
+    bs = new BibleSearch(bible);
+  });
+
+  it('word searching', function() {
+    expect(bs.query('Because', opts).refs).to.deep.equal([]);
+    expect(bs.query('because', opts).refs).to.deep.equal([text[0].r]);
+
+    opts.cs = false;
+    expect(bs.query('because', opts).refs).to.deep.equal([text[0].r]);
+  });
+
+  it('text searching', function() {
+    opts.cs = false;
+    expect(bs.query('Rachel', opts).refs).to.deep.equal([text[2].r, text[3].r]);
+    expect(bs.query('Rachel serve', opts).refs).to.deep.equal([text[2].r]);
+
+    expect(bs.query('serve mother', opts).refs).to.deep.equal([]);
+    expect(bs.query('serve mother absent again', opts).refs).to.deep.equal([]);
+    expect(bs.query('and loved his but', opts).refs).to.deep.equal([text[0].r]);
+
+    opts.op = 'or';
+    expect(bs.query('serve mother', opts).refs).to.deep.equal([text[1].r, text[2].r]);
+    expect(bs.query('serve mother absent', opts).refs).to.deep.equal([text[1].r, text[2].r]);
+    expect(bs.query('serve mother absent again', opts).refs).to.deep.equal([text[1].r, text[2].r]);
+
+    opts.ww = false;
+    expect(bs.query('and loved his but', opts).refs).to.deep.equal([text[0].r, text[1].r, text[2].r, text[3].r]);
+    expect(bs.query('doesnotexists', opts).refs).to.deep.equal([]);
+  });
+
+  it('navigation', function() {
   });
 });
 

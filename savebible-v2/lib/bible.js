@@ -1008,7 +1008,7 @@ function inherit(child, base, props) {
   var Book = function() {
     this.parent   = null;
     this.index    = 0;
-    this.te       = new TocEntry();
+    this.te       = new TocEntry('', '', '', '', '');
     this.chapters = [];
     this.preface  = [];
     this.header   = [];
@@ -1090,7 +1090,7 @@ function inherit(child, base, props) {
     this.name    = '';
     this.desc    = '';
     this.lang    = '';
-    this.toc     = new TableOfContents();
+    this.toc     = new TableOfContents([]);
   };
 
   // @returns  Representation of the bible rendered with the give renderer
@@ -1178,7 +1178,6 @@ function inherit(child, base, props) {
       }
 
       // @todo: fill abbreviation based on default values
-      var tmp = BBM.instance().itemById(book.te.id);
       if (!BBM.instance().existsId(book.te.id))
         throw 'Invalid book id: ' + book.te.id;
       book.index = BBM.instance().onById(book.te.id);
@@ -1413,6 +1412,7 @@ function inherit(child, base, props) {
     if (_.isUndefined(opts.lang))
       opts.lang = '';
     if (_.isUndefined(opts.tocOverwrite))
+      opts.tocOverwrite = true;
     return opts;
   }
 
@@ -1493,7 +1493,7 @@ function inherit(child, base, props) {
     return bible;
   }
 
-  // Save bible books to the specified directory by according to save rules
+  // Save bible books to the specified directory according to save rules
   //
   // @param  {object} bible  Bible object to be stored
   // @param  {object} opts   Save options
