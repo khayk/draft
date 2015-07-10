@@ -824,6 +824,13 @@ describe('search functionality', function() {
 
     // should fail to find
     expect(dict.find('not exists')).is.equal(null);
+    expect(dict.stat()).to.have.all.keys(
+      'unique',
+      'total',
+      'freq',
+      'index',
+      'str'
+      );
 
     // should succeed to find
     var ref = dict.find('a');
@@ -905,6 +912,7 @@ describe('search functionality', function() {
       expect(srch.query.bind(srch, 'dont mind')).to.throw();
       srch.buildIndex();
       srch.query('dont mind 2');
+      expect(srch.getDictionary().words()).deep.equal(['EARTH','temp', 'Other']);
     });
 
     it('case sensitive && whole word', function() {
@@ -1117,11 +1125,21 @@ describe('module BibleSearch', function() {
       ti.r = encodeRef(v.ref());
     });
 
+    var bsCreator = function() {
+      return new BibleSearch(bible);
+    };
+
+    bible.lang = 'absent';
+    expect(bsCreator.bind(bsCreator)).to.throw();
+
     bible.lang = 'en';
     bs = new BibleSearch(bible);
+
+    var stats = bs.search().getStatistics();
   });
 
   it('word searching', function() {
+    expect(bs.query('Because').refs).to.deep.equal([]);
     expect(bs.query('Because', opts).refs).to.deep.equal([]);
     expect(bs.query('because', opts).refs).to.deep.equal([text[0].r]);
 

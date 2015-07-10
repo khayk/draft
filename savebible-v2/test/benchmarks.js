@@ -3,6 +3,7 @@ var cfg    = require('../config').cfg;
 var path   = require('path');
 var help   = require('../helpers');
 var lb     = require('../lib/bible');
+var srch   = require('../lib/search');
 var _      = require('lodash');
 var fs     = require('fs');
 
@@ -48,9 +49,35 @@ function benchmarkBibleRendering() {
   }, 'rendering benchmark', 1);
 }
 
+function benchmarkAllWordsSearch() {
+  var search = null;
+
+  stress(function() {
+    search = new srch.BibleSearch(bible);
+  }, 'initializing seaching infrastructure', 1);
+
+  stress(function() {
+    var maxLength = 0;
+    var resWord;
+
+    //console.log(search.search().getDictionary().words());
+    search.search().getDictionary().words().forEach(function(w) {
+      var res = search.query(w);
+      //console.log(res);
+      if (maxLength < res.refs.length) {
+        maxLength = res.refs.length;
+        resWord = w;
+      }
+    });
+
+    console.log("Max length: %d, word: %s", maxLength, resWord);
+  }, 'searching words', 1);
+}
+
 startupInitialization();
 benchmarkBibleLoad('en-kjv-usfm+');
 benchmarkBibleRendering();
+benchmarkAllWordsSearch();
 
 fs.writeFileSync(cfg.tmpDir() + 'out.txt', usfm);
 

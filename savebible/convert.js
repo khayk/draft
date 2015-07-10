@@ -4,7 +4,7 @@ var fs              = require('fs');
 var path            = require('path');
 var util            = require('util');
 var _               = require('underscore');
-var lunr            = require('lunr');
+//var lunr            = require('lunr');
 var readline        = require('readline');
 
 //var agent         = require('webkit-devtools-agent');
@@ -130,6 +130,7 @@ var opts = {cs: false, ww: false, op: 'and'};
 // bs.expend(res);
 // return;
 
+bsArray[0].search().displayStatistics();
 
 var rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('ENTER> ');

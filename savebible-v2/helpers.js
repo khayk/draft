@@ -1,6 +1,7 @@
 var util = require('util');
 var _    = require('lodash');
 var log  = require('log4js').getLogger('hlp');
+var lb   = require('./lib/bible');
 
 /// Time to str
 var timeToStr = function(elapsed) {
@@ -83,9 +84,110 @@ var Measurer = function() {
 };
 
 
-exports.timeToStr      = timeToStr;
-exports.bytesToSize    = bytesToSize;
-exports.HiResTimer     = HiResTimer;
-exports.Measurer       = Measurer;
+// Helper class to display search result in a human pleasant way
+var SearchResultPrettifier = function(bible) {
+  var bible_    = bible;
+  var renderer_ = new lb.TextRenderer();
+  var lex_      = lb.MC.instance().getMeta(bible_.lang).lex;
+
+  // create regex object
+  this.createRegex = function(word, cs, ww) {
+    var flags = 'gmi';
+    if (cs === true) {
+      flags = 'gm';
+    }
+
+    var letters = lex_.getLetters();
+    //lexic_.getLetters();
+    var str;
+    if (ww === true)
+      str = '([^%letters%]|^)%word%(?=([^%letters%]|$))';
+    else
+      str = '([^%letters%]|^)%word%';
+    str = str.replace(/%letters%/gm, letters);
+    str = str.replace(/%word%/gm, word);
+
+    return new RegExp(str, flags);
+  };
+
+  // colorize the `part` in the 'res'
+  this.colorize = function(res, part, cs, ww) {
+    var re = this.createRegex(part, cs, ww);
+    var arr = re.exec(res);
+
+    if (arr === null)
+      return res;
+
+    var str = '';
+    var prevIndex = 0;
+    var prevMatchLength = 0;
+    var match = '';
+    while (arr !== null) {
+      match = arr[0];
+      if (str.length === 0)
+        str += res.substring(0, arr.index);
+      else
+        str += res.substring(prevIndex + prevMatchLength, arr.index);
+      str += match.green;
+      prevIndex = arr.index;
+      prevMatchLength = match.length;
+      arr = re.exec(res);
+      if (arr === null) {
+        str += res.substr(prevIndex + prevMatchLength);
+      }
+    }
+    return str;
+  };
+
+  // display the result in a use readable format
+  // @param result   return value of query
+  this.expend = function(result) {
+    var count = result.refs.length;
+    var summary = util.format('%d results for `%s`', count, result.orig);
+
+    console.log(summary.red);
+
+    if (count >= 80)
+      return;
+
+    var that = this;
+    result.refs.forEach(function(ref) {
+      var dref  = lb.decodeRef(ref);
+      var book  = bible_.getBook(lb.BBM.instance().idByOn(dref.ix));
+      var chap  = book ? book.getChapter(dref.cn) : null;
+      var verse = chap ? chap.getVerse(dref.vn) : null;
+      if (verse) {
+        var res = renderer_.renderVerse(verse);
+        result.words.forEach(function(w) {
+          res = that.colorize(res, w, result.opts.cs, result.opts.ww);
+        });
+
+        log.info('%s.  %s', _.padRight(verse.id(), 11, ' '), res);
+      }
+    });
+  };
+
+  // display statistics of search module
+  this.displayStatistics = function(stats) {
+    log.info('CS    words: %d', stats.cs.unique);
+    log.info('CI    words: %d', stats.ci.unique);
+    log.info('SUB   words: %d', stats.sub.unique);
+    log.info('CISUB words: %d', stats.cisub.unique);
+
+
+    log.info('MAIN  total count: ', stats.cs.total);
+    log.info('CIM   total count: ', stats.ci.total);
+    log.info('SWM   total count: ', stats.sub.total);
+    log.info('CISWM total count: ', stats.cisub.total);
+  };
+};
+
+
+exports.timeToStr              = timeToStr;
+exports.bytesToSize            = bytesToSize;
+exports.HiResTimer             = HiResTimer;
+exports.Measurer               = Measurer;
+exports.SearchResultPrettifier = SearchResultPrettifier;
+
 
 require('./config').logFileLoading(__filename);

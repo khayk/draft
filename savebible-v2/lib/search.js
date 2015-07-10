@@ -17,7 +17,7 @@ var TextRenderer = lb.TextRenderer;
     var cacheSize = 8;
     var cache = new Array(cacheSize);
 
-    // increase cache size if neccessary
+    // increase cache size if necessary
     function ensureCache(nsize) {
       if (cacheSize < nsize) {
         cacheSize *= 2;
@@ -229,22 +229,21 @@ var TextRenderer = lb.TextRenderer;
     };
 
 
-    /**
-     * Calculate and display a brief summary of the dictionary
-     * @param  {boolean} display   indicates whether function should print
-     *                             most frequent `top` words
-     * @param  {number} top        number of entires to output into log
-     * @return {object}            object containing detail about dictionary
-     * {
-     *   total: 'number of total unique words in the dictionary',
-     *   freq: 'object of <word, number of occurrences of the word> elements',
-     *   index: 'object of <word, array of unique references of the word>'
-     * }
-     */
-    this.stat = function(display, top) {
+    // Create an object containing brief summary of the dictionary content
+    //
+    // @param  {number} top        number of entires to insert into output
+    // @return {object}            object containing details about dictionary
+    // {
+    //   unique: 'number of unique words in the dictionary'
+    //   total: 'number showing how many times the word is met in the dictionary',
+    //   freq: 'object of <word, number of occurrences of the word> elements',
+    //   index: 'object of <word, array of unique references of the word>',
+    //   str: 'preformatted string, that can be used for pretty output'
+    // }
+    //
+    this.stat = function(top) {
       // calculate and return statistics for a dictionary
       var freqIndex = {};
-      //var maxRefs = {};
       var totalWords = 0;
       _.each(index_, function(value, key) {
         var o = value.c;
@@ -255,18 +254,22 @@ var TextRenderer = lb.TextRenderer;
       });
 
       var fk = Object.keys(freqIndex);
+      top = top || 10;
 
-      // output result
-      if (display) {
-        top = top || 10;
-        // print top `top` words
-        for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
-          var t = fk[i];
-          console.log('%s : %j', cmn.padWithSymbol(t, 6, ' '), freqIndex[t]);
-        }
+      // construct string containing top `top` words
+      var str = '';
+      for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
+        var t = fk[i];
+        str += util.format('%s : %j\n', _.padRight(t, 6, ' '), freqIndex[t]);
       }
-
-      return {total: totalWords, freq: freqIndex, index: index_};
+      var that = this;
+      return {
+        unique: that.count(),
+        total: totalWords,
+        freq: freqIndex,
+        index: index_,
+        str: str
+      };
     };
   }
 
@@ -276,11 +279,11 @@ var TextRenderer = lb.TextRenderer;
 
   // helper function for search module
   function resultLogger(desc, word, result) {
-    if (result !== null) {
-      log.info(desc + ' [%d]: %s', result.length, word);
-    } else {
-      log.info(desc + ' [0]: %s', word);
-    }
+    // if (result !== null) {
+    //   log.info(desc + ' [%d]: %s', result.length, word);
+    // } else {
+    //   log.info(desc + ' [0]: %s', word);
+    // }
   }
 
 
@@ -450,29 +453,14 @@ var TextRenderer = lb.TextRenderer;
 
 
       // show internal state of dictionaries
-      displayStatistics: function() {
-        console.log('CS    words: %d', dict_.count());
-        console.log('CI    words: %d', cim_.count());
-        console.log('SUB   words: %d', swm_.count());
-        console.log('CISUB words: %d', ciswm_.count());
-
-        var stat = dict_.stat(true, 10);
-        console.log('MAIN total count: ', stat.total);
-        //console.log('MAIN index: ', stat.index, '\n');
-
-        stat = cim_.stat(false, 10);
-        console.log('CIM total count: ', stat.total);
-        //console.log('CIM index: ', stat.index, '\n');
-
-        stat = swm_.stat(false, 10);
-        console.log('SWM total count: ', stat.total);
-        //console.log('SWM index: ', stat.index, '\n');
-
-        stat = ciswm_.stat(false, 10);
-        console.log('CISWM total count: ', stat.total);
-        //console.log('CISWM index: ', stat.index, '\n');
+      getStatistics: function() {
+        return {
+          'cs'   : dict_.stat(),
+          'ci'   : cim_.stat(),
+          'sub'  : swm_.stat(),
+          'cisub': ciswm_.stat()
+        };
       },
-
 
       // search specified word and return array of references
       // if succeeded, otherwise returns null
@@ -529,62 +517,15 @@ var TextRenderer = lb.TextRenderer;
 
     initialize(bible);
 
-    // create regex object
-    function createRegex(word, lang, cs, ww) {
-      var flags = 'gmi';
-      if (cs === true) {
-        flags = 'gm';
-      }
-
-      var letters = lexic_.getLetters();
-      var str;
-      if (ww === true)
-        str = '([^%letters%]|^)%word%(?=([^%letters%]|$))';
-      else
-        str = '([^%letters%]|^)%word%';
-      str = str.replace(/%letters%/gm, letters);
-      str = str.replace(/%word%/gm, word);
-
-      return new RegExp(str, flags);
-    }
-
-    // colorize the `part` in the 'res'
-    function colorize(res, part, lang, cs, ww) {
-      var re = createRegex(part, lang, cs, ww);
-      var arr = re.exec(res);
-
-      if (arr === null)
-        return res;
-
-      var str = '';
-      var prevIndex = 0;
-      var prevMatchLength = 0;
-      var match = '';
-      while (arr !== null) {
-        match = arr[0];
-        if (str.length === 0)
-          str += res.substring(0, arr.index);
-        else
-          str += res.substring(prevIndex + prevMatchLength, arr.index);
-        str += match.green;
-        prevIndex = arr.index;
-        prevMatchLength = match.length;
-        arr = re.exec(res);
-        if (arr === null) {
-          str += res.substr(prevIndex + prevMatchLength);
-        }
-      }
-      return str;
-    }
-
     // initialize bible search module
     function initialize(bible) {
       bible_ = bible;
-      lexic_ = MC.instance().getMeta(bible_.lang).lex;
 
-      if (!(lexic_ instanceof Lexical))
+      var tmp = MC.instance().getMeta(bible_.lang);
+      if (tmp === null)
         throw 'Bible language is not specified or supported: ' + bible_.lang;
 
+      lexic_    = tmp.lex;
       search_   = new Search();
       renderer_ = new TextRenderer();
 
@@ -692,52 +633,9 @@ var TextRenderer = lb.TextRenderer;
         return res;
       },
 
-
-      // display the result in a use readable format
-      // @param result   return value of query
-      expend: function(result) {
-        var count = result.refs.length;
-        var summary = util.format('%d results for `%s`', count, result.orig);
-        console.log(summary.red);
-
-        if (count >= 80)
-          return;
-
-        result.refs.forEach(function(ref) {
-
-          var dref = lb.decodeRef(ref);
-          var book = bible_.getBook(BBM.instance().idByOn(dref.ix));
-          var chap = book ? book.getChapter(dref.cn) : null;
-          var verse = chap ? chap.getVerse(dref.vn) : null;
-          if (verse) {
-            var res = renderer_.renderVerse(verse);
-            result.words.forEach(function(w) {
-              res = colorize(res, w, bible_.lang, result.opts.cs, result.opts.ww);
-            });
-
-            console.log('%s.  %s', _.padRight(verse.id(), 11, ' '), res);
-          }
-        });
-      },
-
       // return search object
       search: function() {
         return search_;
-      },
-
-      // temporary function
-      searchAllWords: function() {
-        var maxLength = 0;
-        var resWord;
-        search_.getDictionary().words().forEach(function(w) {
-          var res = search_.query(w);
-          if (maxLength < res.length) {
-            maxLength = res.length;
-            resWord = w;
-          }
-        });
-
-        console.log("Max length: %d, word: %s", maxLength, resWord);
       }
     };
   };

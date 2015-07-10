@@ -29,11 +29,20 @@
 
   var opts = {cs: false, ww: false, op: 'and'};
 
-  var bible = lb.loadBible(cfg.bibleDir('zed').from, {supportedOnly: true});
-  var bs = new BibleSearch(bible);
+  measur.begin('loading bible');
+  var bible = lb.loadBible(cfg.bibleDir('en-kjv-usfm+').from, {supportedOnly: true});
+  measur.end();
+
+  measur.begin('building index');
+  var bs    = new BibleSearch(bible);
+  measur.end();
+
+  var srp   = new help.SearchResultPrettifier(bible);
+  srp.displayStatistics(bs.search().getStatistics());
 
   var res = bs.query('help', opts);
-  bs.expend(res);
+  srp.expend(res);
+
 
 }());
 
