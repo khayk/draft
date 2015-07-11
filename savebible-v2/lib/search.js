@@ -636,6 +636,10 @@ var TextRenderer = lb.TextRenderer;
       // return search object
       search: function() {
         return search_;
+      },
+
+      bible: function() {
+        return bible_;
       }
     };
   };

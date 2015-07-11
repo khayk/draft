@@ -1,11 +1,12 @@
-return;
-var cfg    = require('../config').cfg;
+//return;
 var path   = require('path');
-var help   = require('../helpers');
-var lb     = require('../lib/bible');
-var srch   = require('../lib/search');
 var _      = require('lodash');
 var fs     = require('fs');
+
+var cfg    = require('./config').cfg;
+var help   = require('./helpers');
+var lb     = require('./lib/bible');
+var srch   = require('./lib/search');
 
 var MC     = lb.MC;
 var measur = new help.Measurer();
@@ -54,7 +55,7 @@ function benchmarkAllWordsSearch() {
 
   stress(function() {
     search = new srch.BibleSearch(bible);
-  }, 'initializing seaching infrastructure', 1);
+  }, 'initializing searching infrastructure', 1);
 
   stress(function() {
     var maxLength = 0;

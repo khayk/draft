@@ -1,10 +1,11 @@
 (function () {
   'use strict';
 
-  var mkdirp = require('mkdirp');
-  var path   = require('path');
-  var log4js = require('log4js');
-  var util   = require('util');
+  var mkdirp   = require('mkdirp');
+  var path     = require('path');
+  var log4js   = require('log4js');
+  var util     = require('util');
+  var readline = require('readline');
 
   var cfg    = require('./config').cfg;
   var lb     = require('./lib/bible');
@@ -27,21 +28,75 @@
 
   startupInitialization();
 
+  var inputs = [
+    ['ru-synod-usfm-from-text', 'ru'],
+    ['en-kjv-usfm+', 'en'],
+    ['am-eab-usfm-from-text', 'hy']
+    //  ['zed', 'en']
+    //['arm', 'hy']
+  ];
+  var bsArray = [];
+  var pretty  = {};
+
   var opts = {cs: false, ww: false, op: 'and'};
 
-  measur.begin('loading bible');
-  var bible = lb.loadBible(cfg.bibleDir('en-kjv-usfm+').from, {supportedOnly: true});
-  measur.end();
+  inputs.forEach(function(input) {
+    measur.begin('loading bible: ' + input[0]);
+    var bible = lb.loadBible(cfg.bibleDir(input[0]).from, {
+      supportedOnly: true,
+      strictFilename: false
+    });
+    measur.end();
 
-  measur.begin('building index');
-  var bs    = new BibleSearch(bible);
-  measur.end();
+    if (bible.lang === '')
+      bible.lang = input[1];
 
-  var srp   = new help.SearchResultPrettifier(bible);
-  srp.displayStatistics(bs.search().getStatistics());
+    measur.begin('building index');
+    var bs = new BibleSearch(bible);
+    bsArray.push(bs);
+    measur.end();
 
-  var res = bs.query('help', opts);
-  srp.expend(res);
+    pretty[bible.lang] = new help.SearchResultPrettifier(bible);
+    pretty[bible.lang].displayStatistics(bs.search().getStatistics());
+  });
+
+  console.log(Object.keys(pretty));
+
+  // var res = bs.query('help', opts);
+  // srp.expend(res);
+
+  var rl = readline.createInterface(process.stdin, process.stdout);
+  rl.setPrompt('ENTER> ');
+  rl.prompt();
+
+  rl.on('line', function(line) {
+    var istr = line.trim();
+    if (istr === 'EXIT')
+      process.exit(0);
+
+    var notFound = bsArray.length;
+    measur.begin('querying', istr);
+    bsArray.forEach(function(bs) {
+      var pp = pretty[bs.bible().lang];
+
+      var res = bs.query(istr, opts);
+      if (res.refs.length === 0)
+        notFound--;
+      else
+        pp.expend(res);
+
+      // print not found only if the text is not found in all available bibles
+      if (notFound === 0)
+        pp.expend(res);
+    });
+    measur.end();
+
+    rl.prompt();
+
+  }).on('close', function() {
+    console.log('Have a great day!');
+    process.exit(0);
+  });
 
 
 }());
