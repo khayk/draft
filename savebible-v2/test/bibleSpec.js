@@ -1135,6 +1135,8 @@ describe('module BibleSearch', function() {
     bible.lang = 'en';
     bs = new BibleSearch(bible);
 
+    expect(bs.bible()).to.be.equal(bible);
+
     var stats = bs.search().getStatistics();
   });
 

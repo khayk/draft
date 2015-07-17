@@ -633,11 +633,12 @@ var TextRenderer = lb.TextRenderer;
         return res;
       },
 
-      // return search object
+      // @returns  search object
       search: function() {
         return search_;
       },
 
+      // @returns  bible object instance occosiated with BibleSearch
       bible: function() {
         return bible_;
       }
