@@ -32,7 +32,7 @@
     ['ru-synod-usfm-from-text', 'ru'],
     ['en-kjv-usfm+', 'en'],
     ['am-eab-usfm-from-text', 'hy']
-    //  ['zed', 'en']
+    //['zed', 'en']
     //['arm', 'hy']
   ];
   var bsArray = [];
@@ -64,7 +64,7 @@
 
   // var res = bs.query('help', opts);
   // srp.expend(res);
-
+  var renderer = new lb.TextRenderer({textOnly: false});
   var rl = readline.createInterface(process.stdin, process.stdout);
   rl.setPrompt('ENTER> ');
   rl.prompt();
@@ -74,22 +74,33 @@
     if (istr === 'EXIT')
       process.exit(0);
 
-    var notFound = bsArray.length;
-    measur.begin('querying', istr);
-    bsArray.forEach(function(bs) {
-      var pp = pretty[bs.bible().lang];
+    if (istr.length > 0 && istr[0] === '*') {
+      // perform navigation only
+      istr = istr.substring(1).trim();
+      bsArray.forEach(function(bs) {
+        var verse = bs.nav(istr);
+        if (verse !== null)
+          log.info(verse.render(renderer));
+      });
+    }
+    else {
+      var notFound = bsArray.length;
+      measur.begin('querying', istr);
+      bsArray.forEach(function(bs) {
+        var pp = pretty[bs.bible().lang];
 
-      var res = bs.query(istr, opts);
-      if (res.refs.length === 0)
-        notFound--;
-      else
-        pp.expend(res);
+        var res = bs.query(istr, opts);
+        if (res.refs.length === 0)
+          notFound--;
+        else
+          pp.expend(res);
 
-      // print not found only if the text is not found in all available bibles
-      if (notFound === 0)
-        pp.expend(res);
-    });
-    measur.end();
+        // print not found only if the text is not found in all available bibles
+        if (notFound === 0)
+          pp.expend(res);
+      });
+      measur.end();
+    }
 
     rl.prompt();
 
@@ -97,7 +108,6 @@
     console.log('Have a great day!');
     process.exit(0);
   });
-
 
 }());
 

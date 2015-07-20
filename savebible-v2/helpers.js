@@ -175,10 +175,11 @@ var SearchResultPrettifier = function(bible) {
     log.info('CISUB words: %d', stats.cisub.unique);
 
 
-    log.info('MAIN  total count: ', stats.cs.total);
-    log.info('CIM   total count: ', stats.ci.total);
-    log.info('SWM   total count: ', stats.sub.total);
-    log.info('CISWM total count: ', stats.cisub.total);
+    log.info('MAIN  total count: %d', stats.cs.total);
+    log.info('CIM   total count: %d', stats.ci.total);
+    log.info('SWM   total count: %d', stats.sub.total);
+    log.info('CISWM total count: %s', stats.cisub.total + '\n');
+
   };
 };
 

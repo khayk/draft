@@ -54,7 +54,13 @@ function getContent(uri, callback, retryCount) {
 
     res.on('end', function() {
       logger.info('Query[%d] completed: %s', selfNumber, uri);
-      callback(null, content);
+
+      if (content.search('An error occurred.') === -1)
+        callback(null, content);
+      else {
+        logger.warn('Query[%d] page error, retrying: %s', selfNumber, uri);
+        getContent(uri, callback, remaining);
+      }
     });
 
   }).on('error', function(err) {
@@ -146,4 +152,7 @@ logger.info('Script launched ...');
 //   processToc(toc);
 // });
 
-processToc(tocs[2]);
+//processToc(tocs[2]);
+processToc(tocs[0]);
+processToc(tocs[1]);
+processToc(tocs[3]);

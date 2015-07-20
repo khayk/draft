@@ -13,6 +13,8 @@ var TextRenderer = lb.TextRenderer;
 (function() {
   'use strict';
 
+  var reNav = /(\w+)(\s(\d+):(\d+))?/g;
+
   var algo = (function() {
     var cacheSize = 8;
     var cache = new Array(cacheSize);
@@ -572,7 +574,7 @@ var TextRenderer = lb.TextRenderer;
           words: [],
           refs: [],
           orig: text,
-          'opts': opts
+          opts: opts
         };
         var words = text.split(' ');
         words.sort();
@@ -631,6 +633,32 @@ var TextRenderer = lb.TextRenderer;
           }
         }
         return res;
+      },
+
+      // @param query {string}  query in format 'BookID ChapterNum:VerseNum'
+      //
+      // @returns reference on single verse based on query, or null for
+      //          invalid query
+      nav: function(query) {
+        reNav.lastIndex = 0;
+        var arr = reNav.exec(query.toUpperCase());
+        if (arr === null)
+          return null;
+
+        var id = arr[1], cn = 1, vn = 1;
+        if (!_.isUndefined(arr[3]) && arr[3].length > 0)
+          cn = parseInt(arr[3]);
+        if (!_.isUndefined(arr[4]) && arr[4].length > 0)
+          vn = parseInt(arr[4]);
+
+        var book = bible_.getBook(id);
+        if (book === null)
+          return null;
+
+        var chap = book.getChapter(cn);
+        if (chap === null)
+          return null;
+        return chap.getVerse(vn);
       },
 
       // @returns  search object
