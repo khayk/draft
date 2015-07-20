@@ -1,10 +1,8 @@
 (function () {
   'use strict';
 
-  var mkdirp   = require('mkdirp');
   var path     = require('path');
   var log4js   = require('log4js');
-  var util     = require('util');
   var readline = require('readline');
 
   var cfg    = require('./config').cfg;

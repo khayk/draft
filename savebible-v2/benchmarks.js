@@ -1,4 +1,3 @@
-//return;
 var path   = require('path');
 var _      = require('lodash');
 var fs     = require('fs');
