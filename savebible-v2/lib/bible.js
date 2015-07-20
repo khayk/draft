@@ -1515,7 +1515,7 @@ function inherit(child, base, props) {
   Renderer.prototype.renderCloseParagraph = function(verse) { throw 'implement renderCloseParagraph!'; };
   Renderer.prototype.renderVerseEnd       = function(verse) { throw 'implement renderVerseEnd!'; };
   Renderer.prototype.renderVerseNumber    = function(verse) { throw 'implement renderVerseNumber!'; };
-  Renderer.prototype.renderChapterEnd     = function(verse) { throw 'implement renderChapterEnd!'; };
+  Renderer.prototype.renderChapterEnd     = function(chap)  { throw 'implement renderChapterEnd!'; };
   Renderer.prototype.renderChapterNumber  = function(chap)  { throw 'implement renderChapterNumber!'; };
   Renderer.prototype.renderBookHeader     = function(book)  { throw 'implement renderBookHeader!'; };
   Renderer.prototype.renderBookEnd        = function(book)  { throw 'implement renderBookEnd!'; };
@@ -1623,7 +1623,7 @@ function inherit(child, base, props) {
     return TAG.V + ' ' + verse.number + ' ';
   };
 
-  USFMRenderer.prototype.renderChapterEnd = function(verse) {
+  USFMRenderer.prototype.renderChapterEnd = function(chap) {
     return '';
   };
 
@@ -1690,7 +1690,7 @@ function inherit(child, base, props) {
     return verse.id() + ' ';
   };
 
-  TextRenderer.prototype.renderChapterEnd = function(verse) {
+  TextRenderer.prototype.renderChapterEnd = function(chap) {
     return '';
   };
 
