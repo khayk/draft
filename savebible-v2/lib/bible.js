@@ -2,6 +2,7 @@ var fs     = require('fs');
 var path   = require('path');
 var _      = require('lodash');
 var util   = require('util');
+var mkdirp = require('mkdirp');
 
 var help   = require('./../helpers');
 var idsmap = require('./idsmap.js');
@@ -1493,14 +1494,54 @@ function inherit(child, base, props) {
     return bible;
   }
 
+  // Save bible book to the in a specified directory according to save rules
+  //
+  // @param  {object} book   Bible book to be stored
+  // @param  {object} opts   Save options
+  // @param  {string} dir    Directory to save book as a usfm file
+  var saveBook = function(book, dir, opts) {
+    if (_.isUndefined(opts)) {
+      opts = {};
+    }
+
+    if (_.isUndefined(opts.strictFilename))
+      opts.strictFilename = true;
+
+    dir = path.normalize(path.join(dir, '/'));
+    mkdirp.sync(dir);
+
+    var bible = book.parent;
+    var lang  = 'xx';
+    var abbr  = 'xxx';
+    if (bible.lang !== '')
+      lang = bible.lang;
+    if (bible.abbr !== '')
+      abbr = bible.abbr;
+
+    var qualifiedName = _.padLeft(BBM.instance().onById(book.te.id), 2, '0') + '-' + book.te.id;
+    if (opts.strictFilename === true) {
+      qualifiedName += lang;
+      qualifiedName += '-';
+      qualifiedName += abbr;
+    }
+    qualifiedName += '.usfm';
+
+    var usfmRenderer = new USFMRenderer();
+    var content = book.render(usfmRenderer);
+    fs.writeFileSync(dir + qualifiedName, content);
+  };
+
   // Save bible books to the specified directory according to save rules
   //
   // @param  {object} bible  Bible object to be stored
   // @param  {object} opts   Save options
   // @param  {string} dir    Directory to save usfm files
   var saveBible = function(bible, dir, opts) {
-
+    bible.books.forEach(function(book) {
+      saveBook(book, dir, opts);
+    });
   };
+
 
   /*------------------------------------------------------------------------*/
 

@@ -27,11 +27,11 @@
   startupInitialization();
 
   var inputs = [
-    ['ru-synod-usfm-from-text', 'ru'],
-    ['en-kjv-usfm+', 'en'],
-    ['am-eab-usfm-from-text', 'hy']
-    //['zed', 'en']
-    //['arm', 'hy']
+    ['ru-synod-usfm-from-text', 'ru', 'synod'],
+    ['en-kjv-usfm',             'en', 'kjv'],
+    ['am-eab-usfm-from-text',   'hy', 'eab']
+    //['zed', 'en', 'zed']
+    //['arm', 'hy', 'arm']
   ];
   var bsArray = [];
   var pretty  = {};
@@ -48,16 +48,21 @@
 
     if (bible.lang === '')
       bible.lang = input[1];
+    bible.abbr = input[2];
 
-    measur.begin('building index');
-    var bs = new BibleSearch(bible);
-    bsArray.push(bs);
-    measur.end();
+    lb.saveBible(bible, cfg.tmpDir() + input[0] + '-s');
+    lb.saveBible(bible, cfg.tmpDir() + input[0], {strictFilename: false});
 
-    pretty[bible.lang] = new help.SearchResultPrettifier(bible);
-    pretty[bible.lang].displayStatistics(bs.search().getStatistics());
+    // measur.begin('building index');
+    // var bs = new BibleSearch(bible);
+    // bsArray.push(bs);
+    // measur.end();
+
+    // pretty[bible.lang] = new help.SearchResultPrettifier(bible);
+    // pretty[bible.lang].displayStatistics(bs.search().getStatistics());
   });
 
+  return;
   console.log(Object.keys(pretty));
 
   // var res = bs.query('help', opts);
