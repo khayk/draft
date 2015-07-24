@@ -1152,7 +1152,7 @@ function inherit(child, base, props) {
 
     var extractHeader = function(header, book) {
       // extract book headers
-      var re = /(\\\w+)\s+(.*)/gm;
+      var re = /(\\\w+)\s+?(.*)/gm;
       var arr = null;
       while ((arr = re.exec(header)) !== null) {
         var tag = arr[1];
@@ -1400,6 +1400,38 @@ function inherit(child, base, props) {
     return null;
   }
 
+  // Scan directory and guess BBM mapping that is used to save books
+  //
+  // @param  {string} dir directory to scan
+  // @return {array}      array, that is similar to idsmap array, but containg
+  //                      recognized mapping. Empty array will be returned if
+  //                      no mapping was recognized
+  function guessBBM(dir) {
+    // preparing to load books
+    dir        = path.normalize(dir + '/');
+    var files  = fs.readdirSync(dir, 'utf8');
+    var guess  = [];
+
+    files.forEach(function(file) {
+      try {
+        var info = decodeFileName(file, false);
+        if (info !== null) {
+          guess.push({
+            id: info.id,
+            index: parseInt(info.on),
+            type: BBM.instance().itemById(info.id).type
+          });
+        }
+      }
+      catch (e) {
+        log.error('"%s" file processing failed. Error: %s', file, e);
+      }
+    });
+
+    return guess;
+  }
+
+  // Helper function, that fill opts default values of missing options
   function fillMissingOptions(opts) {
     if (_.isUndefined(opts)) {
       opts = {};
@@ -1506,6 +1538,10 @@ function inherit(child, base, props) {
 
     if (_.isUndefined(opts.strictFilename))
       opts.strictFilename = true;
+    if (_.isUndefined(opts.renderer))
+      opts.renderer = new USFMRenderer();
+    if (_.isUndefined(opts.extension))
+      opts.extension = 'usfm';
 
     dir = path.normalize(path.join(dir, '/'));
     mkdirp.sync(dir);
@@ -1516,7 +1552,7 @@ function inherit(child, base, props) {
     if (bible.lang !== '')
       lang = bible.lang;
     if (bible.abbr !== '')
-      abbr = bible.abbr;
+      abbr = bible.abbr.toLowerCase();
 
     var qualifiedName = _.padLeft(BBM.instance().onById(book.te.id), 2, '0') + '-' + book.te.id;
     if (opts.strictFilename === true) {
@@ -1524,10 +1560,10 @@ function inherit(child, base, props) {
       qualifiedName += '-';
       qualifiedName += abbr;
     }
-    qualifiedName += '.usfm';
+    qualifiedName += '.' + opts.extension;
 
-    var usfmRenderer = new USFMRenderer();
-    var content = book.render(usfmRenderer);
+    //var usfmRenderer = new USFMRenderer();
+    var content = book.render(opts.renderer);
     fs.writeFileSync(dir + qualifiedName, content);
   };
 
@@ -1777,6 +1813,7 @@ function inherit(child, base, props) {
   exports.loadBible       = loadBible;
   exports.saveBible       = saveBible;
   exports.decodeFileName  = decodeFileName;
+  exports.guessBBM        = guessBBM;
 
   exports.inherit         = inherit;
 
