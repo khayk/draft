@@ -28,7 +28,7 @@
 
   var inputs = [
     ['ru-synod-usfm-from-text', 'ru', 'synod'],
-    ['en-kjv-usfm',             'en', 'kjv'],
+    ['en-kjv-usfm+',            'en', 'kjv'],
     ['am-eab-usfm-from-text',   'hy', 'eab']
     //['zed', 'en', 'zed']
     //['arm', 'hy', 'arm']
@@ -50,19 +50,19 @@
       bible.lang = input[1];
     bible.abbr = input[2];
 
-    lb.saveBible(bible, cfg.tmpDir() + input[0] + '-s');
-    lb.saveBible(bible, cfg.tmpDir() + input[0], {strictFilename: false});
-
-    // measur.begin('building index');
-    // var bs = new BibleSearch(bible);
-    // bsArray.push(bs);
+    // measur.begin('saving bible');
+    // lb.saveBible(bible, cfg.tmpDir() + input[0]);
     // measur.end();
 
-    // pretty[bible.lang] = new help.SearchResultPrettifier(bible);
-    // pretty[bible.lang].displayStatistics(bs.search().getStatistics());
+    measur.begin('building index');
+    var bs = new BibleSearch(bible);
+    bsArray.push(bs);
+    measur.end();
+
+    pretty[bible.lang] = new help.SearchResultPrettifier(bible);
+    pretty[bible.lang].displayStatistics(bs.search().getStatistics());
   });
 
-  return;
   console.log(Object.keys(pretty));
 
   // var res = bs.query('help', opts);

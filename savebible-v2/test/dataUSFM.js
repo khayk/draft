@@ -136,9 +136,9 @@
   {
     name: 'unsupported',
     data: {
-      orig: '\\m 1\\x 2\\y 3\\z 4\\z*5\\y*6\\x*7\\m*',
-      parsed: '',
-      text: ''
+      orig: '\\m 1\\x 2\\y 3\\zwm 4\\zwm*5\\y*6\\x*7\\m*',
+      parsed: '\\m 1\\x 2\\y 35\\y*6\\x*7\\m*',
+      text: '123567'
     }
   }
   ];
@@ -146,7 +146,7 @@
 
 
   // sample book
-  // @todo do not like this, change, refactor 
+  // @todo do not like this, change, refactor
   exports.bookTemplate = '' +
     '\\{{ID}}  Genesis\n' +
     '\\h Genesis\n' +

@@ -413,17 +413,17 @@ describe('module TAGs', function() {
     expect(TH.isOpening('wj')).to.equal(true);
   });
 
-  it('unsupported tags', function() {
-    var arrUnsupported = ['\\www', '\\+a'];
-    arrUnsupported.forEach(function(a) {
-      expect(TH.isSupported(a)).to.equal(false);
+  it('ignored tags', function() {
+    var arrIgnored = ['\\zw', '\\+zx', '\\zwm', '\\+zws'];
+    arrIgnored.forEach(function(a) {
+      expect(TH.isIgnored(a)).to.equal(true);
     });
   });
 
   it('name of tag', function() {
     expect(TH.name('\\+add*')).to.equal('add');
-    expect(TH.name('\\+what*')).to.equal('unknown');
-    expect(TH.name('\\+what*', 'provided')).to.equal('provided');
+    expect(TH.name('\\+what*')).to.equal('what');
+    expect(TH.name('\\+?what*', 'provided')).to.equal('provided');
   });
 });
 

@@ -628,32 +628,62 @@ function inherit(child, base, props) {
 
   // TAG manipulation
   var TH = (function() {
-    var supported  = /add|wj|nd|qt/;
+
+    var supported  = /add|wj|nd|qt|dc/;
+
+    var valid      = /\\\+?(\w+)\*?/;
+    var ignored    = /zw|zws|zx|zwm|b|q/;  // hayk:todo b, q are temporary added
     var translator = /add/;
+    var addition   = /dc/;
     var jesusWord  = /wj/;
+    var discovered = {};
+
+    function meetTag(tag) {
+      var ref = discovered[tag];
+      if (_.isUndefined(ref)) {
+        discovered[tag] = {count: 1};
+        return;
+      }
+      ref.count++;
+    }
 
     return {
       // @param {string} tag  usfm tag, like this \tag, \+tag, \tag*
       // @returns             true if the specified tag is supported by the
       //                      application, otherwise false
       isSupported: function(tag) {
-        return supported.test(tag) !== false;
+        meetTag(tag);
+        return ignored.test(tag) === false;
+        //return supported.test(tag) === true;
+      },
+
+      // @returns   true for tags that are marked to be ignored
+      isIgnored: function(tag) {
+        meetTag(tag);
+        return ignored.test(tag) === true;
       },
 
       // @param {string} tag  see above
       // @returns             true if the tag is not closing, i.e. ends with *
       isOpening: function(tag) {
+        if (tag.length < 1)
+          return false;
         return tag[tag.length - 1] !== '*';
       },
 
       // @returns   true for translator tags
       isTranslator: function(tag) {
-        return translator.test(tag) !== false;
+        return translator.test(tag) === true;
+      },
+
+      // @returns   true for addition tags
+      isAddition: function(tag) {
+        return addition.test(tag) === true;
       },
 
       // @returns   true for tags identifying Jesus Words
       isJesusWord: function(tag) {
-        return jesusWord.test(tag) !== false;
+        return jesusWord.test(tag) === true;
       },
 
       // name of tag
@@ -663,10 +693,16 @@ function inherit(child, base, props) {
       //                      \+add -> add)
       name: function(tag, def) {
         var d = def || 'unknown';
-        var mt = tag.match(supported);
-        if (mt !== null)
-          return mt[0];
+        var arr = valid.exec(tag);
+        if (arr !== null)
+          return arr[1];
         return d;
+      },
+
+      // @returns  an object containting all unique tags that are discovered
+      //           during application run time
+      discovered: function() {
+        return discovered;
       }
     };
   })();
