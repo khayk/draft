@@ -54,4 +54,14 @@
   // });
 
   //\dc_...\dc*
+  // \r
+  // \s#
+  // \q#(_text...)
+  // \b
+  // \p(_text...)
+  // \ie                 Introduction end.
+  // \ip_text...         Introduction paragraph.
+  // \s#_text...         Section heading.
+  // \d_text...          Descriptive title
+
 })();
