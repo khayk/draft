@@ -10,7 +10,7 @@ var lb            = require('./lib/bible');
 var dataUSFM       = require('./test/dataUSFM.js').verses;
 
 
-var dropboxDir = 'C:/Users/Hayk/Dropbox';
+var dropboxDir = 'C:/Users/Hayk/Dropbox (Personal)';
 var inputs = [
 //  ['ru-synod-usfm-from-text', 'ru'],
   ['en-kjv-usfm+', 'en']

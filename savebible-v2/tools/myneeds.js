@@ -30,32 +30,58 @@
   };
 
 
+
+
+
   // var book = lb.loadBook(cfg.bibleDir('en-kjv-usfm+').from + '45-WISeng-kjv.usfm', {strictFilename: true});
   // var pretty = new PrettyRenderer({ textOnly: false });
   // var text = book.render(pretty);
   // fs.writeFileSync(cfg.tmpDir() + '45-WISeng-kjv.txt', text);
 
   var input = cfg.bibleDir('en-kjv-usfm').from;
-  var guess = lb.guessBBM(input);
-  BBM.activate(guess);
+
+
+  // var readline = require('readline');
+
+  // var rd = readline.createInterface({
+  //   input: fs.createReadStream(input + '/70-MATeng-kjv.usfm'),
+  //   output: process.stdout,
+  //   terminal: false
+  // });
+
+  // var cnt = 0;
+  // rd.on('line', function(line) {
+  //   //console.log(line);
+  //   ++cnt;
+  // });
+
+  // rd.on('close', function() {
+  //   console.log(cnt);
+  // });
+
+  // console.log('still working...');
+  // return;
+
+
+  // var guess = lb.guessBBM(input);
+  // BBM.activate(guess);
 
   var bible = lb.loadBible(input, {
     strictFilename: true
   });
 
-  lb.saveBible(bible, './tmp/');
+  //lb.saveBible(bible, './tmp/');
 
-  // lb.saveBible(bible, './tmp/', {
-  //   strictFilename: false,
-  //   extension: 'txt',
-  //   renderer: new PrettyRenderer({
-  //     textOnly: false
-  //   })
-  // });
+  lb.saveBible(bible, './tmp/', {
+    strictFilename: false,
+    extension: '.txt',
+    renderer: new PrettyRenderer({
+      textOnly: false
+    })
+  });
 
   //\dc_...\dc*
   // \r
-  // \s#
   // \q#(_text...)
   // \b
   // \p(_text...)

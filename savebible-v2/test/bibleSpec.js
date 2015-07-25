@@ -755,11 +755,11 @@ describe('core components', function() {
       var customRndr = new CustomRenderer();
 
       var listOfMethodsToImplement = [
+        'renderableTag',
         'renderBookHeader',
         'renderChapterNumber',
-        'renderOpenParagraph',
-        'renderCloseParagraph',
         'renderVerseNumber',
+        'renderVerseBegin',
         'renderVerseEnd',
         'renderOpenTag',
         'renderCloseTag',

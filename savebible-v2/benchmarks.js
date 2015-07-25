@@ -39,7 +39,7 @@ var usfm  = '';
 
 function benchmarkBibleLoad(name) {
   stress(function() {
-    bible = lb.loadBible(cfg.bibleDir(name).from, {supportedOnly: true});
+    bible = lb.loadBible(cfg.bibleDir(name).from, {supportedOnly: false});
   }, 'reading bible from hdd', 1);
 }
 

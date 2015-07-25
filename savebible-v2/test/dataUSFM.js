@@ -136,8 +136,8 @@
   {
     name: 'unsupported',
     data: {
-      orig: '\\m 1\\x 2\\y 3\\zwm 4\\zwm*5\\y*6\\x*7\\m*',
-      parsed: '\\m 1\\x 2\\y 35\\y*6\\x*7\\m*',
+      orig:   '\\m 1\\+x 2\\+y 3\\+zwm 4\\+zwm*5\\+y*6\\+x*7\\m*',
+      parsed: '\\m 1\\+x 2\\+y 35\\+y*6\\+x*7\\m*',
       text: '123567'
     }
   }
