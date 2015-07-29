@@ -661,8 +661,8 @@ function inherit(child, base, props) {
       //                      application, otherwise false
       isSupported: function(tag) {
         meetTag(tag);
-        return ignored.test(tag) === false;
-        //return supported.test(tag) === true;
+        //return ignored.test(tag) === false;
+        return supported.test(tag) === true;
       },
 
       // @returns   true for tags that are marked to be ignored
@@ -1299,6 +1299,18 @@ function inherit(child, base, props) {
       }
     };
 
+    var that  = this;
+
+    function buildVerse(vn, vstr, chap) {
+      if (vn !== 0) {
+        var v = that.parseVerse(vstr);
+        v.number = vn;
+        vn = 0;
+        chap.addVerse(v);
+        vstr = '';
+      }
+    }
+
     // helps to perform chapter parsing
     this.parseChapterImpl = function(str, chap) {
       var vstr = '', vn = 0, arr = null, tag;
@@ -1306,7 +1318,6 @@ function inherit(child, base, props) {
 
       // process chapter line by line
       var lines = str.match(/[^\r\n]+/g);
-      var that  = this;
 
       lines.forEach(function(line) {
         re.lastIndex = 0;
@@ -1319,14 +1330,9 @@ function inherit(child, base, props) {
           if (_.isUndefined(verserBreak[tag]))
             vstr += line + ' ';
           else {
-            if (vn !== 0) {
-              var v = that.parseVerse(vstr);
-              v.number = vn;
-              vn = 0;
-              chap.addVerse(v);
-              vstr = '';
-            }
-
+            buildVerse(vn, vstr, chap);
+            vstr = '';
+            vn = 0;
             if (TAG.V === tag) {
               // start a new verse
               vn = parseInt(arr[4]);
@@ -1339,6 +1345,7 @@ function inherit(child, base, props) {
           }
         }
       });
+      buildVerse(vn, vstr, chap);
     };
 
     /*
@@ -1698,8 +1705,6 @@ function inherit(child, base, props) {
   Renderer.prototype.renderableTag        = function(tag)   { throw 'implement renderableTag!'; };
   Renderer.prototype.renderOpenTag        = function(tag)   { throw 'implement renderOpenTag!'; };
   Renderer.prototype.renderCloseTag       = function(tag)   { throw 'implement renderCloseTag!'; };
-  // Renderer.prototype.renderOpenParagraph  = function(verse) { throw 'implement renderOpenParagraph!'; };
-  // Renderer.prototype.renderCloseParagraph = function(verse) { throw 'implement renderCloseParagraph!'; };
   Renderer.prototype.renderVerseBegin     = function(verse) { throw 'implement renderVerseBegin!'; };
   Renderer.prototype.renderVerseEnd       = function(verse) { throw 'implement renderVerseEnd!'; };
   Renderer.prototype.renderVerseNumber    = function(verse) { throw 'implement renderVerseNumber!'; };
@@ -1711,24 +1716,23 @@ function inherit(child, base, props) {
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode    = function(node, depth)  {
-    var res = '', tail = '';
+    var res = '', tail = '', renderable = true;
     if (NH.isText(node))
       res += node.text;
     else {
       if (node.tag !== '') {
+        renderable = this.renderableTag(node.tag); 
         // skip tag if the renderer have no clue how to render it
-        if (!this.renderableTag(node.tag))
-          return res;
-
-        var nested = depth > 2 ? true : false;
-        res += this.renderOpenTag(node.tag, nested);
-        tail = this.renderCloseTag(node.tag, nested);
+        if (renderable) {        
+          var nested = depth > 2 ? true : false;
+          res += this.renderOpenTag(node.tag, nested);
+          tail = this.renderCloseTag(node.tag, nested);
+        }
       }
     }
 
-    if (node.haveChild())
+    if (renderable && node.haveChild())
       res += this.renderNode(node.first, depth + 1);
-
     res += tail;
 
     if (node.haveNext())
@@ -1752,7 +1756,8 @@ function inherit(child, base, props) {
         });
       }
       res += self.renderVerseBegin(v);
-      res += (v.render(self) + self.renderVerseEnd(v));
+      res += v.render(self);
+      res += self.renderVerseEnd(v);
     });
     return res;
   };
@@ -1802,14 +1807,6 @@ function inherit(child, base, props) {
       return LF;
     return '\\' + (nested ? '+' : '') + tag + '*';
   };
-
-  // USFMRenderer.prototype.renderOpenParagraph = function(verse) {
-  //   return '\\' + TAG.P + LF;
-  // };
-
-  // USFMRenderer.prototype.renderCloseParagraph = function(verse) {
-  //   return '';
-  // };
 
   USFMRenderer.prototype.renderVerseBegin = function(verse) {
     return '';
@@ -1861,7 +1858,7 @@ function inherit(child, base, props) {
   inherit(TextRenderer, Renderer);
 
   TextRenderer.prototype.renderableTag = function(tag) {
-    return true;
+    return TH.isSupported(tag);
   };
 
   TextRenderer.prototype.renderOpenTag = function(tag) {
@@ -1876,16 +1873,8 @@ function inherit(child, base, props) {
     return '';
   };
 
-  // TextRenderer.prototype.renderOpenParagraph = function(verse) {
-  //   return '';
-  // };
-
-  // TextRenderer.prototype.renderCloseParagraph = function(verse) {
-  //   return '';
-  // };
-
   TextRenderer.prototype.renderVerseBegin = function(verse) {
-    return LF;
+    return '';
   };
 
   TextRenderer.prototype.renderVerseEnd = function(verse) {

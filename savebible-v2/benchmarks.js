@@ -31,11 +31,7 @@ var startupInitialization = function() {
   measur.end();
 };
 
-
-var usfmRender = new lb.USFMRenderer();
-var textRender = new lb.TextRenderer();
 var bible = null;
-var usfm  = '';
 
 function benchmarkBibleLoad(name) {
   stress(function() {
@@ -43,10 +39,16 @@ function benchmarkBibleLoad(name) {
   }, 'reading bible from hdd', 1);
 }
 
-function benchmarkBibleRendering() {
+var usfmRenderer = new lb.USFMRenderer();
+var textRenderer = new lb.TextRenderer();
+
+function benchmarkBibleRendering(type) {
+  var result = '';
+  var renderer = (type === 'usfm' ? usfmRenderer : textRenderer);
   stress(function() {
-    usfm = bible.render(usfmRender);
-  }, 'rendering benchmark', 1);
+    result = bible.render(renderer);
+  }, type + ' rendering benchmark', 1);
+  return result;
 }
 
 function benchmarkAllWordsSearch() {
@@ -63,7 +65,6 @@ function benchmarkAllWordsSearch() {
     //console.log(search.search().getDictionary().words());
     search.search().getDictionary().words().forEach(function(w) {
       var res = search.query(w);
-      //console.log(res);
       if (maxLength < res.refs.length) {
         maxLength = res.refs.length;
         resWord = w;
@@ -76,10 +77,12 @@ function benchmarkAllWordsSearch() {
 
 startupInitialization();
 benchmarkBibleLoad('en-kjv-usfm+');
-benchmarkBibleRendering();
-benchmarkAllWordsSearch();
+var usfm = benchmarkBibleRendering('usfm');
+var text = benchmarkBibleRendering('text');
+//benchmarkAllWordsSearch();
 
-fs.writeFileSync(cfg.tmpDir() + 'out.txt', usfm);
+fs.writeFileSync(cfg.tmpDir() + 'usfm', usfm);
+fs.writeFileSync(cfg.tmpDir() + 'text', text);
 
 // save as we want
-lb.saveBible(bible, cfg.bibleDir('en-kjv-usfm+').to, {});
+//lb.saveBible(bible, cfg.bibleDir('en-kjv-usfm+').to, {});

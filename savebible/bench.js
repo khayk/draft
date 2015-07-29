@@ -10,7 +10,8 @@ var lb            = require('./lib/bible');
 var dataUSFM       = require('./test/dataUSFM.js').verses;
 
 
-var dropboxDir = 'C:/Users/Hayk/Dropbox (Personal)';
+//var dropboxDir = 'C:/Users/Hayk/Dropbox (Personal)';
+var dropboxDir = '/home/khayk/Dropbox';
 var inputs = [
 //  ['ru-synod-usfm-from-text', 'ru'],
   ['en-kjv-usfm+', 'en']
@@ -26,6 +27,7 @@ bench.end();
 
 
 var usfmRender = new lb.USFMRenderer();
+var textRender = new lb.TextRenderer();
 var parser     = new lb.USFMParser(false);
 
 // var ref      = dataUSFM[1].data;
@@ -48,13 +50,21 @@ var book = bible.getBook('GEN');
 var chap = book.getChapter(1);
 var verse = chap.getVerse(2);
 
-var x = '';
-bench.begin('rendering benchmark');
+var usfm = '';
+bench.begin('usfm rendering benchmark');
 for (i = 0; i < 1; ++i) {
-  x = bible.render(usfmRender);
+  usfm = bible.render(usfmRender);
 }
 bench.end();
 
-fs.writeFileSync('out.txt', x);
+fs.writeFileSync('usfm', usfm);
 
 
+var text = '';
+bench.begin('text rendering benchmark');
+for (i = 0; i < 1; ++i) {
+  text = bible.render(textRender);
+}
+bench.end();
+
+fs.writeFileSync('text', text);
