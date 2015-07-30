@@ -646,6 +646,12 @@ function inherit(child, base, props) {
     var jesusWord  = /wj/;
     var discovered = {};
 
+    // tags that do not have a closing pair, value is a simbol that is used in USFM format
+    var single    = {};
+    single[TAG.P] = LF;
+    single[TAG.B] = LF;
+    single[TAG.Q] = LF;
+
     function meetTag(tag) {
       var ref = discovered[tag];
       if (_.isUndefined(ref)) {
@@ -692,6 +698,11 @@ function inherit(child, base, props) {
       // @returns   true for tags identifying Jesus Words
       isJesusWord: function(tag) {
         return jesusWord.test(tag) === true;
+      },
+
+      // @returns   true if tag should be completed with closing tag, otherwise false
+      haveClosing: function(tag) {
+        return _.isUndefined(single[tag]);
       },
 
       // name of tag
@@ -1702,51 +1713,81 @@ function inherit(child, base, props) {
   };
 
   // These functions `SHOULD BE` overridden in the derived classes
-  Renderer.prototype.renderableTag        = function(tag)   { throw 'implement renderableTag!'; };
-  Renderer.prototype.renderOpenTag        = function(tag)   { throw 'implement renderOpenTag!'; };
-  Renderer.prototype.renderCloseTag       = function(tag)   { throw 'implement renderCloseTag!'; };
-  Renderer.prototype.renderVerseBegin     = function(verse) { throw 'implement renderVerseBegin!'; };
-  Renderer.prototype.renderVerseEnd       = function(verse) { throw 'implement renderVerseEnd!'; };
-  Renderer.prototype.renderVerseNumber    = function(verse) { throw 'implement renderVerseNumber!'; };
-  Renderer.prototype.renderChapterEnd     = function(chap)  { throw 'implement renderChapterEnd!'; };
-  Renderer.prototype.renderChapterNumber  = function(chap)  { throw 'implement renderChapterNumber!'; };
-  Renderer.prototype.renderBookHeader     = function(book)  { throw 'implement renderBookHeader!'; };
-  Renderer.prototype.renderBookEnd        = function(book)  { throw 'implement renderBookEnd!'; };
+
+  Renderer.prototype.renderTagImpl     = function(obj) { throw 'implement renderTagImpl!'; };
+  Renderer.prototype.renderVerseImpl   = function(obj) { throw 'implement renderVerseImpl!'; };
+  Renderer.prototype.renderChapterImpl = function(obj) { throw 'implement renderChapterImpl!'; };
+  Renderer.prototype.renderBookImpl    = function(obj) { throw 'implement renderBookImpl!'; };
+
+
+  // Renderer.prototype.renderableTag        = function(tag)   { throw 'implement renderableTag!'; };
+  // Renderer.prototype.renderOpenTag        = function(tag)   { throw 'implement renderOpenTag!'; };
+  // Renderer.prototype.renderCloseTag       = function(tag)   { throw 'implement renderCloseTag!'; };
+  // Renderer.prototype.renderVerseBegin     = function(verse) { throw 'implement renderVerseBegin!'; };
+  // Renderer.prototype.renderVerseEnd       = function(verse) { throw 'implement renderVerseEnd!'; };
+  // Renderer.prototype.renderVerseNumber    = function(verse) { throw 'implement renderVerseNumber!'; };
+  // Renderer.prototype.renderChapterEnd     = function(chap)  { throw 'implement renderChapterEnd!'; };
+  // Renderer.prototype.renderChapterNumber  = function(chap)  { throw 'implement renderChapterNumber!'; };
+  // Renderer.prototype.renderBookHeader     = function(book)  { throw 'implement renderBookHeader!'; };
+  // Renderer.prototype.renderBookEnd        = function(book)  { throw 'implement renderBookEnd!'; };
 
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode    = function(node, depth)  {
-    var res = '', tail = '', renderable = true;
+    var res = '';
+    var o = {
+      tag: '',
+      open: '',
+      close: '',
+      nested: false,
+      renderable: true
+    };
+
     if (NH.isText(node))
       res += node.text;
     else {
       if (node.tag !== '') {
-        renderable = this.renderableTag(node.tag); 
+        o.tag = node.tag;
+        o.nested = depth > 2;
+        this.renderTagImpl(o);
+
         // skip tag if the renderer have no clue how to render it
-        if (renderable) {        
-          var nested = depth > 2 ? true : false;
-          res += this.renderOpenTag(node.tag, nested);
-          tail = this.renderCloseTag(node.tag, nested);
+        if (o.renderable) {
+          res += o.open;
         }
       }
     }
 
-    if (renderable && node.haveChild())
+    if (o.renderable && node.haveChild())
       res += this.renderNode(node.first, depth + 1);
-    res += tail;
+    res += o.close;
 
     if (node.haveNext())
       res += this.renderNode(node.next, depth);
     return res;
   };
 
-  Renderer.prototype.renderVerse   = function(verse) {
-    return this.renderVerseNumber(verse) + this.renderNode(verse.node, 1);
+  // @todo:comment
+  Renderer.prototype.renderVerse = function(verse) {
+    var o = {
+      verse: verse,
+      begin: '',
+      end: '',
+      id: ''
+    };
+    this.renderVerseImpl(o);
+    return o.id + this.renderNode(verse.node, 1) + o.end;
   };
 
+  // @todo:comment
   Renderer.prototype.renderChapter = function(chapter) {
-    var res = this.renderChapterNumber(chapter);
-    var self = this;
+    var o = {
+      chapter: chapter,
+      end: '',
+      id: ''
+    };
+    this.renderChapterImpl(o);
+    var res = o.id, self = this;
 
     chapter.verses.forEach(function(v) {
       var nodes = chapter.markups[v.number - 1];
@@ -1755,30 +1796,33 @@ function inherit(child, base, props) {
           res += self.renderNode(node, 1);
         });
       }
-      res += self.renderVerseBegin(v);
-      res += v.render(self);
-      res += self.renderVerseEnd(v);
+      res += self.renderVerse(v);  // or v.render(self);
     });
-    return res;
+    return res + o.end;
   };
 
+  // @todo:comment
   Renderer.prototype.renderBook    = function(book) {
-    var res = this.renderBookHeader(book);
+    var o = {
+      book: book,
+      header: '',
+      end: ''
+    };
+    this.renderBookImpl(o);
+    var res = o.header;
     var self = this;
     book.chapters.forEach(function(c) {
-      res += c.render(self);
-      res += self.renderChapterEnd(c);
+      res += self.renderChapter(c);  // or c.render(self);
     });
-    return res;
+    return res + o.end;
   };
 
+  // @todo:comment
   Renderer.prototype.renderBible   = function(bible) {
     var res = '';
     var self = this;
-
     bible.books.forEach(function(b) {
-      res += b.render(self);
-      res += self.renderBookEnd(b);
+      res += self.renderBook(b);  // b.render(self)
     });
     return res;
   };
@@ -1786,49 +1830,34 @@ function inherit(child, base, props) {
 
   /*------------------------------------------------------------------------*/
 
-
   var USFMRenderer = function() {
     Renderer.call(this);
   };
   inherit(USFMRenderer, Renderer);
 
-  USFMRenderer.prototype.renderableTag = function(tag) {
-    return true;
+  USFMRenderer.prototype.renderTagImpl = function(obj) {
+    if (!TH.haveClosing(obj.tag)) {
+      obj.open  = '\\' + obj.tag;
+      obj.close = LF;
+    }
+    else {
+      var tmp   = '\\' + (obj.nested ? '+' : '') + obj.tag;
+      obj.open  = tmp + ' ';
+      obj.close = tmp + '*';
+    }
   };
 
-  USFMRenderer.prototype.renderOpenTag = function(tag, nested) {
-    if (TAG.P === tag)
-      return '\\' + TAG.P;
-    return '\\' + (nested ? '+' : '') + tag + ' ';
+  USFMRenderer.prototype.renderVerseImpl = function(obj) {
+    obj.end = LF;
+    obj.id  = '\\' + TAG.V + ' ' + obj.verse.number + ' ';
   };
 
-  USFMRenderer.prototype.renderCloseTag = function(tag, nested) {
-    if (TAG.P === tag)
-      return LF;
-    return '\\' + (nested ? '+' : '') + tag + '*';
+  USFMRenderer.prototype.renderChapterImpl = function(obj) {
+    obj.id  = '\\' + TAG.C + ' ' + obj.chapter.number + LF;
   };
 
-  USFMRenderer.prototype.renderVerseBegin = function(verse) {
-    return '';
-  };
-
-  USFMRenderer.prototype.renderVerseEnd = function(verse) {
-    return LF;
-  };
-
-  USFMRenderer.prototype.renderVerseNumber = function(verse) {
-    return '\\' + TAG.V + ' ' + verse.number + ' ';
-  };
-
-  USFMRenderer.prototype.renderChapterEnd = function(chap) {
-    return '';
-  };
-
-  USFMRenderer.prototype.renderChapterNumber = function(chap)  {
-    return '\\' + TAG.C + ' ' + chap.number + LF;
-  };
-
-  USFMRenderer.prototype.renderBookHeader = function(book)  {
+  USFMRenderer.prototype.renderBookImpl = function(obj) {
+    var book = obj.book;
     var res = '';
     res += '\\' + TAG.ID   + ' ' + book.te.id   + ' ' + book.te.name + LF;
     res += '\\' + TAG.H    + ' ' + book.te.name + LF;
@@ -1836,13 +1865,8 @@ function inherit(child, base, props) {
     res += '\\' + TAG.TOC2 + ' ' + book.te.name + LF;
     res += '\\' + TAG.TOC3 + ' ' + book.te.abbr + LF;
     res += '\\' + TAG.MT   + ' ' + book.te.desc + LF;
-    return res;
+    obj.header = res;
   };
-
-  USFMRenderer.prototype.renderBookEnd = function(book) {
-    return '';
-  };
-
 
   /*------------------------------------------------------------------------*/
 

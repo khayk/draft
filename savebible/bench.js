@@ -57,7 +57,7 @@ for (i = 0; i < 1; ++i) {
 }
 bench.end();
 
-fs.writeFileSync('usfm', usfm);
+fs.writeFileSync('./tmp/usfm', usfm);
 
 
 var text = '';
@@ -67,4 +67,4 @@ for (i = 0; i < 1; ++i) {
 }
 bench.end();
 
-fs.writeFileSync('text', text);
+fs.writeFileSync('./tmp/text', text);

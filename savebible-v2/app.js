@@ -27,10 +27,10 @@
   startupInitialization();
 
   var inputs = [
-    ['en-kjv-usfm+',              'en', 'kjv']
+    //['en-kjv-usfm+',              'en', 'kjv']
     //['ru-synod-usfm-from-text', 'ru', 'synod'],
     //['am-eab-usfm-from-text',   'hy', 'eab']
-    //['zed', 'en', 'zed']
+    ['zed', 'en', 'zed']
     //['arm', 'hy', 'arm']
   ];
 
