@@ -71,7 +71,7 @@ logger.fatal('fatal');
   inputs.forEach(function(input) {
     measur.begin('loading bible: ' + input[0]);
     var bible = lb.loadBible(cfg.bibleDir(input[0]).from, {
-      supportedOnly: true,
+      knownTagsOnly: true,
       strictFilename: false
     });
     measur.end();

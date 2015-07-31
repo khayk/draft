@@ -404,7 +404,7 @@ describe('module TAGs', function() {
     var arrSupported = ['add', '+add*', 'add*', 'nd', '\\qt', '\\+wj'];
 
     arrSupported.forEach(function(a) {
-      expect(TH.isSupported(a)).to.equal(true);
+      expect(TH.isKnown(a)).to.equal(true);
     });
 
     expect(TH.isTranslator('add')).to.equal(true);
@@ -665,7 +665,10 @@ describe('core components', function() {
           // @todo:implement
           var verse    = parser.parseVerse(ref.orig);
           var restored = verse.render(usfmRndr);
-          expect('\\v 0 ' + ref.parsed).to.equal(restored);
+          if (!_.isUndefined(ref.parsedKnown))
+            expect('\\v 0 ' + ref.parsedKnown).to.equal(restored);
+          else
+            expect('\\v 0 ' + ref.parsed).to.equal(restored);
 
           verse        = parserAll.parseVerse(ref.orig);
           restored     = verse.render(usfmRndr);
@@ -684,7 +687,10 @@ describe('core components', function() {
           var orig = ref.orig.replace(/\n/g, ' ').trim();
           var verse = parser.parseVerse(orig);
           var restored = verse.render(textRndr);
-          expect(ref.text).to.equal(restored);
+          if (!_.isUndefined(ref.textKnown))
+            expect(ref.textKnown).to.equal(restored);
+          else
+            expect(ref.text).to.equal(restored);
         });
       });
     });
@@ -756,15 +762,13 @@ describe('core components', function() {
 
       var listOfMethodsToImplement = [
         'renderableTag',
-        'renderBookHeader',
-        'renderChapterNumber',
-        'renderVerseNumber',
-        'renderVerseBegin',
-        'renderVerseEnd',
-        'renderOpenTag',
-        'renderCloseTag',
-        'renderChapterEnd',
-        'renderBookEnd'
+        'defineBookBegin',
+        'defineBookView',
+        'defineChapterBegin',
+        'defineChapterView',
+        'defineTagView',
+        'defineVerseBegin',
+        'defineVerseView'
       ];
 
       listOfMethodsToImplement.forEach(function(methodName) {

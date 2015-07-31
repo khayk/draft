@@ -35,7 +35,7 @@ var bible = null;
 
 function benchmarkBibleLoad(name) {
   stress(function() {
-    bible = lb.loadBible(cfg.bibleDir(name).from, {supportedOnly: false});
+    bible = lb.loadBible(cfg.bibleDir(name).from, {knownTagsOnly: false});
   }, 'reading bible from hdd', 1);
 }
 
@@ -79,11 +79,11 @@ startupInitialization();
 benchmarkBibleLoad('en-kjv-usfm+');
 
 var usfm = benchmarkBibleRendering('usfm');
-//var text = benchmarkBibleRendering('text');
+var text = benchmarkBibleRendering('text');
 //benchmarkAllWordsSearch();
 
 fs.writeFileSync(cfg.tmpDir() + 'usfm', usfm);
-//fs.writeFileSync(cfg.tmpDir() + 'text', text);
+fs.writeFileSync(cfg.tmpDir() + 'text', text);
 
 // save as we want
 //lb.saveBible(bible, cfg.bibleDir('en-kjv-usfm+').to, {});

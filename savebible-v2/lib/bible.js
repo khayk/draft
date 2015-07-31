@@ -636,44 +636,43 @@ function inherit(child, base, props) {
 
   // TAG manipulation
   var TH = (function() {
-
-    var supported  = /add|wj|nd|qt|dc/;
-
+    var known      = /add|wj|nd|qt|dc/;
     var valid      = /\\\+?(\w+)\*?/;
     var ignored    = /zw|zws|zx|zwm/;  // hayk:todo b, q are temporary added
     var translator = /add/;
     var addition   = /dc/;
     var jesusWord  = /wj/;
+
+
+    // tags that do not have a closing pair
+    var single    = /p|b|q/;
+
     var discovered = {};
 
-    // tags that do not have a closing pair, value is a simbol that is used in USFM format
-    var single    = {};
-    single[TAG.P] = LF;
-    single[TAG.B] = LF;
-    single[TAG.Q] = LF;
-
-    function meetTag(tag) {
-      var ref = discovered[tag];
-      if (_.isUndefined(ref)) {
-        discovered[tag] = {count: 1};
-        return;
-      }
-      ref.count++;
-    }
-
     return {
+      // @brief  build tag statistics, how many times that tag is found in the
+      //         text that we are processing
+      //
+      // @param {string} tag  usfm tag
+      onTag: function(tag) {
+        var ref = discovered[tag];
+        if (_.isUndefined(ref)) {
+          discovered[tag] = {count: 1};
+          return;
+        }
+        ref.count++;
+      },
+
       // @param {string} tag  usfm tag, like this \tag, \+tag, \tag*
-      // @returns             true if the specified tag is supported by the
-      //                      application, otherwise false
-      isSupported: function(tag) {
-        meetTag(tag);
-        //return ignored.test(tag) === false;
-        return supported.test(tag) === true;
+      // @returns             true if the specified tag is well know and
+      //                      fully supported by the application,
+      //                      otherwise false
+      isKnown: function(tag) {
+        return known.test(tag) === true;
       },
 
       // @returns   true for tags that are marked to be ignored
       isIgnored: function(tag) {
-        meetTag(tag);
         return ignored.test(tag) === true;
       },
 
@@ -702,7 +701,7 @@ function inherit(child, base, props) {
 
       // @returns   true if tag should be completed with closing tag, otherwise false
       haveClosing: function(tag) {
-        return _.isUndefined(single[tag]);
+        return single.test(tag) === false;
       },
 
       // name of tag
@@ -1208,10 +1207,11 @@ function inherit(child, base, props) {
 
 
   // @brief  Create parser object
-  // @param  supportedOnly  the parser will collect only tags that we support
-  //                        list of supported tags are controlled by TH module
-  var Parser = function(supportedOnly) {
-    this.supportedOnly = supportedOnly;
+  // @param  knownTagsOnly  the parser will collect only tags that well known
+  //                        by the application. list of known tags are
+  //                        controlled by TH module
+  var Parser = function(knownTagsOnly) {
+    this.knownTagsOnly = knownTagsOnly;
     this.vre = /(\\\+?(\w+)\*?)\s?/gm;
 
     var verserBreak     = {};
@@ -1284,10 +1284,12 @@ function inherit(child, base, props) {
           if (TH.isOpening(arr[1])) {
             var compoundNode = NH.createTag(tag);
 
-            // collect supported tags
-            if (this.supportedOnly === false) {
-              node.addChild(compoundNode);
-            } else if (TH.isSupported(tag)) {
+            // collect known tags only
+            if (this.knownTagsOnly === true) {
+              if (TH.isKnown(tag)) {
+                node.addChild(compoundNode);
+              }
+            } else {
               node.addChild(compoundNode);
             }
 
@@ -1566,8 +1568,8 @@ function inherit(child, base, props) {
     }
 
     // setup default values for options missing entities
-    if (_.isUndefined(opts.supportedOnly))
-      opts.supportedOnly = true;
+    if (_.isUndefined(opts.knownTagsOnly))
+      opts.knownTagsOnly = true;
     if (_.isUndefined(opts.strictFilename))
       opts.strictFilename = true;
     if (_.isUndefined(opts.lang))
@@ -1590,7 +1592,7 @@ function inherit(child, base, props) {
   function loadBook(file, opts, parser) {
     opts = fillMissingOptions(opts);
     if (_.isUndefined(parser))
-      parser = new Parser(opts.supportedOnly);
+      parser = new Parser(opts.knownTagsOnly);
 
     var info = decodeFileName(file, opts.strictFilename);
     if (info === null)
@@ -1619,7 +1621,7 @@ function inherit(child, base, props) {
     dir        = path.normalize(dir + '/');
     var files  = fs.readdirSync(dir, 'utf8');
     var bible  = new Bible();
-    var parser = new Parser(opts.supportedOnly);
+    var parser = new Parser(opts.knownTagsOnly);
 
     files.forEach(function(file) {
       // skip files with unknown extension
@@ -1714,16 +1716,18 @@ function inherit(child, base, props) {
 
   // These functions `SHOULD BE` overridden in the derived classes
 
-  Renderer.prototype.defineTagView     = function(obj) { throw 'implement defineTagView!'; };
-  Renderer.prototype.defineVerseView   = function(obj) { throw 'implement defineVerseView!'; };
-  Renderer.prototype.defineChapterView = function(obj) { throw 'implement defineChapterView!'; };
-  Renderer.prototype.defineBookView    = function(obj) { throw 'implement defineBookView!'; };
-
+  Renderer.prototype.defineTagView      = function(vo)    { throw 'implement defineTagView!'; };
+  Renderer.prototype.defineVerseView    = function(vo)    { throw 'implement defineVerseView!'; };
+  Renderer.prototype.defineVerseBegin   = function(verse) { throw 'implement defineVerseBegin!'; };
+  Renderer.prototype.defineChapterView  = function(vo)    { throw 'implement defineChapterView!'; };
+  Renderer.prototype.defineChapterBegin = function(chap)  { throw 'implement defineChapterBegin!'; };
+  Renderer.prototype.defineBookView     = function(vo)    { throw 'implement defineBookView!'; };
+  Renderer.prototype.defineBookBegin    = function(book)  { throw 'implement defineBookBegin!'; };
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode    = function(node, depth)  {
     var res = '';
-    var o = {
+    var vo = {
       tag: '',
       open: '',
       close: '',
@@ -1735,20 +1739,20 @@ function inherit(child, base, props) {
       res += node.text;
     else {
       if (node.tag !== '') {
-        o.tag = node.tag;
-        o.nested = depth > 2;
-        this.defineTagView(o);
+        vo.tag = node.tag;
+        vo.nested = depth > 2;
+        this.defineTagView(vo);
 
         // skip tag if the renderer have no clue how to render it
-        if (o.renderable) {
-          res += o.open;
+        if (vo.renderable) {
+          res += vo.open;
         }
       }
     }
 
-    if (o.renderable && node.haveChild())
+    if (vo.renderable && node.haveChild())
       res += this.renderNode(node.first, depth + 1);
-    res += o.close;
+    res += vo.close;
 
     if (node.haveNext())
       res += this.renderNode(node.next, depth);
@@ -1757,25 +1761,22 @@ function inherit(child, base, props) {
 
   // @todo:comment
   Renderer.prototype.renderVerse = function(verse) {
-    var o = {
+    var vo = {
       verse: verse,
-      begin: '',
-      end: '',
       id: ''
     };
-    this.defineVerseView(o);
-    return o.id + this.renderNode(verse.node, 1) + o.end;
+    this.defineVerseView(vo);
+    return vo.id + this.renderNode(verse.node, 1);
   };
 
   // @todo:comment
   Renderer.prototype.renderChapter = function(chapter) {
-    var o = {
+    var vo = {
       chapter: chapter,
-      end: '',
       id: ''
     };
-    this.defineChapterView(o);
-    var res = o.id, self = this;
+    this.defineChapterView(vo);
+    var res = vo.id, self = this;
 
     chapter.verses.forEach(function(v) {
       var nodes = chapter.markups[v.number - 1];
@@ -1784,25 +1785,26 @@ function inherit(child, base, props) {
           res += self.renderNode(node, 1);
         });
       }
+      res += self.defineVerseBegin(v);
       res += self.renderVerse(v);  // or v.render(self);
     });
-    return res + o.end;
+    return res;
   };
 
   // @todo:comment
   Renderer.prototype.renderBook    = function(book) {
-    var o = {
+    var vo = {
       book: book,
       header: '',
-      end: ''
     };
-    this.defineBookView(o);
-    var res = o.header;
+    this.defineBookView(vo);
+    var res = vo.header;
     var self = this;
     book.chapters.forEach(function(c) {
+      res += self.defineChapterBegin(c);
       res += self.renderChapter(c);  // or c.render(self);
     });
-    return res + o.end;
+    return res;
   };
 
   // @todo:comment
@@ -1810,6 +1812,7 @@ function inherit(child, base, props) {
     var res = '';
     var self = this;
     bible.books.forEach(function(b) {
+      res += self.defineBookBegin(b);
       res += self.renderBook(b);  // b.render(self)
     });
     return res;
@@ -1823,37 +1826,53 @@ function inherit(child, base, props) {
   };
   inherit(USFMRenderer, Renderer);
 
-  USFMRenderer.prototype.defineTagView = function(obj) {
-    if (!TH.haveClosing(obj.tag)) {
-      obj.open  = '\\' + obj.tag;
-      obj.close = LF;
+  USFMRenderer.prototype.defineTagView = function(vo) {
+    if (!TH.haveClosing(vo.tag)) {
+      vo.open  = '\\' + vo.tag;
+      switch (vo.tag) {
+        case TAG.P:
+        case TAG.B:
+        case TAG.Q:
+          vo.open = LF + vo.open;
+      }
     }
     else {
-      var tmp   = '\\' + (obj.nested ? '+' : '') + obj.tag;
-      obj.open  = tmp + ' ';
-      obj.close = tmp + '*';
+      var tmp   = '\\' + (vo.nested ? '+' : '') + vo.tag;
+      vo.open  = tmp + ' ';
+      vo.close = tmp + '*';
     }
   };
 
-  USFMRenderer.prototype.defineVerseView = function(obj) {
-    obj.end = LF;
-    obj.id  = '\\' + TAG.V + ' ' + obj.verse.number + ' ';
+  USFMRenderer.prototype.defineVerseBegin = function(verse) {
+    return LF;
   };
 
-  USFMRenderer.prototype.defineChapterView = function(obj) {
-    obj.id  = '\\' + TAG.C + ' ' + obj.chapter.number + LF;
+  USFMRenderer.prototype.defineVerseView = function(vo) {
+    vo.id  = '\\' + TAG.V + ' ' + vo.verse.number + ' ';
   };
 
-  USFMRenderer.prototype.defineBookView = function(obj) {
-    var book = obj.book;
+  USFMRenderer.prototype.defineChapterBegin = function(chap) {
+    return LF;
+  };
+
+  USFMRenderer.prototype.defineChapterView = function(vo) {
+    vo.id  = '\\' + TAG.C + ' ' + vo.chapter.number;
+  };
+
+  USFMRenderer.prototype.defineBookBegin = function(book) {
+    return LF;
+  };
+
+  USFMRenderer.prototype.defineBookView = function(vo) {
+    var book = vo.book;
     var res = '';
     res += '\\' + TAG.ID   + ' ' + book.te.id   + ' ' + book.te.name + LF;
     res += '\\' + TAG.H    + ' ' + book.te.name + LF;
     res += '\\' + TAG.TOC1 + ' ' + book.te.desc + LF;
     res += '\\' + TAG.TOC2 + ' ' + book.te.name + LF;
     res += '\\' + TAG.TOC3 + ' ' + book.te.abbr + LF;
-    res += '\\' + TAG.MT   + ' ' + book.te.desc + LF;
-    obj.header = res;
+    res += '\\' + TAG.MT   + ' ' + book.te.desc;
+    vo.header = res;
   };
 
   /*------------------------------------------------------------------------*/
@@ -1869,52 +1888,38 @@ function inherit(child, base, props) {
   };
   inherit(TextRenderer, Renderer);
 
-  TextRenderer.prototype.renderableTag = function(tag) {
-    return TH.isSupported(tag);
+  TextRenderer.prototype.defineTagView = function(vo) {
+    vo.renderable = TH.isKnown(vo.tag);
+    if (vo.renderable === true) {
+      if (TH.isTranslator(vo.tag)) {
+        vo.open  = '[';
+        vo.close = ']';
+      }
+    }
   };
 
-  TextRenderer.prototype.renderOpenTag = function(tag) {
-    if (TH.isTranslator(tag))
-      return '[';
-    return '';
-  };
-
-  TextRenderer.prototype.renderCloseTag = function(tag) {
-    if (TH.isTranslator(tag))
-      return ']';
-    return '';
-  };
-
-  TextRenderer.prototype.renderVerseBegin = function(verse) {
-    return '';
-  };
-
-  TextRenderer.prototype.renderVerseEnd = function(verse) {
+  TextRenderer.prototype.defineVerseBegin = function(verse) {
     return LF;
   };
 
-  TextRenderer.prototype.renderVerseNumber = function(verse) {
-    if (this.textOnly)
-      return '';
-    return verse.id() + ' ';
+  TextRenderer.prototype.defineVerseView = function(vo) {
+    if (!this.textOnly)
+      vo.id = vo.verse.id() + ' ';
   };
 
-  TextRenderer.prototype.renderChapterEnd = function(chap) {
+  TextRenderer.prototype.defineChapterBegin = function(chap) {
     return '';
   };
 
-  TextRenderer.prototype.renderChapterNumber = function(chap)  {
+  TextRenderer.prototype.defineChapterView = function(vo) {
+  };
+
+  TextRenderer.prototype.defineBookBegin = function(book) {
     return '';
   };
 
-  TextRenderer.prototype.renderBookHeader = function(book)  {
-    return '';
+  TextRenderer.prototype.defineBookView = function(vo) {
   };
-
-  TextRenderer.prototype.renderBookEnd = function(book) {
-    return '';
-  };
-
 
   /*------------------------------------------------------------------------*/
 
