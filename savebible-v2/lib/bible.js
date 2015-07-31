@@ -1714,22 +1714,10 @@ function inherit(child, base, props) {
 
   // These functions `SHOULD BE` overridden in the derived classes
 
-  Renderer.prototype.renderTagImpl     = function(obj) { throw 'implement renderTagImpl!'; };
-  Renderer.prototype.renderVerseImpl   = function(obj) { throw 'implement renderVerseImpl!'; };
-  Renderer.prototype.renderChapterImpl = function(obj) { throw 'implement renderChapterImpl!'; };
-  Renderer.prototype.renderBookImpl    = function(obj) { throw 'implement renderBookImpl!'; };
-
-
-  // Renderer.prototype.renderableTag        = function(tag)   { throw 'implement renderableTag!'; };
-  // Renderer.prototype.renderOpenTag        = function(tag)   { throw 'implement renderOpenTag!'; };
-  // Renderer.prototype.renderCloseTag       = function(tag)   { throw 'implement renderCloseTag!'; };
-  // Renderer.prototype.renderVerseBegin     = function(verse) { throw 'implement renderVerseBegin!'; };
-  // Renderer.prototype.renderVerseEnd       = function(verse) { throw 'implement renderVerseEnd!'; };
-  // Renderer.prototype.renderVerseNumber    = function(verse) { throw 'implement renderVerseNumber!'; };
-  // Renderer.prototype.renderChapterEnd     = function(chap)  { throw 'implement renderChapterEnd!'; };
-  // Renderer.prototype.renderChapterNumber  = function(chap)  { throw 'implement renderChapterNumber!'; };
-  // Renderer.prototype.renderBookHeader     = function(book)  { throw 'implement renderBookHeader!'; };
-  // Renderer.prototype.renderBookEnd        = function(book)  { throw 'implement renderBookEnd!'; };
+  Renderer.prototype.defineTagView     = function(obj) { throw 'implement defineTagView!'; };
+  Renderer.prototype.defineVerseView   = function(obj) { throw 'implement defineVerseView!'; };
+  Renderer.prototype.defineChapterView = function(obj) { throw 'implement defineChapterView!'; };
+  Renderer.prototype.defineBookView    = function(obj) { throw 'implement defineBookView!'; };
 
 
   // These functions `SHOULD NOT` be overridden in the derived classes
@@ -1749,7 +1737,7 @@ function inherit(child, base, props) {
       if (node.tag !== '') {
         o.tag = node.tag;
         o.nested = depth > 2;
-        this.renderTagImpl(o);
+        this.defineTagView(o);
 
         // skip tag if the renderer have no clue how to render it
         if (o.renderable) {
@@ -1775,7 +1763,7 @@ function inherit(child, base, props) {
       end: '',
       id: ''
     };
-    this.renderVerseImpl(o);
+    this.defineVerseView(o);
     return o.id + this.renderNode(verse.node, 1) + o.end;
   };
 
@@ -1786,7 +1774,7 @@ function inherit(child, base, props) {
       end: '',
       id: ''
     };
-    this.renderChapterImpl(o);
+    this.defineChapterView(o);
     var res = o.id, self = this;
 
     chapter.verses.forEach(function(v) {
@@ -1808,7 +1796,7 @@ function inherit(child, base, props) {
       header: '',
       end: ''
     };
-    this.renderBookImpl(o);
+    this.defineBookView(o);
     var res = o.header;
     var self = this;
     book.chapters.forEach(function(c) {
@@ -1835,7 +1823,7 @@ function inherit(child, base, props) {
   };
   inherit(USFMRenderer, Renderer);
 
-  USFMRenderer.prototype.renderTagImpl = function(obj) {
+  USFMRenderer.prototype.defineTagView = function(obj) {
     if (!TH.haveClosing(obj.tag)) {
       obj.open  = '\\' + obj.tag;
       obj.close = LF;
@@ -1847,16 +1835,16 @@ function inherit(child, base, props) {
     }
   };
 
-  USFMRenderer.prototype.renderVerseImpl = function(obj) {
+  USFMRenderer.prototype.defineVerseView = function(obj) {
     obj.end = LF;
     obj.id  = '\\' + TAG.V + ' ' + obj.verse.number + ' ';
   };
 
-  USFMRenderer.prototype.renderChapterImpl = function(obj) {
+  USFMRenderer.prototype.defineChapterView = function(obj) {
     obj.id  = '\\' + TAG.C + ' ' + obj.chapter.number + LF;
   };
 
-  USFMRenderer.prototype.renderBookImpl = function(obj) {
+  USFMRenderer.prototype.defineBookView = function(obj) {
     var book = obj.book;
     var res = '';
     res += '\\' + TAG.ID   + ' ' + book.te.id   + ' ' + book.te.name + LF;
