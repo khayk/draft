@@ -1,24 +1,35 @@
 (function () {
   'use strict';
 
+  var fs       = require('fs');
   var path     = require('path');
   var log4js   = require('log4js');
   var readline = require('readline');
+  var _        = require('lodash');
+  var mkdirp   = require('mkdirp');
 
-  var cfg    = require('./config').cfg;
-  var lb     = require('./lib/bible');
-  var search = require('./lib/search');
-  var help   = require('./helpers');
+  var cfg      = require('./config').cfg;
+  var lb       = require('./lib/bible');
+  var search   = require('./lib/search');
+  var help     = require('./helpers');
 
-  var log    = log4js.getLogger('app');
-  var measur = new help.Measurer();
+  var log      = log4js.getLogger('app');
+  var measur   = new help.Measurer();
 
   var MC          = lb.MC;
   var BibleSearch = search.BibleSearch;
 
+  var CRLF = '\r\n';
 
+  var longestName = 19;
+  var lineMaxLen  = 80;
 
-  function preformattedTOC(bible) {
+  function selectName(id) {
+    var meta = MC.instance().getMeta('en');
+    return meta.toc.get(id).name;
+  }
+
+  function createSummaryInfo(bible) {
     var res = '';
     var prePadded = '      ';
 
@@ -26,26 +37,34 @@
     var tcs = 0;  // total chapters count
     var tvs = 0;  // total verses count
 
-    bible.books.forEach(function(b) {
+    _.each(lb.BBM.instance().ids(), function(n, id) {
+      var b = bible.getBook(id);
+      if (b === null) {
+        // insert empty line
+        // res += CRLF;
+        return;
+      }
+
       var nvs = 0;
       b.chapters.forEach(function(c) {
         nvs += c.numVerses();
       });
 
-      res += padString(b.id,            prePadded, false) +
-             padString(b.numChapters(), prePadded, false) +
-             nvs + '\r\n';
+      res += _.padRight(selectName(b.te.id),  longestName, ' ') +
+             _.padRight(b.numChapters(),   6, ' ') +
+             nvs + CRLF;
 
       tcs += b.numChapters();
       tvs += nvs;
       tbs++;
     });
+    // lb.BBM.instance().ids().forEach(function(id) {
+    // });
 
-    res +=  '\r\n' +
-            padString(tbs,  prePadded, false) +
-            padString(tcs,  prePadded, false) +
-            tvs + '\r\n';
-
+    res +=  _.pad('', longestName + 11, '-') + CRLF +
+            _.padRight(tbs,  longestName, ' ') +
+            _.padRight(tcs,  6, ' ') +
+            tvs;
     return res;
   }
 
@@ -64,26 +83,64 @@
     var pln = wvn > wcn ? wvn : wcn;
 
     var cline = '', vline = '';
+    var ppad = _.pad('', longestName, ' ');
+    var tres = '';
+
     book.chapters.forEach(function(c) {
-      cline += padWithSymbol(c.number, pln, ' ');
-      vline += padWithSymbol(c.numVerses(), pln, ' ');
+      cline += _.padRight(c.number, pln, ' ');
+      vline += _.padRight(c.numVerses(), pln, ' ');
+
+      if (cline.length > lineMaxLen - longestName - 3) {
+        tres += cline.trim() + CRLF;
+        tres += ppad;
+
+        tres += vline.trim() + CRLF + CRLF;
+        tres += ppad;
+
+        cline = '';
+        vline = '';
+      }
     });
 
-    var prePadded = '     ';
-    var res = padString(book.id, prePadded, false) + cline + '\r\n' +
-              padString('',      prePadded, false) + vline;
+    if (cline.length !== 0) {
+        tres += cline.trim() + CRLF;
+        tres += ppad;
+
+        tres += vline.trim() + CRLF + CRLF;
+        tres += ppad;
+    }
+
+    var res = _.padRight(selectName(book.te.id), longestName, ' ');
+    res += tres.trim();
+
     return res;
   }
 
-  function preformattedBible(bible) {
-    var res = briefInfo(bible) + '\r\n\r\n';
-    bible.books.forEach(function(b) {
-      res += summerizeBook(b) + '\r\n\r\n';
+  function createDetailedInfo(bible) {
+    var res = '';
+    _.each(lb.BBM.instance().ids(), function(n, id) {
+      var b = bible.getBook(id);
+      if (b === null) {
+        // insert empty line
+        // res += CRLF;
+        return;
+      }
+
+      if (res.length !== 0)
+        res += CRLF + CRLF + _.pad('', lineMaxLen, '-') + CRLF + CRLF;
+      res += preformattedBook(b);
     });
+    return res;
   }
 
-  function saveBibleSummary(file, bible) {
+  function saveBibleBriefInfo(dir, bible) {
+    mkdirp.sync(dir);
 
+    var res = createSummaryInfo(bible);
+    fs.writeFileSync(path.join(dir, '/', '00-summary.txt'), res);
+
+    res = createDetailedInfo(bible);
+    fs.writeFileSync(path.join(dir, '/', '00-detailed.txt'), res);
   }
 
 
@@ -98,10 +155,10 @@
   startupInitialization();
 
   var inputs = [
-    //['en-kjv-usfm+',              'en', 'kjv']
-    //['ru-synod-usfm-from-text', 'ru', 'synod'],
-    //['am-eab-usfm-from-text',   'hy', 'eab']
-    ['zed', 'en', 'zed']
+    ['en-kjv-usfm+',            'en', 'kjv+'],
+    ['ru-synod-usfm-from-text', 'ru', 'synod'],
+    ['am-eab-usfm-from-text',   'hy', 'eab']
+    //['zed', 'en', 'zed']
     //['arm', 'hy', 'arm']
   ];
 
@@ -121,7 +178,10 @@
     bible.abbr = input[2];
 
     measur.begin('saving bible');
-    lb.saveBible(bible, cfg.tmpDir() + input[0]);
+
+    saveBibleBriefInfo(cfg.tmpDir() + '/' + bible.abbr, bible);
+    // lb.saveBible(bible, cfg.tmpDir() + input[0]);
+
     // lb.saveBible(bible, cfg.tmpDir() + input[0], {
     //   extension: '.txt',
     //   renderer: new lb.TextRenderer({
