@@ -13,23 +13,28 @@
   };
 
   lb.inherit(PrettyRenderer, lb.TextRenderer);
-  PrettyRenderer.prototype.renderVerseNumber = function(verse) {
-    return _.padRight(verse.vn(), 3, ' ');
+
+
+  PrettyRenderer.prototype.defineVerseView = function(vo) {
+    if (!this.textOnly)
+      vo.id = _.padRight(vo.verse.vn(), 3, ' ');
   };
 
-  PrettyRenderer.prototype.renderChapterNumber = function(chap) {
-    return '=== ' + chap.number + ' ===' + '\r\n\r\n';
+  PrettyRenderer.prototype.defineChapterBegin = function(chap) {
+    return '\r\n\r\n';
   };
 
-  PrettyRenderer.prototype.renderChapterEnd = function(chap) {
+  PrettyRenderer.prototype.defineChapterView = function(vo) {
+    vo.id = '=== ' + vo.chapter.number + ' ===\r\n';
+  };
+
+  PrettyRenderer.prototype.defineBookBegin = function(book) {
     return '\r\n';
   };
 
-  PrettyRenderer.prototype.renderBookHeader = function(book) {
-    return '\r\n== ' + book.te.name + ' ==' + '\r\n\r\n';
+  PrettyRenderer.prototype.defineBookView = function(vo) {
+    vo.header = '== ' + vo.book.te.name + ' ==' + '\r\n';
   };
-
-
 
 
 
@@ -38,7 +43,7 @@
   // var text = book.render(pretty);
   // fs.writeFileSync(cfg.tmpDir() + '45-WISeng-kjv.txt', text);
 
-  var input = cfg.bibleDir('en-kjv-usfm').from;
+  var input = cfg.bibleDir('zed').from;
 
 
   // var readline = require('readline');
