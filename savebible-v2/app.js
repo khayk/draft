@@ -22,7 +22,7 @@
   var CRLF = '\r\n';
 
   var longestName = 19;
-  var lineMaxLen  = 80;
+  var lineMaxLen  = 79;
 
   function selectName(id) {
     var meta = MC.instance().getMeta('en');
@@ -40,8 +40,6 @@
     _.each(lb.BBM.instance().ids(), function(n, id) {
       var b = bible.getBook(id);
       if (b === null) {
-        // insert empty line
-        // res += CRLF;
         return;
       }
 
@@ -58,8 +56,6 @@
       tvs += nvs;
       tbs++;
     });
-    // lb.BBM.instance().ids().forEach(function(id) {
-    // });
 
     res +=  _.pad('', longestName + 11, '-') + CRLF +
             _.padRight(tbs,  longestName, ' ') +
@@ -121,8 +117,6 @@
     _.each(lb.BBM.instance().ids(), function(n, id) {
       var b = bible.getBook(id);
       if (b === null) {
-        // insert empty line
-        // res += CRLF;
         return;
       }
 
@@ -154,6 +148,10 @@
 
   startupInitialization();
 
+  // var bbb = lb.loadBook(cfg.inputDir() + '/' + '01-GENeng-kjv.usfm');
+  // console.log(require('util').inspect(bbb.getChapter(1).getVerse(1).node, {depth: 15, colors: true}));
+  // return;
+
   var inputs = [
     ['en-kjv-usfm+',            'en', 'kjv+'],
     ['ru-synod-usfm-from-text', 'ru', 'synod'],
@@ -179,8 +177,9 @@
 
     measur.begin('saving bible');
 
-    saveBibleBriefInfo(cfg.tmpDir() + '/' + bible.abbr, bible);
-    // lb.saveBible(bible, cfg.tmpDir() + input[0]);
+    //saveBibleBriefInfo(cfg.tmpDir() + '/' + bible.abbr, bible);
+    saveBibleBriefInfo(cfg.tmpDir() + input[0], bible);
+    lb.saveBible(bible, cfg.tmpDir() + input[0]);
 
     // lb.saveBible(bible, cfg.tmpDir() + input[0], {
     //   extension: '.txt',

@@ -3,7 +3,8 @@ var _      = require('lodash');
 var expect = require('chai').expect;
 var path   = require('path');
 var util   = require('util');
-
+var fs     = require('fs');
+var rimraf = require('rimraf');
 
 var cfg    = require('../config').cfg;
 var lb     = require('../lib/bible.js');
@@ -28,6 +29,7 @@ var TextRenderer    = lb.TextRenderer;
 
 var loadBible       = lb.loadBible;
 var loadBook        = lb.loadBook;
+var saveBible       = lb.saveBible;
 var encodeRef       = lb.encodeRef;
 var decodeRef       = lb.decodeRef;
 var decodeFileName  = lb.decodeFileName;
@@ -252,6 +254,12 @@ describe('module MetaCollection', function() {
 
   it('loading', function() {
     var MCO = MC.instance();
+
+    // first try to load invalid file, but before the try let's make one
+    fs.writeFileSync('invalidMetaFile.json', 'invalid json');
+    expect(MCO.load.bind(MCO, '.')).to.throw();
+    fs.unlinkSync('invalidMetaFile.json');
+
     MCO.load(path.join(cfg.mediaDir(), 'meta'));
     var languages = MCO.getLanguages();
 
@@ -409,8 +417,17 @@ describe('module TAGs', function() {
 
     expect(TH.isTranslator('add')).to.equal(true);
     expect(TH.isJesusWord('wj')).to.equal(true);
+    expect(TH.isAddition('dc')).to.equal(true);
     expect(TH.isOpening('wj*')).to.equal(false);
     expect(TH.isOpening('wj')).to.equal(true);
+    expect(TH.isOpening('')).to.equal(false);
+
+    var tag = 'oo';
+    expect(TH.discovered()[tag]).to.be.an('undefined');
+    for (var i = 1; i <= 2; ++i) {
+      TH.onTag(tag);
+      expect(TH.discovered()[tag].count).to.be.equal(i);
+    }
   });
 
   it('ignored tags', function() {
@@ -722,11 +739,35 @@ describe('core components', function() {
 
     it('reading from hdd', function() {
       var filesDir = path.join(__dirname, 'usfm/');
-      bible = loadBible(filesDir);
-      expect(function() { loadBook('invalid fname'); }).to.throw();
+      bible = loadBible(filesDir, {
+        knownTagsOnly: false,
+        tocOverwrite: false
+      });
+
+      expect(function() {
+        loadBook('invalid fname');
+      }).to.throw();
 
       var book = loadBook(path.join(filesDir, '70-MATeng-kjv.usfm'));
       expect(book.ref()).to.be.deep.equal({ix: BBM.instance().onById('MAT'), cn: 0, vn: 0});
+
+      var tempDir = path.join(__dirname, 'to_delete/');
+      var newBBM = lb.guessBBM(filesDir);
+      BBM.activate(newBBM);
+      saveBible(bible, tempDir);
+
+      // activate default BBM instance
+      BBM.activate();
+
+      // read the bible that we saved just above
+      var bible1 = loadBible(tempDir, {
+        knownTagsOnly: false,
+        tocOverwrite: false
+      });
+      rimraf.sync(tempDir);
+
+      expect(bible).to.be.deep.equal(bible1);
+
     });
 
     it('usfm', function() {

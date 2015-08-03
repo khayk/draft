@@ -210,7 +210,7 @@ function inherit(child, base, props) {
       // @returns   activated instance of BBM
       activate: function(imap) {
 
-        // activate default mapping if not input is provided
+        // activate default mapping if no input is provided
         if (_.isUndefined(imap)) {
           if (!_.isUndefined(idsmap.idsmap))
             return this.activate(idsmap.idsmap);
@@ -784,6 +784,9 @@ function inherit(child, base, props) {
   // @brief  normalize tree structure by eliminating nodes that can be merged
   //         into one
   Node.prototype.normalize = function() {
+    // if (!_.isUndefined(this.last))
+    //   delete this.last;
+
     if (!this.haveChild())
       return;
 
@@ -811,6 +814,9 @@ function inherit(child, base, props) {
         if (n.haveNext()) {
           prev.next = n.getNext();
         }
+        // else {
+        //   delete prev.next;
+        // }
       }
       else {
         prev = n;
@@ -1235,6 +1241,7 @@ function inherit(child, base, props) {
       var arr = null;
       while ((arr = re.exec(header)) !== null) {
         var tag = TH.name(arr[1]);
+        TH.onTag(tag);
         var str = arr[2];
         if (tag === TAG.ID) {
           arr = /(\w+)\s+(.+)/gm.exec(str);
@@ -1281,6 +1288,11 @@ function inherit(child, base, props) {
           }
 
           var tag = TH.name(arr[1]);
+
+          // let the system collect information about all
+          // tags that we see while processing the file
+          TH.onTag(tag);
+
           if (TH.isOpening(arr[1])) {
             var compoundNode = NH.createTag(tag);
 
@@ -1360,47 +1372,6 @@ function inherit(child, base, props) {
       });
       buildVerse(vn, vstr, chap);
     };
-
-    /*
-    // helps to perform chapter parsing
-    this.parseChapterImpl = function(str, chap) {
-      var re = /((\\p)[\s\S]+?)?(\\v)(\s+)(\d+)/gm;
-      var arr = null;
-      var verseStart = 0,
-        vstr = '',
-        vn = '';
-      var np = false;
-
-      // find verses
-      while (true) {
-        arr = re.exec(str);
-        if (arr === null) {
-          vstr = str.substring(verseStart);
-          vn = vn;
-        } else {
-          vstr = str.substring(verseStart, arr.index);
-        }
-
-        if (verseStart !== 0) {
-          var v = this.parseVerse(vstr);
-          v.number = parseInt(vn);
-          if (np === true)
-            v.np = np;
-          chap.addVerse(v);
-        }
-
-        if (arr !== null) {
-          np = false;
-          vn = arr[5];
-          if (TH.name(arr[2]) === TAG.P) {
-            np = true;
-          }
-        }
-        verseStart = re.lastIndex;
-        if (arr === null)
-          return;
-      }
-    };*/
 
     // helps to perform book parsing
     this.parseBookImpl = function(str, book) {
@@ -1660,7 +1631,7 @@ function inherit(child, base, props) {
     return bible;
   }
 
-  // Save bible book to the in a specified directory according to save rules
+  // Save bible book to the specified directory according to save rules
   //
   // @param  {object} book   Bible book to be stored
   // @param  {object} opts   Save options
@@ -1786,7 +1757,7 @@ function inherit(child, base, props) {
         });
       }
       res += self.defineVerseBegin(v);
-      res += self.renderVerse(v);  // or v.render(self);
+      res += v.render(self);
     });
     return res;
   };
@@ -1802,7 +1773,7 @@ function inherit(child, base, props) {
     var self = this;
     book.chapters.forEach(function(c) {
       res += self.defineChapterBegin(c);
-      res += self.renderChapter(c);  // or c.render(self);
+      res += c.render(self);
     });
     return res;
   };
@@ -1813,7 +1784,7 @@ function inherit(child, base, props) {
     var self = this;
     bible.books.forEach(function(b) {
       res += self.defineBookBegin(b);
-      res += self.renderBook(b);  // b.render(self)
+      res += b.render(self);
     });
     return res;
   };
