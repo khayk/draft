@@ -152,7 +152,7 @@ logger.info('Script launched ...');
 //   processToc(toc);
 // });
 
-//processToc(tocs[2]);
 processToc(tocs[0]);
 processToc(tocs[1]);
+processToc(tocs[2]);
 processToc(tocs[3]);
