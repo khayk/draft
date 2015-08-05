@@ -136,3 +136,11 @@ logger.fatal('fatal');
     process.exit(0);
   });
 
+
+
+/*------------------------------------------------------------------------*/
+// print the content of the verse
+
+var bbb = lb.loadBook(cfg.inputDir() + '/' + '01-GENeng-kjv.usfm');
+console.log(require('util').inspect(bbb.getChapter(1).getVerse(1).node, {depth: 15, colors: true}));
+return;
