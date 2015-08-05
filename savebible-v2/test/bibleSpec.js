@@ -197,7 +197,7 @@ describe('module BBM', function() {
 /*------------------------------------------------------------------------*/
 
 
-describe('module MetaCollection', function() {
+describe('module meta', function() {
 
   var en = '';
   var ru = '';
@@ -256,9 +256,10 @@ describe('module MetaCollection', function() {
     var MCO = MC.instance();
 
     // first try to load invalid file, but before the try let's make one
-    fs.writeFileSync('invalidMetaFile.json', 'invalid json');
+    var invalidFileName = 'theMetaFile.json';
+    fs.writeFileSync(invalidFileName, 'invalid json');
     expect(MCO.load.bind(MCO, '.')).to.throw();
-    fs.unlinkSync('invalidMetaFile.json');
+    fs.unlinkSync(invalidFileName);
 
     MCO.load(path.join(cfg.mediaDir(), 'meta'));
     var languages = MCO.getLanguages();
@@ -448,16 +449,6 @@ describe('module TAGs', function() {
 /*------------------------------------------------------------------------*/
 
 
-describe('meta', function() {
-  it('loading', function() {
-    // @todo:implement
-  });
-});
-
-
-/*------------------------------------------------------------------------*/
-
-
 describe('core components', function() {
 
   describe('bible interface', function() {
@@ -511,6 +502,7 @@ describe('core components', function() {
 
       it('bible', function() {});
     });
+
 
     describe('combined behavior', function() {
       var tid1 = 'MAT';
@@ -631,6 +623,7 @@ describe('core components', function() {
     });
   });
 
+
   describe('usfm format', function() {
     var parser    = new Parser(true);
     var parserAll = new Parser(false);
@@ -679,7 +672,6 @@ describe('core components', function() {
           var ref      = o.data;
           var orig     = ref.orig.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
 
-          // @todo:implement
           var verse    = parser.parseVerse(ref.orig);
           var restored = verse.render(usfmRndr);
           if (!_.isUndefined(ref.parsedKnown))
@@ -712,6 +704,7 @@ describe('core components', function() {
       });
     });
   });
+
 
   describe('parse book', function() {
     var parser = new Parser();
@@ -750,7 +743,10 @@ describe('core components', function() {
 
       var book = loadBook(path.join(filesDir, '70-MATeng-kjv.usfm'));
       expect(book.ref()).to.be.deep.equal({ix: BBM.instance().onById('MAT'), cn: 0, vn: 0});
+    });
 
+    it('saving to hdd', function() {
+      var filesDir = path.join(__dirname, 'usfm/');
       var tempDir = path.join(__dirname, 'to_delete/');
       var newBBM = lb.guessBBM(filesDir);
       BBM.activate(newBBM);
@@ -759,7 +755,7 @@ describe('core components', function() {
       // activate default BBM instance
       BBM.activate();
 
-      // read the bible that we saved just above
+      // read the bible that we have saved just now
       var bible1 = loadBible(tempDir, {
         knownTagsOnly: false,
         tocOverwrite: false
@@ -767,7 +763,6 @@ describe('core components', function() {
       rimraf.sync(tempDir);
 
       expect(bible).to.be.deep.equal(bible1);
-
     });
 
     it('usfm', function() {

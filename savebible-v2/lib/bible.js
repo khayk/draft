@@ -45,7 +45,7 @@ function inherit(child, base, props) {
   //
   var BBMItem = function(id, index, type) {
     if (!type || type < BOOK_TYPE_OLD || type > BOOK_TYPE_APO)
-      throw 'Invalid Bible book mapping item type: ' + type;
+      throw new Error('Invalid Bible book mapping item type: ' + type);
 
     this.id    = id;
     this.index = parseInt(index);
@@ -77,11 +77,11 @@ function inherit(child, base, props) {
       // initialize maps
       items.forEach(function(e, i) {
         if (!_.isUndefined(byId[e.id]))
-          throw 'Duplicate book id in the ids mapping: ' + e.id;
+          throw new Error('Duplicate book id in the ids mapping: ' + e.id);
         byId[e.id]    = i;
 
         if (!_.isUndefined(byOn[e.index]))
-          throw 'Duplicate index found in ids mapping: ' + e.index;
+          throw new Error('Duplicate index found in ids mapping: ' + e.index);
         byOn[e.index] = i;
       });
 
@@ -295,7 +295,7 @@ function inherit(child, base, props) {
   TocEntry.prototype.populate = function(te, overwrite) {
     if (!_.isUndefined(overwrite) && overwrite === true) {
       if (this.id !== te.id)
-        throw 'Unable to populate attributes from the source with different id';
+        throw new Error('Unable to populate attributes from the source with different id');
       this.abbr  = te.abbr;
       this.name  = te.name;
       this.lname = te.lname;
@@ -304,7 +304,7 @@ function inherit(child, base, props) {
     else {
       // write only missing entries
       if (this.id !== te.id)
-        throw 'Unable to populate attributes from the source with different id';
+        throw new Error('Unable to populate attributes from the source with different id');
 
       if (this.name === '')
         this.name = te.name;
@@ -332,13 +332,13 @@ function inherit(child, base, props) {
   // entry: i.e. all mandatory fields are presented and not empty
   TocEntry.prototype.validate = function() {
     if (this.id === '')
-      throw 'missing id';
+      throw new Error('missing id');
     if (this.abbr === '')
-      throw 'missing abbr with id: ' + this.id;
+      throw new Error('missing abbr with id: ' + this.id);
     if (this.name === '')
-      throw 'missing name with id: ' + this.id;
+      throw new Error('missing name with id: ' + this.id);
     if (this.lname === '')
-      throw 'missing lname with id: ' + this.id;
+      throw new Error('missing lname with id: ' + this.id);
   };
 
   TocEntry.prototype.normalize = function() {
@@ -382,7 +382,7 @@ function inherit(child, base, props) {
     // throws an exception if detected addition of duplicate entry
     add: function(te) {
       if (!_.isUndefined(this.content_[te.id]))
-        throw 'id ' + te.id + ' already exists';
+        throw new Error('id ' + te.id + ' already exists');
       this.content_[te.id] = te;
       ++this.size_;
     },
@@ -519,8 +519,7 @@ function inherit(child, base, props) {
                 meta.load(dir + file);
                 that.addMeta(meta);
               } catch (e) {
-                log.error('"%s" file processing failed. Error: %s', file, e);
-                throw e;
+                throw new Error(util.format('"%s" file processing failed. Error: %s', file, e));
               }
             }
           });
@@ -538,7 +537,7 @@ function inherit(child, base, props) {
             metas_[lang] = meta;
           }
           else {
-            throw 'Language \"' + lang + '\" is already exists';
+            throw new Error('Language \"' + lang + '\" is already exists');
           }
         },
 
@@ -579,7 +578,7 @@ function inherit(child, base, props) {
         linkTo: function(ln, to) {
           var ref = this.getMeta(to);
           if (ref === null)
-            throw 'You can only link to an existing language. Absent: ' + to;
+            throw new Error('You can only link to an existing language. Absent: ' + to);
           var meta = new Meta();
           meta.lex = ref.lex;
           meta.toc = ref.toc;
@@ -638,7 +637,7 @@ function inherit(child, base, props) {
   var TH = (function() {
     var known      = /add|wj|nd|qt|dc/;
     var valid      = /\\\+?(\w+)\*?/;
-    var ignored    = /zw|zws|zx|zwm/;  // hayk:todo b, q are temporary added
+    var ignored    = /zw|zws|zx|zwm/;
     var translator = /add/;
     var addition   = /dc/;
     var jesusWord  = /wj/;
@@ -717,7 +716,7 @@ function inherit(child, base, props) {
         return d;
       },
 
-      // @returns  an object containting all unique tags that are discovered
+      // @returns  an object containing all unique tags that are discovered
       //           during application run time
       discovered: function() {
         return discovered;
@@ -879,7 +878,7 @@ function inherit(child, base, props) {
       return this.parent.id() + ':' + this.number;
     },
 
-    // @returns  Reference {ix: book unchangable index,
+    // @returns  Reference {ix: book unchangeable index,
     //                      cn: chapter number,
     //                      vn: verse number}
     ref: function() {
@@ -932,7 +931,7 @@ function inherit(child, base, props) {
     }
   };
 
-  // @param  {string} decodedRef  Object retrived by Verse.ref(),
+  // @param  {string} decodedRef  Object retrieved by Verse.ref(),
   //                              Expected input have a specified form
   //                              { ix: number,
   //                                cn: chapter number,
@@ -975,7 +974,7 @@ function inherit(child, base, props) {
     },
 
     // @returns  reference for the chapter
-    //           { ix: book unchangable index,
+    //           { ix: book unchangeable index,
     //             cn: chapter number,
     //             vn: verse number }
     ref: function() {
@@ -1024,7 +1023,7 @@ function inherit(child, base, props) {
     addVerse: function(verse) {
       verse.parent = this;
       if (verse.number <= this.numVerses())
-        throw 'Attempt to overwrite existing verse ' + verse.id();
+        throw new Error('Attempt to overwrite existing verse ' + verse.id());
 
       if ( verse.number - this.numVerses() !== 1 ) {
         log.warn('detected verse gap while adding verse ' + verse.id());
@@ -1049,11 +1048,12 @@ function inherit(child, base, props) {
       return this.verses[number - 1];
     },
 
-    // @todo:comment
+    // @brief  insert special markup into chapter
     //
-    //
-    // @param {[type]} node [description]
-    // @param {[type]} pos  [description]
+    // @param {object} node   node object containing markup info
+    // @param {number} pos    position where that markup should be show up
+    //                        if not provided, the last position will
+    //                        be selected at the insertion time
     //
     addMarkup: function(node, pos) {
       if (_.isUndefined(pos))
@@ -1064,14 +1064,6 @@ function inherit(child, base, props) {
       }
       this.markups[pos].push(node);
     },
-
-    // @todo:comment
-    // addHeading: function(text) {
-    //   var loc = this.verses.length;
-    //   if (_.isUndefined(this.heading[loc]))
-    //     this.heading[loc] = [];
-    //   this.heading[loc].push(text);
-    // },
 
     // @returns  Representation of the chapter rendered with the give renderer
     render: function(renderer) {
@@ -1096,7 +1088,7 @@ function inherit(child, base, props) {
   Book.prototype = {
 
     // @returns  Reference for the chapter
-    //           { ix: book unchangable index,
+    //           { ix: book unchangeable index,
     //             cn: chapter number,
     //             vn: verse number }
     ref: function() {
@@ -1128,17 +1120,23 @@ function inherit(child, base, props) {
       return this.chapters.length;
     },
 
-    // @todo:comment
+    // Insert chapter into the book, throws an exception if something went
+    // wrong
+    //
+    // @param {object} chapter   Bible chapter object
+    // @returns                  Reference to chapter object where the
+    //                           verse has been added
     addChapter: function(chapter) {
       chapter.parent = this;
       if ( chapter.number - this.numChapters() !== 1 ) {
-        throw 'detected chapter gap while adding ' + chapter.id();
+        throw new Error('detected chapter gap while adding ' + chapter.id());
       }
       this.chapters.push(chapter);
       return this;
     },
 
-    // @todo:comment
+    // @returns  the chapter object with given number
+    //           if no chapter exist with given number `null` will be returned
     getChapter: function(number) {
       if (number < 1 || number > this.numChapters())
         return null;
@@ -1149,12 +1147,6 @@ function inherit(child, base, props) {
     render: function(renderer) {
       return renderer.renderBook(this);
     }
-
-    // getVerse: function(cn, vn) {
-    //   if (cn > this.chapters.length || cn < 1)
-    //     throw 'invalid chapter for book \"' + this.id + '\": [' + cn + '/' + this.chapters.length + ']';
-    //   return this.chapters[cn - 1].getVerse(vn);
-    // }
   };
 
 
@@ -1186,7 +1178,7 @@ function inherit(child, base, props) {
   Bible.prototype.addBook = function(book) {
     // make sure that the new book is not exist in the instance of bible
     if (!_.isUndefined(this.ids[book.te.id]))
-      throw 'book ' + book.te.id + ' is already exist in the bible';
+      throw new Error('book ' + book.te.id + ' is already exist in the bible');
 
     book.parent = this;
     this.books.push(book);
@@ -1246,7 +1238,7 @@ function inherit(child, base, props) {
         if (tag === TAG.ID) {
           arr = /(\w+)\s+(.+)/gm.exec(str);
           if (arr === null)
-            throw 'Failed to identify book id';
+            throw new Error('Failed to identify book id');
           book.te.id = arr[1];
         } else {
           if (tag === TAG.TOC1) {
@@ -1257,7 +1249,7 @@ function inherit(child, base, props) {
             book.te.abbr = str.trim();
           } else if (tag === TAG.IDE) {
             if (str !== 'UTF-8')
-              throw util.format('Unknown encoding %s in %s book.', str, book.te.id);
+              throw new Error(util.format('Unknown encoding %s in %s book.', str, book.te.id));
           } else {
             book.header.push({tag: tag, value: str});
           }
@@ -1266,7 +1258,7 @@ function inherit(child, base, props) {
 
       // @todo: fill abbreviation based on default values
       if (!BBM.instance().existsId(book.te.id))
-        throw 'Invalid book id: ' + book.te.id;
+        throw new Error('Invalid book id: ' + book.te.id);
       book.index = BBM.instance().onById(book.te.id);
     };
 
@@ -1444,7 +1436,7 @@ function inherit(child, base, props) {
 
   Parser.prototype.parseBook = function(str) {
     if (typeof str !== 'string')
-      throw 'parseBook expects a string argument';
+      throw new Error('parseBook expects a string argument');
 
     var book = new Book();
     this.parseBookImpl(str, book);
@@ -1504,7 +1496,7 @@ function inherit(child, base, props) {
   // Scan directory and guess BBM mapping that is used to save books
   //
   // @param  {string} dir directory to scan
-  // @return {array}      array, that is similar to idsmap array, but containg
+  // @return {array}      array, that is similar to idsmap array, but contains
   //                      recognized mapping. Empty array will be returned if
   //                      no mapping was recognized
   function guessBBM(dir) {
@@ -1556,7 +1548,7 @@ function inherit(child, base, props) {
   // Load bible book from the specified file and construct Book object
   //
   // @param  {string} file   Name of file containing Bible book in a usfm format
-  // @param  {object} opts   Control book loader behaviour with various options
+  // @param  {object} opts   Control book loader behavior with various options
   // @param  {object} parser Parser object to reuse
   // @return {object}        Book object
   //
@@ -1567,7 +1559,7 @@ function inherit(child, base, props) {
 
     var info = decodeFileName(file, opts.strictFilename);
     if (info === null)
-      throw 'File name requiremens are not met: ' + file;
+      throw new Error('File name requiremens are not met: ' + file);
     var str    = fs.readFileSync(file, 'utf8');
     var book   = parser.parseBook(str);
 
@@ -1582,7 +1574,7 @@ function inherit(child, base, props) {
   // Load bible books from the specified directory and construct bible object
   //
   // @param  {string} dir   Directory path containing usfm files
-  // @param  {object} opts  Control bible loader behaviour with various options
+  // @param  {object} opts  Control bible loader behavior with various options
   // @return {object}       Bible object
   //
   function loadBible(dir, opts) {
@@ -1614,7 +1606,6 @@ function inherit(child, base, props) {
       }
       catch (e) {
         log.error('"%s" file processing failed. Error: %s', file, e);
-        //throw e;
       }
     });
 
@@ -1682,18 +1673,20 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
+  // Final behavior of the rendered bible depends on the user defined
+  // function below
   var Renderer = function() {
   };
 
   // These functions `SHOULD BE` overridden in the derived classes
 
-  Renderer.prototype.defineTagView      = function(vo)    { throw 'implement defineTagView!'; };
-  Renderer.prototype.defineVerseView    = function(vo)    { throw 'implement defineVerseView!'; };
-  Renderer.prototype.defineVerseBegin   = function(verse) { throw 'implement defineVerseBegin!'; };
-  Renderer.prototype.defineChapterView  = function(vo)    { throw 'implement defineChapterView!'; };
-  Renderer.prototype.defineChapterBegin = function(chap)  { throw 'implement defineChapterBegin!'; };
-  Renderer.prototype.defineBookView     = function(vo)    { throw 'implement defineBookView!'; };
-  Renderer.prototype.defineBookBegin    = function(book)  { throw 'implement defineBookBegin!'; };
+  Renderer.prototype.defineTagView      = function(vo)    { throw new Error('implement defineTagView!'); };
+  Renderer.prototype.defineVerseView    = function(vo)    { throw new Error('implement defineVerseView!'); };
+  Renderer.prototype.defineVerseBegin   = function(verse) { throw new Error('implement defineVerseBegin!'); };
+  Renderer.prototype.defineChapterView  = function(vo)    { throw new Error('implement defineChapterView!'); };
+  Renderer.prototype.defineChapterBegin = function(chap)  { throw new Error('implement defineChapterBegin!'); };
+  Renderer.prototype.defineBookView     = function(vo)    { throw new Error('implement defineBookView!'); };
+  Renderer.prototype.defineBookBegin    = function(book)  { throw new Error('implement defineBookBegin!'); };
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode    = function(node, depth)  {
@@ -1730,7 +1723,8 @@ function inherit(child, base, props) {
     return res;
   };
 
-  // @todo:comment
+  // @brief    render given verse based on the renderer configuration
+  // @returns  string containing the rendered verse
   Renderer.prototype.renderVerse = function(verse) {
     var vo = {
       verse: verse,
@@ -1740,7 +1734,8 @@ function inherit(child, base, props) {
     return vo.id + this.renderNode(verse.node, 1);
   };
 
-  // @todo:comment
+  // @brief    render given chapter based on the renderer configuration
+  // @returns  string containing the rendered chapter
   Renderer.prototype.renderChapter = function(chapter) {
     var vo = {
       chapter: chapter,
@@ -1762,7 +1757,8 @@ function inherit(child, base, props) {
     return res;
   };
 
-  // @todo:comment
+  // @brief    render given book based on the renderer configuration
+  // @returns  string containing the rendered book
   Renderer.prototype.renderBook    = function(book) {
     var vo = {
       book: book,
@@ -1778,7 +1774,8 @@ function inherit(child, base, props) {
     return res;
   };
 
-  // @todo:comment
+  // @brief    render given bible based on the renderer configuration
+  // @returns  string containing the rendered bible
   Renderer.prototype.renderBible   = function(bible) {
     var res = '';
     var self = this;
@@ -1792,6 +1789,7 @@ function inherit(child, base, props) {
 
   /*------------------------------------------------------------------------*/
 
+  // @brief  Predefined USFM renderer. Renders the bible in USFM format
   var USFMRenderer = function() {
     Renderer.call(this);
   };
@@ -1849,6 +1847,11 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
+  // @brief  Predefined text renderer. Renders the bible in text format.
+  //         Every verse will be started from the new line
+  // @param {object} opts  control some view options in this renderer
+  //                 to see book id chapter and verse number in front
+  //                 of each verse, `textOnly` should be set to false
   var TextRenderer = function(opts) {
     if (!opts)
       opts = { textOnly: true };

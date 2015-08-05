@@ -177,7 +177,7 @@ var TextRenderer = lb.TextRenderer;
     //           lookup is case sensitive
     this.find = function(word) {
       if (!optimized_)
-        throw 'Dictionary is not optimized. Call optimize!!!';
+        throw new Error('Dictionary is not optimized. Call optimize!!!');
       var o = index_[word];
       if (_.isUndefined(o))
         return null;
@@ -187,7 +187,7 @@ var TextRenderer = lb.TextRenderer;
     // @returns  Array of all words
     this.words = function() {
       if (!optimized_)
-        throw 'Dictionary is not optimized. Call optimize!!!';
+        throw new Error('Dictionary is not optimized. Call optimize!!!');
       return Object.keys(index_);
     };
 
@@ -224,7 +224,7 @@ var TextRenderer = lb.TextRenderer;
         var o = value.refs;
         for (var i = o.length - 1; i > 0; i--) {
           if (o[i] < o[i - 1]) {
-            throw 'Verification failed for dictionary: ' + desc_;
+            throw new Error('Verification failed for dictionary: ' + desc_);
           }
         }
       });
@@ -525,7 +525,7 @@ var TextRenderer = lb.TextRenderer;
 
       var tmp = MC.instance().getMeta(bible_.lang);
       if (tmp === null)
-        throw 'Bible language is not specified or supported: ' + bible_.lang;
+        throw new Error('Bible language is not specified or supported: ' + bible_.lang);
 
       lexic_    = tmp.lex;
       search_   = new Search();

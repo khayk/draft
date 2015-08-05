@@ -153,9 +153,9 @@
   // return;
 
   var inputs = [
-    ['en-kjv-usfm+',            'en', 'kjv+'],
-    ['ru-synod-usfm-from-text', 'ru', 'synod'],
-    ['am-eab-usfm-from-text',   'hy', 'eab']
+    ['en-kjv-usfm+',            'en', 'kjv+']
+    //['ru-synod-usfm-from-text', 'ru', 'synod'],
+    //['am-eab-usfm-from-text',   'hy', 'eab']
     //['zed', 'en', 'zed']
     //['arm', 'hy', 'arm']
   ];
@@ -166,7 +166,7 @@
     measur.begin('loading bible: ' + input[0]);
 
     var bible = lb.loadBible(cfg.bibleDir(input[0]).from, {
-      knownTagsOnly:  true,
+      knownTagsOnly:  false,
       strictFilename: false
     });
     measur.end();
@@ -178,15 +178,15 @@
     measur.begin('saving bible');
 
     //saveBibleBriefInfo(cfg.tmpDir() + '/' + bible.abbr, bible);
-    saveBibleBriefInfo(cfg.tmpDir() + input[0], bible);
+    //saveBibleBriefInfo(cfg.tmpDir() + input[0], bible);
     lb.saveBible(bible, cfg.tmpDir() + input[0]);
 
-    // lb.saveBible(bible, cfg.tmpDir() + input[0], {
-    //   extension: '.txt',
-    //   renderer: new lb.TextRenderer({
-    //     textOnly: false
-    //   })
-    // });
+    lb.saveBible(bible, cfg.tmpDir() + input[0], {
+      extension: '.txt',
+      renderer: new lb.TextRenderer({
+        textOnly: false
+      })
+    });
     measur.end();
   });
 

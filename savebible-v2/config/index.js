@@ -18,9 +18,8 @@ var root = path.dirname(__dirname);
 
 // make sure that logging directory do exists
 function createLogDirectory(loggerConfig) {
-  if (_.isUndefined(loggerConfig)) {
-    throw 'Application is not configured properly! Check file `config/config.json`.';
-  }
+  if (_.isUndefined(loggerConfig))
+    throw new Error('Application is not configured properly! Check file `config/config.json`.');
 
   loggerConfig.appenders.forEach(function(entry) {
     if (!_.isUndefined(entry.filename)) {
