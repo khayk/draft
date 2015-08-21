@@ -1076,12 +1076,14 @@ function inherit(child, base, props) {
 
 
   var Book = function() {
-    this.parent   = null;
-    this.index    = 0;
-    this.te       = new TocEntry('', '', '', '', '');
-    this.chapters = [];
-    this.preface  = [];
-    this.header   = [];
+    this.parent    = null;
+    this.index     = 0;
+    this.lang      = '';
+    this.bibleAbbr = '';
+    this.te        = new TocEntry('', '', '', '', '');
+    this.chapters  = [];
+    this.preface   = [];
+    this.header    = [];
   };
 
 
@@ -1568,6 +1570,13 @@ function inherit(child, base, props) {
       log.warn('Book id from "%s" file does not match with id from file name');
     }
 
+    if (info !== null) {
+      if (!_.isUndefined(info.lang))
+        book.lang = info.lang;
+      if (!_.isUndefined(info.bibleAbbr))
+        book.bibleAbbr = info.bibleAbbr;
+    }
+
     return book;
   }
 
@@ -1593,19 +1602,21 @@ function inherit(child, base, props) {
       try {
         var book = loadBook(dir + file, opts, parser);
 
-        // add meta information into bible if it is available through file name
+        // fill some missing attributes from the book if they are available
         var info = decodeFileName(file, opts.strictFilename);
         if (info !== null) {
-          if (!_.isUndefined(info.lang))
-            bible.lang = info.lang;
-          if (!_.isUndefined(info.bibleAbbr))
-            bible.abbr = info.bibleAbbr;
+          if (book.lang.length > 0)
+            bible.lang = book.lang;
+          if (book.bibleAbbr.length > 0)
+            bible.abbr = book.bibleAbbr;
         }
 
         bible.addBook(book);
       }
       catch (e) {
-        log.error('"%s" file processing failed. Error: %s', file, e);
+        log.error('"%s" file processing failed. Error: %s',
+                  file,
+                  util.inspect(e));
       }
     });
 
@@ -1643,8 +1654,8 @@ function inherit(child, base, props) {
     mkdirp.sync(dir);
 
     var bible = book.parent;
-    var lang  = bible.lang;
-    var abbr  = bible.abbr.toLowerCase();
+    var lang  = bible ? bible.lang : book.lang;
+    var abbr  = (bible ? bible.abbr : book.bibleAbbr).toLowerCase();
 
     var qualifiedName = _.padLeft(BBM.instance().onById(book.te.id), 2, '0') + '-' + book.te.id;
     if (opts.strictFilename === true) {
@@ -1922,6 +1933,7 @@ function inherit(child, base, props) {
   exports.decodeRef       = decodeRef;
   exports.loadBook        = loadBook;
   exports.loadBible       = loadBible;
+  exports.saveBook        = saveBook;
   exports.saveBible       = saveBible;
   exports.decodeFileName  = decodeFileName;
   exports.guessBBM        = guessBBM;

@@ -37,6 +37,23 @@
   };
 
 
+  var books = [
+    {bibleName: 'en-kjv-usfm+ [saved]', bookName: '32-SIReng-kjv.usfm'},
+    {bibleName: 'am-eab-usfm-from-text', bookName: '32-SIRhy-eab.usfm'},
+    {bibleName: 'ru-synod-usfm-from-text [saved]', bookName: '32-SIRru-synod.usfm'}
+  ];
+
+
+  _.each(books, function(key, val) {
+    var book = lb.loadBook(cfg.bibleDir(key.bibleName).from + key.bookName);
+    lb.saveBook(book, cfg.tmpDir(), {
+      renderer: new PrettyRenderer({
+        textOnly: false
+      })
+    });
+  });
+
+  return;
 
   // var book = lb.loadBook(cfg.bibleDir('en-kjv-usfm+').from + '45-WISeng-kjv.usfm', {strictFilename: true});
   // var pretty = new PrettyRenderer({ textOnly: false });

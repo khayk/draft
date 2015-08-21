@@ -761,7 +761,6 @@ describe('core components', function() {
         tocOverwrite: false
       });
       rimraf.sync(tempDir);
-
       expect(bible).to.be.deep.equal(bible1);
     });
 
