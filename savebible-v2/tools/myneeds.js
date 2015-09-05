@@ -1,40 +1,12 @@
 (function() {
+
   'use strict';
 
   var _   = require('lodash');
   var fs  = require('fs');
   var cfg = require('../config').cfg;
   var lb  = require('../lib/bible');
-
-  var BBM = lb.BBM;
-
-  var PrettyRenderer = function(opts) {
-    lb.TextRenderer.call(this, opts);
-  };
-
-  lb.inherit(PrettyRenderer, lb.TextRenderer);
-
-
-  PrettyRenderer.prototype.defineVerseView = function(vo) {
-    if (!this.textOnly)
-      vo.id = _.padRight(vo.verse.vn(), 3, ' ');
-  };
-
-  PrettyRenderer.prototype.defineChapterBegin = function(chap) {
-    return '\r\n\r\n';
-  };
-
-  PrettyRenderer.prototype.defineChapterView = function(vo) {
-    vo.id = '=== ' + vo.chapter.number + ' ===\r\n';
-  };
-
-  PrettyRenderer.prototype.defineBookBegin = function(book) {
-    return '\r\n';
-  };
-
-  PrettyRenderer.prototype.defineBookView = function(vo) {
-    vo.header = '== ' + vo.book.te.name + ' ==' + '\r\n';
-  };
+  var rnd = require('./renderers');
 
 
   var books = [
@@ -43,11 +15,10 @@
     {bibleName: 'ru-synod-usfm-from-text [saved]', bookName: '32-SIRru-synod.usfm'}
   ];
 
-
   _.each(books, function(key, val) {
     var book = lb.loadBook(cfg.bibleDir(key.bibleName).from + key.bookName);
     lb.saveBook(book, cfg.tmpDir(), {
-      renderer: new PrettyRenderer({
+      renderer: new rnd.PrettyRenderer({
         textOnly: false
       })
     });
