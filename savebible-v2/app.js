@@ -17,7 +17,6 @@
   var measur   = new help.Measurer();
 
   var MC          = lb.MC;
-  var BibleSearch = search.BibleSearch;
 
   var startupInitialization = function() {
     MC.instance().load(path.join(cfg.mediaDir(), 'meta'));
