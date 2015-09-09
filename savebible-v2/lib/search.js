@@ -2,6 +2,7 @@ var colors = require('colors');
 var util   = require('util');
 var _      = require('lodash');
 var lb     = require('./bible.js');
+var rndrs  = require('./renderers.js');
 var log    = require('log4js').getLogger('srch');
 
 var Lexical      = lb.Lexical;
@@ -529,7 +530,7 @@ var TextRenderer = lb.TextRenderer;
 
       lexic_    = tmp.lex;
       search_   = new Search();
-      renderer_ = new TextRenderer();
+      renderer_ = new rndrs.TextRenderer();
 
       var toc   = bible_.getToc();
       var ti    = toc.first();

@@ -1,31 +1,23 @@
-var fs     = require('fs');
-var path   = require('path');
-var _      = require('lodash');
-var util   = require('util');
-var mkdirp = require('mkdirp');
+var fs      = require('fs');
+var path    = require('path');
+var _       = require('lodash');
+var util    = require('util');
+var mkdirp  = require('mkdirp');
 
-var help   = require('./../helpers');
-var idsmap = require('./idsmap.js');
+var help    = require('./../helpers');
+var idsmap  = require('./idsmap.js');
+var rndrs   = require('./renderers.js');
+var cmn     = require('./common.js');
 
-var log    = require('log4js').getLogger('bib');
+var log     = require('log4js').getLogger('bib');
 
-
-function inherit(child, base, props) {
-  child.prototype = _.create(base.prototype, _.assign({
-    '_super': base.prototype,
-    'constructor': child
-  }, props));
-  return child;
-}
-
+// objects from common lib
+var TAG = cmn.TAG;
+var NH  = cmn.NH;
+var TH  = cmn.TH;
 
 (function() {
   'use strict';
-
-  // Constants for line ending
-  var LF   = '\n';                    // line feed
-  var CR   = '\r';                    // carriage return
-  var CRLF = '\r\n';
 
   // Bible book types
   var BOOK_TYPE_OLD = 1,              // old testament book
@@ -595,264 +587,6 @@ function inherit(child, base, props) {
           instance_ = init();
         }
         return instance_;
-      }
-    };
-  })();
-
-
-  /*------------------------------------------------------------------------*/
-
-
-  // all tags should be presented here
-  var TAG = {
-    H:    'h',       // Running header text.
-    ID:   'id',      // File identification.
-    IDE:  'ide',     // An optional character encoding specification.
-    MT:   'mt',      // Major title.
-    IS:   'is',      // Introduction section heading.
-    TOC1: 'toc1',    // Long table of contents text.
-    TOC2: 'toc2',    // Short table of contents text.
-    TOC3: 'toc3',    // Book abbreviation.
-
-    C:    'c',       // Chapter number.
-    V:    'v',       // Verse number.
-    P:    'p',       // Normal paragraph.
-
-    Q:    'q',
-    B:    'b',
-    D:    'd',
-    S:    's',
-    R:    'r',
-    IE:   'ie',
-    IP:   'ip',
-
-    ADD:  'add',     // Translator's addition.
-    WJ:   'wj',      // Words of Jesus.
-    ND:   'nd',      // Name of God (name of Deity).
-    QT:   'qt'       // Quoted text. Old Testament quotations in the New Testament
-  };
-
-
-  // TAG manipulation
-  var TH = (function() {
-    var known      = /add|wj|nd|qt|dc/;
-    var valid      = /\\\+?(\w+)\*?/;
-    var ignored    = /zw|zws|zx|zwm/;
-    var translator = /add/;
-    var addition   = /dc/;
-    var jesusWord  = /wj/;
-
-
-    // tags that do not have a closing pair
-    var single    = /p|b|q/;
-
-    var discovered = {};
-
-    return {
-      // @brief  build tag statistics, how many times that tag is found in the
-      //         text that we are processing
-      //
-      // @param {string} tag  usfm tag
-      onTag: function(tag) {
-        var ref = discovered[tag];
-        if (_.isUndefined(ref)) {
-          discovered[tag] = {count: 1};
-          return;
-        }
-        ref.count++;
-      },
-
-      // @param {string} tag  usfm tag, like this \tag, \+tag, \tag*
-      // @returns             true if the specified tag is well know and
-      //                      fully supported by the application,
-      //                      otherwise false
-      isKnown: function(tag) {
-        return known.test(tag) === true;
-      },
-
-      // @returns   true for tags that are marked to be ignored
-      isIgnored: function(tag) {
-        return ignored.test(tag) === true;
-      },
-
-      // @param {string} tag  see above
-      // @returns             true if the tag is not closing, i.e. ends with *
-      isOpening: function(tag) {
-        if (tag.length < 1)
-          return false;
-        return tag[tag.length - 1] !== '*';
-      },
-
-      // @returns   true for translator tags
-      isTranslator: function(tag) {
-        return translator.test(tag) === true;
-      },
-
-      // @returns   true for addition tags
-      isAddition: function(tag) {
-        return addition.test(tag) === true;
-      },
-
-      // @returns   true for tags identifying Jesus Words
-      isJesusWord: function(tag) {
-        return jesusWord.test(tag) === true;
-      },
-
-      // @returns   true if tag should be completed with closing tag, otherwise false
-      haveClosing: function(tag) {
-        return single.test(tag) === false;
-      },
-
-      // name of tag
-      // @param  {string} tag tag string
-      // @param  {string} def value to be returned, if tag is not supported
-      // @return {string}     tag's name without special symbols (\wj -> wj,
-      //                      \+add -> add)
-      name: function(tag, def) {
-        var d = def || 'unknown';
-        var arr = valid.exec(tag);
-        if (arr !== null)
-          return arr[1];
-        return d;
-      },
-
-      // @returns  an object containing all unique tags that are discovered
-      //           during application run time
-      discovered: function() {
-        return discovered;
-      }
-    };
-  })();
-
-
-  /*------------------------------------------------------------------------*/
-
-
-  // Node base class, all verses stored as nodes in a tree like structure
-  var Node = function() {
-  };
-
-  // @param {object} node  object that is going to become child
-  // @return this
-  Node.prototype.addChild = function(node) {
-    if (this.firstChild() === null) {
-      this.first = node;
-      this.last  = node;
-    }
-    else {
-      this.last.next = node;
-      this.last = node;
-    }
-    return this;
-  };
-
-  // @returns  first child node of the current node
-  Node.prototype.firstChild = function() {
-    if (_.isUndefined(this.first))
-      return null;
-    return this.first;
-  };
-
-  // @returns  next node of the current node
-  Node.prototype.getNext = function() {
-    if (_.isUndefined(this.next))
-      return null;
-    return this.next;
-  };
-
-  // @returns  true if the current node have element following itself
-  Node.prototype.haveNext = function() {
-    return !_.isUndefined(this.next);
-  };
-
-  // @returns  true if the current node have at least one child node
-  Node.prototype.haveChild = function() {
-    return !_.isUndefined(this.first);
-  };
-
-  // @returns  number of all nodes contained in the nodes tree
-  Node.prototype.count = function() {
-    var count = 1;
-    if (this.haveChild())
-      count += this.first.count();
-    if (this.haveNext())
-      count += this.next.count();
-    return count;
-  };
-
-  // @brief  normalize tree structure by eliminating nodes that can be merged
-  //         into one
-  Node.prototype.normalize = function() {
-    // if (!_.isUndefined(this.last))
-    //   delete this.last;
-
-    if (!this.haveChild())
-      return;
-
-    var n = this.first, current = null;
-    while (n !== null) {
-      if (NH.isTag(n)) {
-        current = null;
-        n.normalize();
-      } else {
-        if (current === null)
-          current = n;
-        else {
-          current.text += n.text;
-          n.text = '';
-        }
-      }
-      n = n.getNext();
-    }
-
-    // now remove redundant nodes
-    n = this.first;
-    var prev = null;
-    while (n !== null) {
-      if (NH.isText(n) && n.text === '') {
-        if (n.haveNext()) {
-          prev.next = n.getNext();
-        }
-        // else {
-        //   delete prev.next;
-        // }
-      }
-      else {
-        prev = n;
-      }
-      n = n.getNext();
-    }
-  };
-
-  var NH = (function() {
-    return {
-      // @returns  true if the specified node contain usfm tag, otherwise false
-      isTag: function(node) {
-        if (!_.isUndefined(node.tag))
-          return true;
-        return false;
-      },
-
-      // @returns  true if the specified node is a text node
-      isText: function(node) {
-        if (!_.isUndefined(node.text))
-          return true;
-        return false;
-      },
-
-      // @param {string} tag  usfm tag of form \\tag, or \\+tag
-      // @returns  new Node object that is contains specified tag
-      createTag: function(tag) {
-        var node = new Node();
-        node.tag = tag;
-        return node;
-      },
-
-      // @param {string} text
-      createText: function(text) {
-        var node = new Node();
-        node.text = text;
-        return node;
       }
     };
   })();
@@ -1646,7 +1380,7 @@ function inherit(child, base, props) {
     if (_.isUndefined(opts.strictFilename))
       opts.strictFilename = true;
     if (_.isUndefined(opts.renderer))
-      opts.renderer = new USFMRenderer();
+      opts.renderer = new rndrs.USFMRenderer();
     if (_.isUndefined(opts.extension))
       opts.extension = '.usfm';
 
@@ -1684,236 +1418,10 @@ function inherit(child, base, props) {
   /*------------------------------------------------------------------------*/
 
 
-  // Final behavior of the rendered bible depends on the user defined
-  // function below
-  var Renderer = function() {
-  };
-
-  // These functions `SHOULD BE` overridden in the derived classes
-
-  Renderer.prototype.defineTagView      = function(vo)    { throw new Error('implement defineTagView!'); };
-  Renderer.prototype.defineVerseView    = function(vo)    { throw new Error('implement defineVerseView!'); };
-  Renderer.prototype.defineVerseBegin   = function(verse) { throw new Error('implement defineVerseBegin!'); };
-  Renderer.prototype.defineChapterView  = function(vo)    { throw new Error('implement defineChapterView!'); };
-  Renderer.prototype.defineChapterBegin = function(chap)  { throw new Error('implement defineChapterBegin!'); };
-  Renderer.prototype.defineBookView     = function(vo)    { throw new Error('implement defineBookView!'); };
-  Renderer.prototype.defineBookBegin    = function(book)  { throw new Error('implement defineBookBegin!'); };
-
-  // These functions `SHOULD NOT` be overridden in the derived classes
-  Renderer.prototype.renderNode    = function(node, depth)  {
-    var res = '';
-    var vo = {
-      tag: '',
-      open: '',
-      close: '',
-      nested: false,
-      renderable: true
-    };
-
-    if (NH.isText(node))
-      res += node.text;
-    else {
-      if (node.tag !== '') {
-        vo.tag = node.tag;
-        vo.nested = depth > 2;
-        this.defineTagView(vo);
-
-        // skip tag if the renderer have no clue how to render it
-        if (vo.renderable) {
-          res += vo.open;
-        }
-      }
-    }
-
-    if (vo.renderable && node.haveChild())
-      res += this.renderNode(node.first, depth + 1);
-    res += vo.close;
-
-    if (node.haveNext())
-      res += this.renderNode(node.next, depth);
-    return res;
-  };
-
-  // @brief    render given verse based on the renderer configuration
-  // @returns  string containing the rendered verse
-  Renderer.prototype.renderVerse = function(verse) {
-    var vo = {
-      verse: verse,
-      id: ''
-    };
-    this.defineVerseView(vo);
-    return vo.id + this.renderNode(verse.node, 1);
-  };
-
-  // @brief    render given chapter based on the renderer configuration
-  // @returns  string containing the rendered chapter
-  Renderer.prototype.renderChapter = function(chapter) {
-    var vo = {
-      chapter: chapter,
-      id: ''
-    };
-    this.defineChapterView(vo);
-    var res = vo.id, self = this;
-
-    chapter.verses.forEach(function(v) {
-      var nodes = chapter.markups[v.number - 1];
-      if (!_.isUndefined(nodes)) {
-        nodes.forEach(function(node) {
-          res += self.renderNode(node, 1);
-        });
-      }
-      res += self.defineVerseBegin(v);
-      res += v.render(self);
-    });
-    return res;
-  };
-
-  // @brief    render given book based on the renderer configuration
-  // @returns  string containing the rendered book
-  Renderer.prototype.renderBook    = function(book) {
-    var vo = {
-      book: book,
-      header: '',
-    };
-    this.defineBookView(vo);
-    var res = vo.header;
-    var self = this;
-    book.chapters.forEach(function(c) {
-      res += self.defineChapterBegin(c);
-      res += c.render(self);
-    });
-    return res;
-  };
-
-  // @brief    render given bible based on the renderer configuration
-  // @returns  string containing the rendered bible
-  Renderer.prototype.renderBible   = function(bible) {
-    var res = '';
-    var self = this;
-    bible.books.forEach(function(b) {
-      res += self.defineBookBegin(b);
-      res += b.render(self);
-    });
-    return res;
-  };
-
-
-  /*------------------------------------------------------------------------*/
-
-  // @brief  Predefined USFM renderer. Renders the bible in USFM format
-  var USFMRenderer = function() {
-    Renderer.call(this);
-  };
-  inherit(USFMRenderer, Renderer);
-
-  USFMRenderer.prototype.defineTagView = function(vo) {
-    if (!TH.haveClosing(vo.tag)) {
-      vo.open  = '\\' + vo.tag;
-      switch (vo.tag) {
-        case TAG.P:
-        case TAG.B:
-        case TAG.Q:
-          vo.open = LF + vo.open;
-      }
-    }
-    else {
-      var tmp   = '\\' + (vo.nested ? '+' : '') + vo.tag;
-      vo.open  = tmp + ' ';
-      vo.close = tmp + '*';
-    }
-  };
-
-  USFMRenderer.prototype.defineVerseBegin = function(verse) {
-    return LF;
-  };
-
-  USFMRenderer.prototype.defineVerseView = function(vo) {
-    vo.id  = '\\' + TAG.V + ' ' + vo.verse.number + ' ';
-  };
-
-  USFMRenderer.prototype.defineChapterBegin = function(chap) {
-    return LF;
-  };
-
-  USFMRenderer.prototype.defineChapterView = function(vo) {
-    vo.id  = '\\' + TAG.C + ' ' + vo.chapter.number;
-  };
-
-  USFMRenderer.prototype.defineBookBegin = function(book) {
-    return LF;
-  };
-
-  USFMRenderer.prototype.defineBookView = function(vo) {
-    var book = vo.book;
-    var res = '';
-    res += '\\' + TAG.ID   + ' ' + book.te.id   + ' ' + book.te.name + LF;
-    res += '\\' + TAG.H    + ' ' + book.te.name + LF;
-    res += '\\' + TAG.TOC1 + ' ' + book.te.desc + LF;
-    res += '\\' + TAG.TOC2 + ' ' + book.te.name + LF;
-    res += '\\' + TAG.TOC3 + ' ' + book.te.abbr + LF;
-    res += '\\' + TAG.MT   + ' ' + book.te.desc;
-    vo.header = res;
-  };
-
-  /*------------------------------------------------------------------------*/
-
-
-  // @brief  Predefined text renderer. Renders the bible in text format.
-  //         Every verse will be started from the new line
-  // @param {object} opts  control some view options in this renderer
-  //                 to see book id chapter and verse number in front
-  //                 of each verse, `textOnly` should be set to false
-  var TextRenderer = function(opts) {
-    if (!opts)
-      opts = { textOnly: true };
-    else if (typeof opts !== 'object')
-      throw new TypeError('Bad arguments');
-    this.textOnly = opts.textOnly;
-    Renderer.call(this);
-  };
-  inherit(TextRenderer, Renderer);
-
-  TextRenderer.prototype.defineTagView = function(vo) {
-    vo.renderable = TH.isKnown(vo.tag);
-    if (vo.renderable === true) {
-      if (TH.isTranslator(vo.tag)) {
-        vo.open  = '[';
-        vo.close = ']';
-      }
-    }
-  };
-
-  TextRenderer.prototype.defineVerseBegin = function(verse) {
-    return LF;
-  };
-
-  TextRenderer.prototype.defineVerseView = function(vo) {
-    if (!this.textOnly)
-      vo.id = vo.verse.id() + ' ';
-  };
-
-  TextRenderer.prototype.defineChapterBegin = function(chap) {
-    return '';
-  };
-
-  TextRenderer.prototype.defineChapterView = function(vo) {
-  };
-
-  TextRenderer.prototype.defineBookBegin = function(book) {
-    return '';
-  };
-
-  TextRenderer.prototype.defineBookView = function(vo) {
-  };
-
-  /*------------------------------------------------------------------------*/
-
-
   exports.BBM             = BBM;
   exports.TocEntry        = TocEntry;
   exports.TableOfContents = TableOfContents;
   exports.Lexical         = Lexical;
-  exports.TH              = TH;
   exports.MC              = MC;
 
 
@@ -1922,11 +1430,6 @@ function inherit(child, base, props) {
   exports.Chapter         = Chapter;
   exports.Bible           = Bible;
   exports.Parser          = Parser;
-
-
-  exports.Renderer        = Renderer;
-  exports.USFMRenderer    = USFMRenderer;
-  exports.TextRenderer    = TextRenderer;
 
   // functions
   exports.encodeRef       = encodeRef;
@@ -1937,8 +1440,6 @@ function inherit(child, base, props) {
   exports.saveBible       = saveBible;
   exports.decodeFileName  = decodeFileName;
   exports.guessBBM        = guessBBM;
-
-  exports.inherit         = inherit;
 
 }.call(this));
 

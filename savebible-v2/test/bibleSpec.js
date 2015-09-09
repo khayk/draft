@@ -1,31 +1,35 @@
-/// <reference path="../typings/mocha/mocha.d.ts"/>
-var _      = require('lodash');
-var expect = require('chai').expect;
-var path   = require('path');
-var util   = require('util');
-var fs     = require('fs');
-var rimraf = require('rimraf');
+/// <reference path ="../typings/mocha/mocha.d.ts"/>
+var _       = require('lodash');
+var expect  = require('chai').expect;
+var path    = require('path');
+var util    = require('util');
+var fs      = require('fs');
+var rimraf  = require('rimraf');
 
-var cfg    = require('../config').cfg;
-var lb     = require('../lib/bible.js');
-var search = require('../lib/search.js');
-var tc     = require('./dataCreators.js');
-var dusfm  = require('./dataUSFM.js');
+var cfg     = require('../config').cfg;
+var lb      = require('../lib/bible.js');
+var search  = require('../lib/search.js');
+var inherit = require('../lib/inherit.js').inherit;
+var cmn     = require('../lib/common.js');
+var rndrs   = require('../lib/renderers.js');
+var tc      = require('./dataCreators.js');
+var dusfm   = require('./dataUSFM.js');
+
+var TH              = cmn.TH;
 
 var BBM             = lb.BBM;
 var MC              = lb.MC;
 var TocEntry        = lb.TocEntry;
 var TableOfContents = lb.TableOfContents;
-var TH              = lb.TH;
 var Verse           = lb.Verse;
 var Chapter         = lb.Chapter;
 var Book            = lb.Book;
 var Bible           = lb.Bible;
 var Parser          = lb.Parser;
 
-var Renderer        = lb.Renderer;
-var USFMRenderer    = lb.USFMRenderer;
-var TextRenderer    = lb.TextRenderer;
+var Renderer        = rndrs.Renderer;
+var USFMRenderer    = rndrs.USFMRenderer;
+var TextRenderer    = rndrs.TextRenderer;
 
 var loadBible       = lb.loadBible;
 var loadBook        = lb.loadBook;
@@ -792,7 +796,7 @@ describe('core components', function() {
       // creating custom rendere
       var CustomRenderer = function() {
       };
-      lb.inherit(CustomRenderer, Renderer);
+      inherit(CustomRenderer, Renderer);
       var customRndr = new CustomRenderer();
 
       var listOfMethodsToImplement = [
