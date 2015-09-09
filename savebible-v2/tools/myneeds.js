@@ -2,26 +2,56 @@
 
   'use strict';
 
-  var _   = require('lodash');
-  var fs  = require('fs');
-  var cfg = require('../config').cfg;
-  var lb  = require('../lib/bible');
-  var rnd = require('./renderers');
+  var _    = require('lodash');
+  var fs   = require('fs');
+  var cfg  = require('../config').cfg;
+  var lb   = require('../lib/bible');
+  var rnd  = require('../lib/renderers');
+  var path = require('path');
+  var log  = require('log4js').getLogger('tls');
 
 
-  var books = [
-    {bibleName: 'en-kjv-usfm+ [saved]', bookName: '32-SIReng-kjv.usfm'},
-    {bibleName: 'am-eab-usfm-from-text', bookName: '32-SIRhy-eab.usfm'},
-    {bibleName: 'ru-synod-usfm-from-text [saved]', bookName: '32-SIRru-synod.usfm'}
+  function findBook(dir, bid) {
+    var files  = fs.readdirSync(dir, 'utf8');
+    var rf = null;
+    var found = false;
+    files.forEach(function(file) {
+      var res = lb.decodeFileName(file, true);
+      if (found === false && res !== null && res.id === bid) {
+        rf = path.join(dir,  file);
+        found = true;
+      }
+    });
+    return rf;
+  }
+
+  var dirNames = [
+    //'en-kjv-usfm+ [saved]',
+    'am-eab-usfm-from-text',
+    'ru-synod-usfm-from-text [saved]'
   ];
 
-  _.each(books, function(key, val) {
-    var book = lb.loadBook(cfg.bibleDir(key.bibleName).from + key.bookName);
-    lb.saveBook(book, cfg.tmpDir(), {
-      renderer: new rnd.PrettyRenderer({
-        textOnly: false
-      })
+  var bids = ['PRO', 'ECC', 'WIS', 'SIR'];
+
+  bids.forEach(function(bid) {
+
+    dirNames.forEach(function(dn) {
+      var file = findBook(cfg.bibleDir(dn).from, bid);
+      if (file === null) {
+        log.info('failed to find book with id: %s', bid);
+        return;
+      }
+
+      log.info(file);
+      var book = lb.loadBook(file);
+      lb.saveBook(book, cfg.tmpDir(), {
+        renderer: new rnd.PrettyRenderer({
+          textOnly: false
+        }),
+        extension: '.txt'
+      });
     });
+
   });
 
   return;
