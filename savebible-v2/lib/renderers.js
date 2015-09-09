@@ -26,10 +26,13 @@
   Renderer.prototype.defineTagView      = function(vo)    { throw new Error('implement defineTagView!'); };
   Renderer.prototype.defineVerseView    = function(vo)    { throw new Error('implement defineVerseView!'); };
   Renderer.prototype.defineVerseBegin   = function(verse) { throw new Error('implement defineVerseBegin!'); };
+  Renderer.prototype.defineVerseEnd     = function(verse) { throw new Error('implement defineVerseEnd!'); };
   Renderer.prototype.defineChapterView  = function(vo)    { throw new Error('implement defineChapterView!'); };
   Renderer.prototype.defineChapterBegin = function(chap)  { throw new Error('implement defineChapterBegin!'); };
+  Renderer.prototype.defineChapterEnd   = function(chap)  { throw new Error('implement defineChapterEnd!'); };
   Renderer.prototype.defineBookView     = function(vo)    { throw new Error('implement defineBookView!'); };
   Renderer.prototype.defineBookBegin    = function(book)  { throw new Error('implement defineBookBegin!'); };
+  Renderer.prototype.defineBookEnd      = function(book)  { throw new Error('implement defineBookEnd!'); };
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode    = function(node, depth)  {
@@ -96,6 +99,7 @@
       }
       res += self.defineVerseBegin(v);
       res += v.render(self);
+      res += self.defineVerseEnd(v);
     });
     return res;
   };
@@ -131,6 +135,9 @@
 
 
   /*------------------------------------------------------------------------*/
+  /*                            USFM Renderer                               */
+  /*------------------------------------------------------------------------*/
+
 
   // @brief  Predefined USFM renderer. Renders the bible in USFM format
   var USFMRenderer = function() {
@@ -187,8 +194,10 @@
     vo.header = res;
   };
 
-  /*------------------------------------------------------------------------*/
 
+  /*------------------------------------------------------------------------*/
+  /*                            Text Renderer                               */
+  /*------------------------------------------------------------------------*/
 
   // @brief  Predefined text renderer. Renders the bible in text format.
   //         Every verse will be started from the new line
@@ -240,7 +249,7 @@
 
 
   /*------------------------------------------------------------------------*/
-  /*                          Pretty Rendere                                */
+  /*                          Pretty Renderer                               */
   /*------------------------------------------------------------------------*/
 
   var PrettyRenderer = function(opts) {
@@ -277,10 +286,77 @@
 
   var HTMLRenderer = function(opts) {
     Renderer.call(this, opts);
+
+    this.discoveredParagraphs = 0;
+    this.htmlBuilder = function(tag, cls) {
+      return {
+        o: '<' + tag + (!_.isUndefined(cls) ? ' class="' + cls + '"' : '') + '>',
+        c: '</' + tag + '>'
+      };
+    };
+
+    // usfm tag to html tag mapping
+    this.tm = {};
+    this.tm[TAG.H]   = {tag: 'div', class: 'h'};
+    this.tm[TAG.C]   = {tag: 'div', class: 'c'};
+    this.tm[TAG.V]   = {tag: 'div', class: 'v'};
+    this.tm[TAG.P]   = {tag: 'div', class: 'p'};
+
+    this.tm[TAG.WJ]  = {tag: 'div', class: 'wj'};
+    this.tm[TAG.ND]  = {tag: 'div', class: 'nd'};
+    this.tm[TAG.QT]  = {tag: 'div', class: 'qt'};
+    this.tm[TAG.ADD] = {tag: 'div', class: 'add'};
   };
 
   inherit(HTMLRenderer, Renderer);
 
+  HTMLRenderer.prototype.defineTagView = function(vo) {
+    var subst = this.tm[vo.tag];
+    var res  = this.htmlBuilder(subst.tag, subst.class);
+    if (vo.tag === TAG.P) {
+      res = this.htmlBuilder(vo.tag);
+      this.discoveredParagraphs++;
+      if (this.discoveredParagraphs > 1) {
+        vo.open = res.c + '\n' + res.o;
+        //vo.close = res.c;
+        this.discoveredParagraphs--;
+      }
+      else {
+        vo.open = res.o;
+        vo.close = '';
+      }
+      vo.open = '\n' + vo.open;
+      return;
+    }
+    vo.open  = res.o;
+    vo.close = res.c;
+  };
+
+  HTMLRenderer.prototype.defineVerseBegin = function(verse) {
+    return '\n</br>';
+  };
+
+  HTMLRenderer.prototype.defineVerseView = function(vo) {
+    var res   = this.htmlBuilder('span', 'verseNumber');
+    vo.id  = res.o + vo.verse.number + res.c;
+  };
+
+  HTMLRenderer.prototype.defineChapterBegin = function(chap) {
+    this.discoveredParagraphs = 0;
+    return '</br>';
+  };
+
+  HTMLRenderer.prototype.defineChapterView = function(vo) {
+    var res   = this.htmlBuilder('span', 'chapterNumber');
+    vo.id  = '</br></br>' + res.o + vo.chapter.number + res.c;
+  };
+
+  HTMLRenderer.prototype.defineBookBegin = function(book) {
+    return '</br>';
+  };
+
+  HTMLRenderer.prototype.defineBookView = function(vo) {
+  };
 
   exports.Renderer        = Renderer;
   exports.USFMRenderer    = USFMRenderer;
