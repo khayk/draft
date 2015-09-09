@@ -166,6 +166,10 @@
     return LF;
   };
 
+  USFMRenderer.prototype.defineVerseEnd = function(verse) {
+    return '';
+  };
+
   USFMRenderer.prototype.defineVerseView = function(vo) {
     vo.id  = '\\' + TAG.V + ' ' + vo.verse.number + ' ';
   };
@@ -174,12 +178,20 @@
     return LF;
   };
 
+  USFMRenderer.prototype.defineChapterEnd = function(chap) {
+    return '';
+  };
+
   USFMRenderer.prototype.defineChapterView = function(vo) {
     vo.id  = '\\' + TAG.C + ' ' + vo.chapter.number;
   };
 
   USFMRenderer.prototype.defineBookBegin = function(book) {
     return LF;
+  };
+
+  USFMRenderer.prototype.defineBookEnd = function(book) {
+    return '';
   };
 
   USFMRenderer.prototype.defineBookView = function(vo) {
