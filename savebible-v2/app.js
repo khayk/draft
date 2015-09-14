@@ -8,6 +8,7 @@
 
   var cfg      = require('./config').cfg;
   var lb       = require('./lib/bible');
+  var rndr     = require('./lib/renderers');
   var search   = require('./lib/search');
   var help     = require('./helpers');
 
@@ -55,7 +56,7 @@
     lb.saveBible(bible, cfg.tmpDir() + input[0]);
     lb.saveBible(bible, cfg.tmpDir() + input[0], {
       extension: '.txt',
-      renderer: new lb.TextRenderer({
+      renderer: new rndr.TextRenderer({
         textOnly: false
       })
     });

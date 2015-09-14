@@ -13,45 +13,157 @@
   var TAG = cmn.TAG;
   var NH  = cmn.NH;
   var TH  = cmn.TH;
-  var LF  = cmn.LF;
+  var NL  = cmn.NL;
 
+  var TagView = function(renderer) {
+    this.renderer_ = renderer;
+    this.tvs_ = {};
+  };
+
+  TagView.prototype.template = function() {
+    return {
+      tag: '',          // [in]
+      nested: false,    // [in]
+      open: '',         // [out]
+      close: '',        // [out]
+      newline: false,   // [out] - default false
+      renderable: true  // [out] - default true
+    };
+  };
+
+  TagView.prototype.get = function(tag, nested) {
+    var ref = this.tvs_[tag];
+
+    if (_.isUndefined(ref)) {
+      var vo = this.template();
+      vo.tag = tag;
+      vo.nested = false;
+      this.renderer_.defineTagView(vo);
+
+      var von = this.template();
+      von.tag = tag;
+      von.nested = true;
+      this.renderer_.defineTagView(von);
+      ref = [von, vo];
+
+      this.tvs_[tag] = ref;
+    }
+    return nested === true ? ref[0] : ref[1];
+  };
 
   // Final view of the rendered bible depends on the user defined
   // functions below
   var Renderer = function() {
+    this.tagView_ = new TagView(this);
+    this.pendingTags_ = [];
   };
 
   // These functions `SHOULD BE` overridden in the derived classes
 
-  Renderer.prototype.defineTagView      = function(vo)    { throw new Error('implement defineTagView!'); };
-  Renderer.prototype.defineVerseView    = function(vo)    { throw new Error('implement defineVerseView!'); };
-  Renderer.prototype.defineVerseBegin   = function(verse) { throw new Error('implement defineVerseBegin!'); };
-  Renderer.prototype.defineVerseEnd     = function(verse) { throw new Error('implement defineVerseEnd!'); };
-  Renderer.prototype.defineChapterView  = function(vo)    { throw new Error('implement defineChapterView!'); };
-  Renderer.prototype.defineChapterBegin = function(chap)  { throw new Error('implement defineChapterBegin!'); };
-  Renderer.prototype.defineChapterEnd   = function(chap)  { throw new Error('implement defineChapterEnd!'); };
-  Renderer.prototype.defineBookView     = function(vo)    { throw new Error('implement defineBookView!'); };
-  Renderer.prototype.defineBookBegin    = function(book)  { throw new Error('implement defineBookBegin!'); };
-  Renderer.prototype.defineBookEnd      = function(book)  { throw new Error('implement defineBookEnd!'); };
+  Renderer.prototype.defineTagView     = function(vo)    { throw new Error('implement defineTagView!'); };
+  Renderer.prototype.defineVerseView   = function(vo)    { throw new Error('implement defineVerseView!'); };
+  Renderer.prototype.defineChapterView = function(vo)    { throw new Error('implement defineChapterView!'); };
+  Renderer.prototype.defineBookView    = function(vo)    { throw new Error('implement defineBookView!'); };
+
+  // Renderer.prototype.getVerseBegin     = function(verse) { throw new Error('implement getVerseBegin!'); };
+  // Renderer.prototype.getVerseEnd       = function(verse) { throw new Error('implement getVerseEnd!'); };
+  // Renderer.prototype.getChapterBegin   = function(chap)  { throw new Error('implement getChapterBegin!'); };
+  // Renderer.prototype.getChapterEnd     = function(chap)  { throw new Error('implement getChapterEnd!'); };
+  // Renderer.prototype.getBookBegin      = function(book)  { throw new Error('implement getBookBegin!'); };
+  // Renderer.prototype.getBookEnd        = function(book)  { throw new Error('implement getBookEnd!'); };
+
+
+  // every renderer should define
+  // 1. opening and closing tag view string for a given tag
+  // 2. consider `nested` attribute if required
+  // 3. set `renderable` attribute
+  // 4. newline
+
+  // 5. define separators, verseSeparator, chapterSeparator
+
+  // these tags have no closing tag
+  // \c, \v
+  // \d, \p, \b, \q
+  //
+  // \d - closed as soon as encountered any of tags without closing tag
+  //
+  // \p - closed as soon as encountered \v or \p or \c or end of chapter
+  // \q - closed as soon as encountered \v or \q    \c or end of chapter
+  // \v - closed as soon as encountered \v or       \c or end of chapter
+  // \c - closed as soon as encountered             \c or end of chapter
+
+  Renderer.prototype.closePendingTags = function(currentTag) {
+    var res = '';
+    if (this.pendingTags_.length === 0)
+      return res;
+
+    for (var i = this.pendingTags_.length - 1; i >= 0; --i) {
+      var tag = this.pendingTags_[i];
+      var vo = this.tagView_.get(tag, false);
+      var nlsymbol = vo.newline === true ? NL : '';
+      var popTag = true;
+
+      switch (tag) {
+        case TAG.C:
+          if (currentTag === TAG.C)
+            res += nlsymbol + vo.close;
+          break;
+
+        case TAG.V:
+          if (currentTag === TAG.V || currentTag === TAG.C)
+            res += nlsymbol + vo.close;
+          break;
+
+        case TAG.Q:
+          if (currentTag === TAG.V ||
+              currentTag === TAG.Q ||
+              currentTag === TAG.C)
+            res += nlsymbol + vo.close;
+          break;
+
+        case TAG.P:
+          if (currentTag === TAG.V ||
+              currentTag === TAG.Q ||
+              currentTag === TAG.P ||
+              currentTag === TAG.C)
+            res += nlsymbol + vo.close;
+          break;
+
+        case TAG.D:
+          if (!TH.haveClosing(currentTag))
+            res += nlsymbol + vo.close;
+          break;
+
+        default:
+          popTag = false;
+          break;
+      }
+
+      if (popTag)
+        this.pendingTags_.pop();
+    }
+    return res;
+  };
 
   // These functions `SHOULD NOT` be overridden in the derived classes
-  Renderer.prototype.renderNode    = function(node, depth)  {
+  Renderer.prototype.renderNode = function(node, depth) {
     var res = '';
-    var vo = {
-      tag: '',
-      open: '',
-      close: '',
-      nested: false,
-      renderable: true
-    };
+
+    // get default template for verse object
+    var vo = this.tagView_.template();
 
     if (NH.isText(node))
       res += node.text;
     else {
       if (node.tag !== '') {
-        vo.tag = node.tag;
-        vo.nested = depth > 2;
-        this.defineTagView(vo);
+        res += this.closePendingTags(node.tag);
+        if (!TH.haveClosing(node.tag))
+          this.pendingTags_.push(node.tag);
+
+        // retrieve tag view, that should defined by a specific renderer
+        vo = this.tagView_.get(node.tag, depth > 2);
+        if (vo.newline)
+          res += NL;
 
         // skip tag if the renderer have no clue how to render it
         if (vo.renderable) {
@@ -62,7 +174,9 @@
 
     if (vo.renderable && node.haveChild())
       res += this.renderNode(node.first, depth + 1);
-    res += vo.close;
+
+    if (!TH.haveClosing(node.tag))
+      res += vo.close;
 
     if (node.haveNext())
       res += this.renderNode(node.next, depth);
@@ -91,15 +205,15 @@
     var res = vo.id, self = this;
 
     chapter.verses.forEach(function(v) {
+      // res += self.getVerseBegin(v);
       var nodes = chapter.markups[v.number - 1];
       if (!_.isUndefined(nodes)) {
         nodes.forEach(function(node) {
           res += self.renderNode(node, 1);
         });
       }
-      res += self.defineVerseBegin(v);
       res += v.render(self);
-      res += self.defineVerseEnd(v);
+      // res += self.getVerseEnd(v);
     });
     return res;
   };
@@ -107,17 +221,20 @@
   // @brief    render given book based on the renderer configuration
   // @returns  string containing the rendered book
   Renderer.prototype.renderBook    = function(book) {
+    var res = '';//this.getBookBegin(book);
     var vo = {
       book: book,
       header: '',
     };
     this.defineBookView(vo);
-    var res = vo.header;
+    res += vo.header;
     var self = this;
     book.chapters.forEach(function(c) {
-      res += self.defineChapterBegin(c);
+      //res += self.getChapterBegin(c);
       res += c.render(self);
+      //res += self.getChapterEnd(c);
     });
+    //res += self.getBookEnd(book);
     return res;
   };
 
@@ -127,7 +244,6 @@
     var res = '';
     var self = this;
     bible.books.forEach(function(b) {
-      res += self.defineBookBegin(b);
       res += b.render(self);
     });
     return res;
@@ -147,64 +263,73 @@
 
   USFMRenderer.prototype.defineTagView = function(vo) {
     if (!TH.haveClosing(vo.tag)) {
-      vo.open  = '\\' + vo.tag;
+      vo.newline = true;
+      vo.open = '\\' + vo.tag;
+      vo.close = '';
+
       switch (vo.tag) {
-        case TAG.P:
-        case TAG.B:
-        case TAG.Q:
-          vo.open = LF + vo.open;
+        case TAG.V:
+        case TAG.C:
+        case TAG.D:
+          vo.open += ' ';
+          break;
       }
     }
     else {
       var tmp   = '\\' + (vo.nested ? '+' : '') + vo.tag;
       vo.open  = tmp + ' ';
       vo.close = tmp + '*';
+      vo.newline = false;
     }
-  };
 
-  USFMRenderer.prototype.defineVerseBegin = function(verse) {
-    return LF;
-  };
-
-  USFMRenderer.prototype.defineVerseEnd = function(verse) {
-    return '';
+    console.log(vo);
   };
 
   USFMRenderer.prototype.defineVerseView = function(vo) {
-    vo.id  = '\\' + TAG.V + ' ' + vo.verse.number + ' ';
+    vo.id = NL + this.tagView_.get(TAG.V, false).open + vo.verse.number + ' ';
   };
 
-  USFMRenderer.prototype.defineChapterBegin = function(chap) {
-    return LF;
-  };
-
-  USFMRenderer.prototype.defineChapterEnd = function(chap) {
-    return '';
-  };
 
   USFMRenderer.prototype.defineChapterView = function(vo) {
-    vo.id  = '\\' + TAG.C + ' ' + vo.chapter.number;
-  };
-
-  USFMRenderer.prototype.defineBookBegin = function(book) {
-    return LF;
-  };
-
-  USFMRenderer.prototype.defineBookEnd = function(book) {
-    return '';
+    vo.id  = NL + this.tagView_.get(TAG.C, false).open + vo.chapter.number;
   };
 
   USFMRenderer.prototype.defineBookView = function(vo) {
     var book = vo.book;
     var res = '';
-    res += '\\' + TAG.ID   + ' ' + book.te.id   + ' ' + book.te.name + LF;
-    res += '\\' + TAG.H    + ' ' + book.te.name + LF;
-    res += '\\' + TAG.TOC1 + ' ' + book.te.desc + LF;
-    res += '\\' + TAG.TOC2 + ' ' + book.te.name + LF;
-    res += '\\' + TAG.TOC3 + ' ' + book.te.abbr + LF;
+    res += '\\' + TAG.ID   + ' ' + book.te.id   + ' ' + book.te.name + NL;
+    res += '\\' + TAG.H    + ' ' + book.te.name + NL;
+    res += '\\' + TAG.TOC1 + ' ' + book.te.desc + NL;
+    res += '\\' + TAG.TOC2 + ' ' + book.te.name + NL;
+    res += '\\' + TAG.TOC3 + ' ' + book.te.abbr + NL;
     res += '\\' + TAG.MT   + ' ' + book.te.desc;
     vo.header = res;
   };
+
+  // USFMRenderer.prototype.getVerseBegin = function(verse) {
+  //   return NL;
+  // };
+
+  // USFMRenderer.prototype.getVerseEnd = function(verse) {
+  //   return '';
+  // };
+
+  // USFMRenderer.prototype.getChapterBegin = function(chap) {
+  //   return NL;
+  // };
+
+  // USFMRenderer.prototype.getChapterEnd = function(chap) {
+  //   return '';
+  // };
+
+  // USFMRenderer.prototype.getBookBegin = function(book) {
+  //   return '';
+  // };
+
+  // USFMRenderer.prototype.getBookEnd = function(book) {
+  //   return NL;
+  // };
+
 
 
   /*------------------------------------------------------------------------*/
@@ -236,28 +361,41 @@
     }
   };
 
-  TextRenderer.prototype.defineVerseBegin = function(verse) {
-    return LF;
-  };
-
   TextRenderer.prototype.defineVerseView = function(vo) {
     if (!this.textOnly)
       vo.id = vo.verse.id() + ' ';
   };
 
-  TextRenderer.prototype.defineChapterBegin = function(chap) {
-    return '';
-  };
-
   TextRenderer.prototype.defineChapterView = function(vo) {
-  };
-
-  TextRenderer.prototype.defineBookBegin = function(book) {
-    return '';
   };
 
   TextRenderer.prototype.defineBookView = function(vo) {
   };
+
+
+  // TextRenderer.prototype.getVerseBegin = function(verse) {
+  //   return NL;
+  // };
+
+  // TextRenderer.prototype.getVerseEnd   = function(verse) {
+  //   return '';
+  // };
+
+  // TextRenderer.prototype.getChapterBegin = function(chap) {
+  //   return '';
+  // };
+
+  // TextRenderer.prototype.getChapterEnd = function(chap)  {
+  //   return '';
+  // };
+
+  // TextRenderer.prototype.getBookBegin = function(book) {
+  //   return '';
+  // };
+
+  // TextRenderer.prototype.getBookEnd = function(book)  {
+  //   return '';
+  // };
 
 
   /*------------------------------------------------------------------------*/
@@ -275,21 +413,21 @@
       vo.id = _.padRight(vo.verse.vn(), 3, ' ');
   };
 
-  PrettyRenderer.prototype.defineChapterBegin = function(chap) {
-    return '\r\n\r\n';
-  };
-
   PrettyRenderer.prototype.defineChapterView = function(vo) {
     vo.id = '=== ' + vo.chapter.number + ' ===\r\n';
-  };
-
-  PrettyRenderer.prototype.defineBookBegin = function(book) {
-    return '\r\n';
   };
 
   PrettyRenderer.prototype.defineBookView = function(vo) {
     vo.header = '== ' + vo.book.te.name + ' ==' + '\r\n';
   };
+
+  // PrettyRenderer.prototype.getChapterBegin = function(chap) {
+  //   return '\r\n\r\n';
+  // };
+
+  // PrettyRenderer.prototype.getBookBegin = function(book) {
+  //   return '\r\n';
+  // };
 
 
   /*------------------------------------------------------------------------*/
@@ -299,7 +437,10 @@
   var HTMLRenderer = function(opts) {
     Renderer.call(this, opts);
 
-    this.discoveredParagraphs = 0;
+    //this.discoveredParagraphs = 0;
+    this.paragraphTags = [];
+    this.otherTags = [];
+
     this.htmlBuilder = function(tag, cls) {
       return {
         o: '<' + tag + (!_.isUndefined(cls) ? ' class="' + cls + '"' : '') + '>',
@@ -323,15 +464,14 @@
   inherit(HTMLRenderer, Renderer);
 
   HTMLRenderer.prototype.defineTagView = function(vo) {
-    var subst = this.tm[vo.tag];
-    var res  = this.htmlBuilder(subst.tag, subst.class);
+    var res;
     if (vo.tag === TAG.P) {
       res = this.htmlBuilder(vo.tag);
-      this.discoveredParagraphs++;
-      if (this.discoveredParagraphs > 1) {
-        vo.open = res.c + '\n' + res.o;
-        //vo.close = res.c;
-        this.discoveredParagraphs--;
+      this.paragraphTags.push(res.c);
+
+      if (this.paragraphTags.length > 1) {
+        vo.open += this.paragraphTags.pop();
+        vo.open = vo.open + '\n' + res.o;
       }
       else {
         vo.open = res.o;
@@ -340,35 +480,50 @@
       vo.open = '\n' + vo.open;
       return;
     }
+
+    var subst = this.tm[vo.tag];
+    res  = this.htmlBuilder(subst.tag, subst.class);
     vo.open  = res.o;
     vo.close = res.c;
   };
 
-  HTMLRenderer.prototype.defineVerseBegin = function(verse) {
-    return '\n</br>';
-  };
-
   HTMLRenderer.prototype.defineVerseView = function(vo) {
-    var res   = this.htmlBuilder('span', 'verseNumber');
-    vo.id  = res.o + vo.verse.number + res.c;
-  };
-
-  HTMLRenderer.prototype.defineChapterBegin = function(chap) {
-    this.discoveredParagraphs = 0;
-    return '</br>';
+    var res = this.htmlBuilder('span', 'verseNumber');
+    vo.id   = res.o + vo.verse.number + res.c;
   };
 
   HTMLRenderer.prototype.defineChapterView = function(vo) {
     var res   = this.htmlBuilder('span', 'chapterNumber');
-    vo.id  = '</br></br>' + res.o + vo.chapter.number + res.c;
-  };
-
-  HTMLRenderer.prototype.defineBookBegin = function(book) {
-    return '</br>';
+    vo.id  = res.o + vo.chapter.number + res.c;
   };
 
   HTMLRenderer.prototype.defineBookView = function(vo) {
   };
+
+  // HTMLRenderer.prototype.getVerseBegin = function(verse) {
+  //   return '\n';
+  // };
+
+  // HTMLRenderer.prototype.getVerseEnd = function(verse) {
+  //   return '';
+  // };
+  // HTMLRenderer.prototype.getChapterBegin = function(chap) {
+  //   this.discoveredParagraphs = 0;
+  //   return '<br><br>';
+  // };
+
+  // HTMLRenderer.prototype.getChapterEnd = function(chap) {
+  //   if (this.paragraphTags.length > 0)
+  //     return this.paragraphTags.pop();
+  //   return '';
+  // };
+  // HTMLRenderer.prototype.getBookBegin = function(book) {
+  //   return '<html>\n<body>';
+  // };
+
+  // HTMLRenderer.prototype.getBookEnd = function(book) {
+  //   return '</body>\n</html>\n';
+  // };
 
   exports.Renderer        = Renderer;
   exports.USFMRenderer    = USFMRenderer;

@@ -7,6 +7,7 @@
   var LF   = '\n';                    // line feed
   var CR   = '\r';                    // carriage return
   var CRLF = '\r\n';
+  var NL   = LF;
 
   /*------------------------------------------------------------------------*/
 
@@ -51,8 +52,7 @@
 
 
     // tags that do not have a closing pair
-    var single    = /p|b|q/;
-
+    var single    = /^(p|b|q\d+|c|v|d)$/g;
     var discovered = {};
 
     return {
@@ -271,6 +271,7 @@
   exports.TH   = TH;
   exports.NH   = NH;
 
+  exports.NL   = NL;
   exports.CRLF = CRLF;
   exports.LF   = LF;
   exports.CR   = CR;

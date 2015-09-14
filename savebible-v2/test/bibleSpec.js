@@ -11,7 +11,7 @@ var lb      = require('../lib/bible.js');
 var search  = require('../lib/search.js');
 var inherit = require('../lib/inherit.js').inherit;
 var cmn     = require('../lib/common.js');
-var rndrs   = require('../lib/renderers.js');
+var rndr    = require('../lib/renderers.js');
 var tc      = require('./dataCreators.js');
 var dusfm   = require('./dataUSFM.js');
 
@@ -27,9 +27,9 @@ var Book            = lb.Book;
 var Bible           = lb.Bible;
 var Parser          = lb.Parser;
 
-var Renderer        = rndrs.Renderer;
-var USFMRenderer    = rndrs.USFMRenderer;
-var TextRenderer    = rndrs.TextRenderer;
+var Renderer        = rndr.Renderer;
+var USFMRenderer    = rndr.USFMRenderer;
+var TextRenderer    = rndr.TextRenderer;
 
 var loadBible       = lb.loadBible;
 var loadBook        = lb.loadBook;
@@ -801,12 +801,15 @@ describe('core components', function() {
 
       var listOfMethodsToImplement = [
         'renderableTag',
-        'defineBookBegin',
+        'getBookBegin',
+        'getBookEnd',
         'defineBookView',
-        'defineChapterBegin',
+        'getChapterBegin',
+        'getChapterEnd',
         'defineChapterView',
         'defineTagView',
-        'defineVerseBegin',
+        'getVerseBegin',
+        'getVerseEnd',
         'defineVerseView'
       ];
 

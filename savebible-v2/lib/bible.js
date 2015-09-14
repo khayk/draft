@@ -659,7 +659,7 @@ var TH  = cmn.TH;
       return null;
     },
 
-    // @returns  Representation of the verse rendered with the give renderer
+    // @returns  Representation of the verse rendered with the given renderer
     render: function(renderer) {
       return renderer.renderVerse(this);
     }
@@ -948,12 +948,12 @@ var TH  = cmn.TH;
     this.knownTagsOnly = knownTagsOnly;
     this.vre = /(\\\+?(\w+)\*?)\s?/gm;
 
-    var verserBreak     = {};
-    verserBreak[TAG.B]  = 1;
-    verserBreak[TAG.P]  = 1;
-    verserBreak[TAG.Q]  = 1;
-    verserBreak[TAG.IE] = 1;
-    verserBreak[TAG.V]  = 1;
+    var versesBreak     = {};
+    versesBreak[TAG.B]  = 1;
+    versesBreak[TAG.P]  = 1;
+    versesBreak[TAG.Q]  = 1;
+    versesBreak[TAG.IE] = 1;
+    versesBreak[TAG.V]  = 1;
 
     // deal with child nodes
     var childTextNode = function (node, str, from, to) {
@@ -1080,7 +1080,7 @@ var TH  = cmn.TH;
         }
         else {
           tag = TH.name(arr[1]);
-          if (_.isUndefined(verserBreak[tag]))
+          if (_.isUndefined(versesBreak[tag]))
             vstr += line + ' ';
           else {
             buildVerse(vn, vstr, chap);
