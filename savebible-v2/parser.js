@@ -3,6 +3,7 @@
 'use strict';
 
 var fs   = require('fs');
+var util = require('util');
 var _    = require('lodash');
 var path = require('path');
 var cfg  = require('./config').cfg;
@@ -107,6 +108,10 @@ var Stack = function() {
   this.values = [];
 };
 
+Stack.prototype.size = function() {
+  return this.values.length;
+};
+
 Stack.prototype.empty = function() {
   return this.values.length === 0;
 };
@@ -145,9 +150,10 @@ function isPaired(tag) {
 }
 
 function parse(file) {
+
   var vre = /(\\\+?(\w+)\*?)/gm;
   var str = fs.readFileSync(file, 'utf8');
-  var node = new Node('');
+  var node = createTag('');
   var cn = null;
   var stack = new Stack();
   var lastIndex = 0;
@@ -158,20 +164,35 @@ function parse(file) {
     cn = stack.top();
 
     var tag = arr[1];
-    if (!isOpening(tag)) {
-      stack.pop();
-      cnode = stack.top();
+    if (isOpening(tag)) {
+
+      if (lastIndex != arr.index) {
+        var content = str.substring(lastIndex, arr.index);
+        node = createText(content);
+        cn.addChild(node);
+      }
+
+      tag = arr[2];
+      node = createTag(tag);
+      if (!_.isUndefined(cn.tag) && cn.tag === tag) {
+        stack.pop();
+      }
+      stack.top().addChild(node);
+      stack.push(node);
+      //console.log();
     }
     else {
-      var content = str.substring(lastIndex, arr.index);
-
-      node = new Node(tag);
-      console.log();
+      stack.pop();
+      cn = stack.top();
     }
 
     lastIndex = vre.lastIndex;
     arr = vre.exec(str);
   }
+  stack.pop();
+  stack.pop();
+  console.log(stack.size());
+  console.log(util.inspect(stack.top(), {depth: 15, colors: true}));
 }
 
 
