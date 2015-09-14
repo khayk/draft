@@ -2,11 +2,10 @@
   'use strict';
 
   var _       = require('lodash');
-  var cfg     = require('../config').cfg;
-  var lb      = require('./bible.js');
+  //var lb      = require('./bible.js');
   var cmn     = require('./common.js');
   var inherit = require('./inherit.js').inherit;
-
+  
   /*------------------------------------------------------------------------*/
 
 
@@ -87,7 +86,7 @@
   //
   // \d - closed as soon as encountered any of tags without closing tag
   //
-  // \p - closed as soon as encountered \v or \p or \c or end of chapter
+  // \p - closed as soon as encountered       \p or \c or end of chapter
   // \q - closed as soon as encountered \v or \q    \c or end of chapter
   // \v - closed as soon as encountered \v or       \c or end of chapter
   // \c - closed as soon as encountered             \c or end of chapter
@@ -100,25 +99,25 @@
     for (var i = this.pendingTags_.length - 1; i >= 0; --i) {
       var tag = this.pendingTags_[i];
       var vo = this.tagView_.get(tag, false);
-      var nlsymbol = vo.newline === true ? NL : '';
+      //var nlsymbol = (vo.newline === true ? NL : '');
       var popTag = true;
 
       switch (tag) {
         case TAG.C:
           if (currentTag === TAG.C)
-            res += nlsymbol + vo.close;
+            res += vo.close;
           break;
 
         case TAG.V:
           if (currentTag === TAG.V || currentTag === TAG.C)
-            res += nlsymbol + vo.close;
+            res += vo.close;
           break;
 
         case TAG.Q:
           if (currentTag === TAG.V ||
               currentTag === TAG.Q ||
               currentTag === TAG.C)
-            res += nlsymbol + vo.close;
+            res += vo.close;
           break;
 
         case TAG.P:
@@ -126,12 +125,12 @@
               currentTag === TAG.Q ||
               currentTag === TAG.P ||
               currentTag === TAG.C)
-            res += nlsymbol + vo.close;
+            res += vo.close;
           break;
 
         case TAG.D:
           if (!TH.haveClosing(currentTag))
-            res += nlsymbol + vo.close;
+            res += vo.close;
           break;
 
         default:
@@ -155,10 +154,10 @@
     if (NH.isText(node))
       res += node.text;
     else {
-      if (node.tag !== '') {
-        res += this.closePendingTags(node.tag);
-        if (!TH.haveClosing(node.tag))
-          this.pendingTags_.push(node.tag);
+      if (node.tag !== '') {       
+        // res += this.closePendingTags(node.tag);
+        // if (!TH.haveClosing(node.tag))
+        //   this.pendingTags_.push(node.tag);
 
         // retrieve tag view, that should defined by a specific renderer
         vo = this.tagView_.get(node.tag, depth > 2);
@@ -174,9 +173,7 @@
 
     if (vo.renderable && node.haveChild())
       res += this.renderNode(node.first, depth + 1);
-
-    if (!TH.haveClosing(node.tag))
-      res += vo.close;
+    res += vo.close;
 
     if (node.haveNext())
       res += this.renderNode(node.next, depth);
@@ -191,7 +188,8 @@
       id: ''
     };
     this.defineVerseView(vo);
-    return vo.id + this.renderNode(verse.node, 1);
+    return vo.id + this.renderNode(verse.node, 1) +
+           this.tagView_.get(TAG.V, false).close;
   };
 
   // @brief    render given chapter based on the renderer configuration
@@ -199,7 +197,8 @@
   Renderer.prototype.renderChapter = function(chapter) {
     var vo = {
       chapter: chapter,
-      id: ''
+      id: '',
+      verseSeparator: NL
     };
     this.defineChapterView(vo);
     var res = vo.id, self = this;
@@ -209,32 +208,37 @@
       var nodes = chapter.markups[v.number - 1];
       if (!_.isUndefined(nodes)) {
         nodes.forEach(function(node) {
+          res += self.closePendingTags(node.tag);
+          self.pendingTags_.push(node.tag);
           res += self.renderNode(node, 1);
         });
       }
+      if (res.length !== 0)
+        res += vo.verseSeparator;
       res += v.render(self);
-      // res += self.getVerseEnd(v);
     });
+    
+    res += this.tagView_.get(TAG.C, false).close;
     return res;
   };
 
   // @brief    render given book based on the renderer configuration
   // @returns  string containing the rendered book
   Renderer.prototype.renderBook    = function(book) {
-    var res = '';//this.getBookBegin(book);
+    var res = '';
     var vo = {
       book: book,
       header: '',
+      chapterSeparator: NL
     };
     this.defineBookView(vo);
     res += vo.header;
     var self = this;
     book.chapters.forEach(function(c) {
-      //res += self.getChapterBegin(c);
+      if (res.length !== 0)
+        res += vo.chapterSeparator;
       res += c.render(self);
-      //res += self.getChapterEnd(c);
     });
-    //res += self.getBookEnd(book);
     return res;
   };
 
@@ -265,12 +269,13 @@
     if (!TH.haveClosing(vo.tag)) {
       vo.newline = true;
       vo.open = '\\' + vo.tag;
-      vo.close = '';
+      vo.close = vo.open + '*';
 
       switch (vo.tag) {
         case TAG.V:
         case TAG.C:
         case TAG.D:
+        case TAG.P:
           vo.open += ' ';
           break;
       }
@@ -281,17 +286,15 @@
       vo.close = tmp + '*';
       vo.newline = false;
     }
-
-    console.log(vo);
   };
 
   USFMRenderer.prototype.defineVerseView = function(vo) {
-    vo.id = NL + this.tagView_.get(TAG.V, false).open + vo.verse.number + ' ';
+    vo.id = this.tagView_.get(TAG.V, false).open + vo.verse.number + ' ';
   };
 
 
   USFMRenderer.prototype.defineChapterView = function(vo) {
-    vo.id  = NL + this.tagView_.get(TAG.C, false).open + vo.chapter.number;
+    vo.id  = this.tagView_.get(TAG.C, false).open + vo.chapter.number;
   };
 
   USFMRenderer.prototype.defineBookView = function(vo) {

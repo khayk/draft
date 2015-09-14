@@ -52,7 +52,7 @@
 
 
     // tags that do not have a closing pair
-    var single    = /^(p|b|q\d+|c|v|d)$/g;
+    var single    = /^(p|b|q\d+|c|v|d)$/;
     var discovered = {};
 
     return {
