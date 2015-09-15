@@ -83,10 +83,16 @@ USFMTree.prototype.reset = function() {
   this.nre = /\d+/;
 };
 
-USFMTree.prototype.unwind = function() {
-  var tmp = this.stack.pop();
-  while (!NH.isTag(tmp)) {
-    tmp = this.stack.pop();
+USFMTree.prototype.unwind = function(tag) {
+  var tmp = this.stack.top();
+  while (tmp !== null) {
+    if (NH.isTag(tmp) && tag === tmp.tag) {
+      this.stack.pop();
+      tmp = this.stack.top();
+      return;
+    }
+    this.stack.pop();
+    tmp = this.stack.top();
   }
 };
 
@@ -119,7 +125,6 @@ USFMTree.prototype.append = function(node) {
       }
     }
     else if (!TH.haveClosing(node.tag)) {
-      //console.log(node.tag);
       while (!isNodeAnyOf(top, arr_c)) {
         this.stack.pop();
         top = this.stack.top();
@@ -129,7 +134,10 @@ USFMTree.prototype.append = function(node) {
   else {
     if (NH.isTag(top) && (top.tag === TAG.V || top.tag === TAG.C)) {
       var arr = this.nre.exec(node.text);
-      //console.log(node.text);
+
+      if (arr === null)
+        return;
+
       top.number = arr[0];
       node.text = node.text.substring(arr.index + arr[0].length).trimLeft();
       if (node.text.length === 0)
@@ -185,7 +193,7 @@ function parseUSFMBook(file) {
       tree.append(node);
     }
     else {
-      tree.unwind();
+      tree.unwind(arr[2]);
     }
 
     lastIndex = vre.lastIndex;
@@ -201,8 +209,8 @@ function parseUSFMBook(file) {
 
 
 var dirNames = [
-  'en-kjv-usfm+ [saved]'
-  //'zed'
+  //'en-kjv-usfm+ [saved]'
+  'zed'
   //'en-kjv-usfm+'
   //'am-eab-usfm-from-text',
   //'ru-synod-usfm-from-text [saved]'
@@ -211,7 +219,6 @@ var dirNames = [
 var bids = ['SIR'];
 
 measur.begin('loading bible: ');
-
 bids.forEach(function(bid) {
   dirNames.forEach(function(dn) {
     var file = lb.findBook(cfg.bibleDir(dn).from, bid);
@@ -225,13 +232,13 @@ bids.forEach(function(bid) {
     //tree.root.normalize();
     console.log(tree.stack.size());
     var renderer = new rnd.USFMRenderer();
-    fs.writeFileSync('res.txt', renderer.renderNode(tree.root, -1));
+    fs.writeFileSync('res.txt', renderer.renderNode(tree.root, 0, -1));
 
     //console.log(util.inspect(tree.root, {depth: 15, colors: true}));
   });
 });
-
 measur.end();
+
 
 // scan all books
 // var dir = cfg.bibleDir(dirNames[0]).from;

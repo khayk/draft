@@ -145,7 +145,7 @@
   // };
 
   // These functions `SHOULD NOT` be overridden in the derived classes
-  Renderer.prototype.renderNode = function(node, depth) {
+  Renderer.prototype.renderNode = function(node, depth, indent) {
     var res = '';
 
     // get default template for verse object
@@ -163,9 +163,10 @@
 
         // retrieve tag view, that should be defined by concrete renderer
         vo = this.tagView_.get(node.tag, depth > 2);
-        if (vo.newline) {
+        //if (vo.newline)
+        {
           res += NL;
-          //res += _.pad('', 3*depth);
+          res += _.pad('', 3*indent);
         }
 
         // skip tag if the renderer have no clue how to render it
@@ -174,17 +175,25 @@
 
           if (!_.isUndefined(node.number)) {
             res += node.number;
+            if (node.tag === TAG.V)
+              res += ' ';
           }
         }
       }
     }
 
     if (vo.renderable && node.haveChild())
-      res += this.renderNode(node.first, depth + 1);
+      res += this.renderNode(node.first, depth + 1, indent + 1);
+
+    if (NH.isTag(node)) {
+      res += NL;
+      res += _.pad('', 3*indent);
+    }
+
     res += vo.close;
 
     if (node.haveNext())
-      res += this.renderNode(node.next, depth);
+      res += this.renderNode(node.next, depth, indent);
     return res;
   };
 
@@ -277,7 +286,7 @@
     if (!TH.haveClosing(vo.tag)) {
       vo.newline = true;
       vo.open = '\\' + vo.tag;
-      //vo.close = vo.open + '*';
+      vo.close = vo.open + '*';
 
       switch (vo.tag) {
         case TAG.P:
