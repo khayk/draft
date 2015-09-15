@@ -11,7 +11,9 @@ var lb   = require('./lib/bible');
 var cmn  = require('./lib/common');
 var rnd  = require('./lib/renderers');
 var log  = require('log4js').getLogger('psr');
+var help = require('./helpers');
 
+var measur   = new help.Measurer();
 
 var Node = cmn.Node;
 var TAG  = cmn.TAG;
@@ -57,16 +59,6 @@ Stack.prototype.pop = function() {
 };
 
 
-var USFMTree = function() {
-  this.stack = new Stack();
-  this.root  = NH.createTag('');
-  this.stack.push(this.root);
-
-  // this.top = function() {
-  //   return this.stack.top();
-  // };
-};
-
 function isNodeAnyOf(node, arr) {
   if (!NH.isTag(node))
     return false;
@@ -79,12 +71,26 @@ var arr_cp  = ['c', 'p'];
 var arr_c   = ['c', ''];
 var arr_    = [''];
 
-USFMTree.prototype.addNode = function(node) {
-  if (node === null) {
-    this.stack.pop();
-    return;
-  }
 
+var USFMTree = function() {
+  this.reset();
+};
+
+USFMTree.prototype.reset = function() {
+  this.stack = new Stack();
+  this.root  = NH.createTag('');
+  this.stack.push(this.root);
+  this.nre = /\d+/;
+};
+
+USFMTree.prototype.unwind = function() {
+  var tmp = this.stack.pop();
+  while (!NH.isTag(tmp)) {
+    tmp = this.stack.pop();
+  }
+};
+
+USFMTree.prototype.append = function(node) {
   var top = this.stack.top();
   if (NH.isTag(node)) {
     if (node.tag === TAG.V) {
@@ -120,6 +126,18 @@ USFMTree.prototype.addNode = function(node) {
       }
     }
   }
+  else {
+    if (NH.isTag(top) && (top.tag === TAG.V || top.tag === TAG.C)) {
+      var arr = this.nre.exec(node.text);
+      console.log(node.text);
+      top.number = arr[0];
+      node.text = node.text.substring(arr.index + arr[0].length).trimLeft();
+    }
+    else {
+      if (node.text.trim().length === 0)
+        return;
+    }
+  }
 
   top.addChild(node);
   this.stack.push(node);
@@ -140,28 +158,20 @@ function parseUSFMBook(file) {
   var node = null;
   var content = '';
 
+  str = str.replace(/\r/gm, '')
+           .replace(/\n|¶/gm, ' ')
+           .replace(/\s{2,}/gm, ' ').trim();
+
   var arr = vre.exec(str);
   while (arr !== null) {
     var tag = arr[1];
     number = 0;
 
-    // if (arr[2] === TAG.V || tag === TAG.C) {
-    //   var x1 = lastIndex;
-
-    //   nre.lastIndex = vre.lastIndex;
-    //   number = nre.exec(str)[0];
-    //   vre.lastIndex = nre.lastIndex;
-    //   lastIndex = vre.lastIndex;
-
-    //   console.log('ai %d, before %d, after %d', arr.index, x1, lastIndex);
-    // }
-
     if (lastIndex != arr.index) {
-      content = str.substring(lastIndex, arr.index).trim();
-      //console.log(content);
+      content = str.substring(lastIndex, arr.index);
+      //content = content.trim();
       node = NH.createText(content);
-      tree.addNode(node);
-
+      tree.append(node);
       if (number !== 0) {
         node.number = number;
       }
@@ -170,34 +180,35 @@ function parseUSFMBook(file) {
     if (TH.isOpening(tag)) {
       tag = arr[2];
       node = NH.createTag(tag);
-      tree.addNode(node);
+      tree.append(node);
     }
     else {
-      tree.addNode(null);
+      tree.unwind();
     }
 
     lastIndex = vre.lastIndex;
     arr = vre.exec(str);
   }
 
-  content = str.substring(lastIndex).trim();
+  content = str.substring(lastIndex);
   node = NH.createText(content);
-  tree.addNode(node);
+  tree.append(node);
 
-
-  console.log(tree.stack.size());
-  var renderer = new rnd.USFMRenderer();
-  fs.writeFileSync('res.txt', renderer.renderNode(tree.root, -1));
+  return tree;
 }
 
 
 var dirNames = [
-  'en-kjv-usfm+'
+  'en-kjv-usfm+ [saved]'
+  //'zed'
+  //'en-kjv-usfm+'
   //'am-eab-usfm-from-text',
   //'ru-synod-usfm-from-text [saved]'
 ];
 
-var bids = ['PSA'];
+var bids = ['SIR'];
+
+measur.begin('loading bible: ');
 
 bids.forEach(function(bid) {
   dirNames.forEach(function(dn) {
@@ -208,12 +219,26 @@ bids.forEach(function(bid) {
     }
 
     log.info(file);
-    parseUSFMBook(file);
+    var tree = parseUSFMBook(file);
+    //tree.root.normalize();
+    console.log(tree.stack.size());
+    var renderer = new rnd.USFMRenderer();
+    fs.writeFileSync('res.txt', renderer.renderNode(tree.root, -1));
 
     //console.log(util.inspect(tree.root, {depth: 15, colors: true}));
   });
-
 });
 
+measur.end();
+
+// scan all books
+// var dir = cfg.bibleDir(dirNames[0]).from;
+// var files = fs.readdirSync(dir, 'utf8');
+
+// measur.begin('loading bible: ' + dir);
+// files.forEach(function(file) {
+//   var tree = parseUSFMBook(path.join(dir, file));
+// });
+// measur.end();
 
 })();

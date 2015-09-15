@@ -91,58 +91,58 @@
   // \v - closed as soon as encountered \v or       \c or end of chapter
   // \c - closed as soon as encountered             \c or end of chapter
 
-  Renderer.prototype.closePendingTags = function(currentTag) {
-    var res = '';
-    if (this.pendingTags_.length === 0)
-      return res;
+  // Renderer.prototype.closePendingTags = function(currentTag) {
+  //   var res = '';
+  //   if (this.pendingTags_.length === 0)
+  //     return res;
 
-    for (var i = this.pendingTags_.length - 1; i >= 0; --i) {
-      var tag = this.pendingTags_[i];
-      var vo = this.tagView_.get(tag, false);
-      //var nlsymbol = (vo.newline === true ? NL : '');
-      var popTag = true;
+  //   for (var i = this.pendingTags_.length - 1; i >= 0; --i) {
+  //     var tag = this.pendingTags_[i];
+  //     var vo = this.tagView_.get(tag, false);
+  //     //var nlsymbol = (vo.newline === true ? NL : '');
+  //     var popTag = true;
 
-      switch (tag) {
-        case TAG.C:
-          if (currentTag === TAG.C)
-            res += vo.close;
-          break;
+  //     switch (tag) {
+  //       case TAG.C:
+  //         if (currentTag === TAG.C)
+  //           res += vo.close;
+  //         break;
 
-        case TAG.V:
-          if (currentTag === TAG.V || currentTag === TAG.C)
-            res += vo.close;
-          break;
+  //       case TAG.V:
+  //         if (currentTag === TAG.V || currentTag === TAG.C)
+  //           res += vo.close;
+  //         break;
 
-        case TAG.Q:
-          if (currentTag === TAG.V ||
-              currentTag === TAG.Q ||
-              currentTag === TAG.C)
-            res += vo.close;
-          break;
+  //       case TAG.Q:
+  //         if (currentTag === TAG.V ||
+  //             currentTag === TAG.Q ||
+  //             currentTag === TAG.C)
+  //           res += vo.close;
+  //         break;
 
-        case TAG.P:
-          if (currentTag === TAG.V ||
-              currentTag === TAG.Q ||
-              currentTag === TAG.P ||
-              currentTag === TAG.C)
-            res += vo.close;
-          break;
+  //       case TAG.P:
+  //         if (currentTag === TAG.V ||
+  //             currentTag === TAG.Q ||
+  //             currentTag === TAG.P ||
+  //             currentTag === TAG.C)
+  //           res += vo.close;
+  //         break;
 
-        case TAG.D:
-          if (!TH.haveClosing(currentTag))
-            res += vo.close;
-          break;
+  //       case TAG.D:
+  //         if (!TH.haveClosing(currentTag))
+  //           res += vo.close;
+  //         break;
 
-        default:
-          popTag = false;
-          break;
-      }
+  //       default:
+  //         popTag = false;
+  //         break;
+  //     }
 
-      if (popTag)
-        this.pendingTags_.pop();
-    }
-    return res;
-  };
+  //     if (popTag)
+  //       this.pendingTags_.pop();
+  //   }
+  //   return res;
+  // };
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode = function(node, depth) {
@@ -151,29 +151,31 @@
     // get default template for verse object
     var vo = this.tagView_.template();
 
-    if (NH.isText(node))
-      res += node.text;
+    if (NH.isText(node)) {
+      //res += node.text;
+      res += '<' + node.text + '>';
+    }
     else {
       if (node.tag !== '') {
-        // res += this.closePendingTags(node.tag);
-        // if (!TH.haveClosing(node.tag))
-        //   this.pendingTags_.push(node.tag);
+        if (node.tag === TAG.V) {
+          depth = 0;
+        }
 
-        // retrieve tag view, that should defined by a specific renderer
+        // retrieve tag view, that should be defined by concrete renderer
         vo = this.tagView_.get(node.tag, depth > 2);
         if (vo.newline) {
           res += NL;
-          res += _.pad('', 3*depth);
+          //res += _.pad('', 3*depth);
         }
 
         // skip tag if the renderer have no clue how to render it
         if (vo.renderable) {
           res += vo.open;
-        }
 
-        // if (!_.isUndefined(node.number)) {
-        //   res += node.number + ' ';
-        // }
+          if (!_.isUndefined(node.number)) {
+            res += node.number;
+          }
+        }
       }
     }
 
@@ -275,16 +277,19 @@
     if (!TH.haveClosing(vo.tag)) {
       vo.newline = true;
       vo.open = '\\' + vo.tag;
-      vo.close = vo.open + '*';
+      //vo.close = vo.open + '*';
 
       switch (vo.tag) {
-        case TAG.V:
-        case TAG.C:
-        case TAG.D:
-        case TAG.MS:
+        case TAG.P:
+        case TAG.Q:
+          return;
+        // case TAG.V:
+        // case TAG.C:
+        // case TAG.D:
+        // case TAG.MS:
         //case TAG.P:
           //vo.open += ' ';
-          break;
+          // break;
       }
       vo.open += ' ';
     }
