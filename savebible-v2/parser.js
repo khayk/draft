@@ -129,9 +129,11 @@ USFMTree.prototype.append = function(node) {
   else {
     if (NH.isTag(top) && (top.tag === TAG.V || top.tag === TAG.C)) {
       var arr = this.nre.exec(node.text);
-      console.log(node.text);
+      //console.log(node.text);
       top.number = arr[0];
       node.text = node.text.substring(arr.index + arr[0].length).trimLeft();
+      if (node.text.length === 0)
+        return;
     }
     else {
       if (node.text.trim().length === 0)
