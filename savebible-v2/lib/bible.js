@@ -1281,6 +1281,26 @@ var TH  = cmn.TH;
     return opts;
   }
 
+  // Find bible book in the given directory with specified book id
+  //
+  // @param  {string} dir  search directory
+  // @param  {string} bid  unique book id from usfm bible books
+  // @return {string}      full path of file or null if the book is not found
+  //
+  function findBook(dir, bid) {
+    var files = fs.readdirSync(dir, 'utf8');
+    var searchable = null;
+    var found = false;
+    files.forEach(function(file) {
+      var res = decodeFileName(file, true);
+      if (found === false && res !== null && res.id === bid) {
+        searchable = path.join(dir, file);
+        found = true;
+      }
+    });
+    return searchable;
+  }
+
   // Load bible book from the specified file and construct Book object
   //
   // @param  {string} file   Name of file containing Bible book in a usfm format
@@ -1434,6 +1454,7 @@ var TH  = cmn.TH;
   // functions
   exports.encodeRef       = encodeRef;
   exports.decodeRef       = decodeRef;
+  exports.findBook        = findBook;
   exports.loadBook        = loadBook;
   exports.loadBible       = loadBible;
   exports.saveBook        = saveBook;

@@ -5,7 +5,7 @@
   //var lb      = require('./bible.js');
   var cmn     = require('./common.js');
   var inherit = require('./inherit.js').inherit;
-  
+
   /*------------------------------------------------------------------------*/
 
 
@@ -154,20 +154,26 @@
     if (NH.isText(node))
       res += node.text;
     else {
-      if (node.tag !== '') {       
+      if (node.tag !== '') {
         // res += this.closePendingTags(node.tag);
         // if (!TH.haveClosing(node.tag))
         //   this.pendingTags_.push(node.tag);
 
         // retrieve tag view, that should defined by a specific renderer
         vo = this.tagView_.get(node.tag, depth > 2);
-        if (vo.newline)
+        if (vo.newline) {
           res += NL;
+          res += _.pad('', 3*depth);
+        }
 
         // skip tag if the renderer have no clue how to render it
         if (vo.renderable) {
           res += vo.open;
         }
+
+        // if (!_.isUndefined(node.number)) {
+        //   res += node.number + ' ';
+        // }
       }
     }
 
@@ -217,7 +223,7 @@
         res += vo.verseSeparator;
       res += v.render(self);
     });
-    
+
     res += this.tagView_.get(TAG.C, false).close;
     return res;
   };
@@ -275,10 +281,12 @@
         case TAG.V:
         case TAG.C:
         case TAG.D:
-        case TAG.P:
-          vo.open += ' ';
+        case TAG.MS:
+        //case TAG.P:
+          //vo.open += ' ';
           break;
       }
+      vo.open += ' ';
     }
     else {
       var tmp   = '\\' + (vo.nested ? '+' : '') + vo.tag;

@@ -17,6 +17,7 @@
     ID:   'id',      // File identification.
     IDE:  'ide',     // An optional character encoding specification.
     MT:   'mt',      // Major title.
+    MS:   'ms',      // Major section heading
     IS:   'is',      // Introduction section heading.
     TOC1: 'toc1',    // Long table of contents text.
     TOC2: 'toc2',    // Short table of contents text.
@@ -53,6 +54,7 @@
 
     // tags that do not have a closing pair
     var single    = /^(p|b|q\d+|c|v|d)$/;
+    var paired    = /add|wj|nd|qt|dc|zw|f|zws|zx|zwm|ior/;
     var discovered = {};
 
     return {
@@ -107,7 +109,7 @@
 
       // @returns   true if tag should be completed with closing tag, otherwise false
       haveClosing: function(tag) {
-        return single.test(tag) === false;
+        return paired.test(tag) === true;
       },
 
       // name of tag

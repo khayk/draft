@@ -8,92 +8,16 @@ var _    = require('lodash');
 var path = require('path');
 var cfg  = require('./config').cfg;
 var lb   = require('./lib/bible');
+var cmn  = require('./lib/common');
+var rnd  = require('./lib/renderers');
 var log  = require('log4js').getLogger('psr');
 
-function findBook(dir, bid) {
-  var files  = fs.readdirSync(dir, 'utf8');
-  var rf = null;
-  var found = false;
-  files.forEach(function(file) {
-    var res = lb.decodeFileName(file, true);
-    if (found === false && res !== null && res.id === bid) {
-      rf = path.join(dir,  file);
-      found = true;
-    }
-  });
-  return rf;
-}
 
-var dirNames = [
-  'zed'
-  //'am-eab-usfm-from-text',
-  //'ru-synod-usfm-from-text [saved]'
-];
+var Node = cmn.Node;
+var TAG  = cmn.TAG;
+var TH   = cmn.TH;
+var NH   = cmn.NH;
 
-var bids = ['SIR'];
-
-var Node = function() {
-};
-
-// @param {object} node  object that is going to become child
-// @return this
-Node.prototype.addChild = function(node) {
-  if (this.firstChild() === null) {
-    this.first = node;
-    this.last  = node;
-  }
-  else {
-    this.last.next = node;
-    this.last = node;
-  }
-  return this;
-};
-
-// @returns  first child node of the current node
-Node.prototype.firstChild = function() {
-  if (_.isUndefined(this.first))
-    return null;
-  return this.first;
-};
-
-// @returns  next node of the current node
-Node.prototype.getNext = function() {
-  if (_.isUndefined(this.next))
-    return null;
-  return this.next;
-};
-
-// @returns  true if the current node have element following itself
-Node.prototype.haveNext = function() {
-  return !_.isUndefined(this.next);
-};
-
-// @returns  true if the current node have at least one child node
-Node.prototype.haveChild = function() {
-  return !_.isUndefined(this.first);
-};
-
-// @returns  number of all nodes contained in the nodes tree
-Node.prototype.count = function() {
-  var count = 1;
-  if (this.haveChild())
-    count += this.first.count();
-  if (this.haveNext())
-    count += this.next.count();
-  return count;
-};
-
-function createTag(tag) {
-  var node = new Node();
-  node.tag = tag;
-  return node;
-}
-
-function createText(text) {
-  var node = new Node();
-  node.text = text;
-  return node;
-}
 
 // open       close          ended
 // \v           .          \v, \c, \p
@@ -133,11 +57,73 @@ Stack.prototype.pop = function() {
 };
 
 
-function isOpening(tag) {
-  if (tag.length < 1)
+var USFMTree = function() {
+  this.stack = new Stack();
+  this.root  = NH.createTag('');
+  this.stack.push(this.root);
+
+  // this.top = function() {
+  //   return this.stack.top();
+  // };
+};
+
+function isNodeAnyOf(node, arr) {
+  if (!NH.isTag(node))
     return false;
-  return tag[tag.length - 1] !== '*';
+  var tag = node.tag;
+  return arr.indexOf(tag) !== -1;
 }
+
+var arr_cpq = ['c', 'p', 'q', ''];
+var arr_cp  = ['c', 'p'];
+var arr_c   = ['c', ''];
+var arr_    = [''];
+
+USFMTree.prototype.addNode = function(node) {
+  if (node === null) {
+    this.stack.pop();
+    return;
+  }
+
+  var top = this.stack.top();
+  if (NH.isTag(node)) {
+    if (node.tag === TAG.V) {
+      // pop elements from the stack to have consistent state
+      while (!isNodeAnyOf(top, arr_cpq)) {
+        this.stack.pop();
+        top = this.stack.top();
+      }
+    }
+    else if (node.tag === TAG.P || node.tag === TAG.B) {
+      while (!isNodeAnyOf(top, arr_c)) {
+        this.stack.pop();
+        top = this.stack.top();
+      }
+    }
+    else if (node.tag === TAG.Q) {
+      while (!isNodeAnyOf(top, arr_cp)) {
+        this.stack.pop();
+        top = this.stack.top();
+      }
+    }
+    else if (node.tag === TAG.C) {
+      while (!isNodeAnyOf(top, arr_)) {
+        this.stack.pop();
+        top = this.stack.top();
+      }
+    }
+    else if (!TH.haveClosing(node.tag)) {
+      //console.log(node.tag);
+      while (!isNodeAnyOf(top, arr_c)) {
+        this.stack.pop();
+        top = this.stack.top();
+      }
+    }
+  }
+
+  top.addChild(node);
+  this.stack.push(node);
+};
 
 
 // var text = null;
@@ -145,67 +131,86 @@ function isOpening(tag) {
 // var paired =  ['add', 'dc', 'nd', 'qt', 'wj'];
 var paired  = /add|dc|nd|qt|wj/;
 
-function isPaired(tag) {
-  return paired.test(tag) === true;
-}
-
-function parse(file) {
-
+function parseUSFMBook(file) {
+  var nre = /\d+/gm;
   var vre = /(\\\+?(\w+)\*?)/gm;
   var str = fs.readFileSync(file, 'utf8');
-  var node = createTag('');
-  var cn = null;
-  var stack = new Stack();
-  var lastIndex = 0;
-  stack.push(node);
+  var tree = new USFMTree();
+  var lastIndex = 0, number = 0;
+  var node = null;
+  var content = '';
 
   var arr = vre.exec(str);
   while (arr !== null) {
-    cn = stack.top();
-
     var tag = arr[1];
-    if (isOpening(tag)) {
+    number = 0;
 
-      if (lastIndex != arr.index) {
-        var content = str.substring(lastIndex, arr.index);
-        node = createText(content);
-        cn.addChild(node);
+    // if (arr[2] === TAG.V || tag === TAG.C) {
+    //   var x1 = lastIndex;
+
+    //   nre.lastIndex = vre.lastIndex;
+    //   number = nre.exec(str)[0];
+    //   vre.lastIndex = nre.lastIndex;
+    //   lastIndex = vre.lastIndex;
+
+    //   console.log('ai %d, before %d, after %d', arr.index, x1, lastIndex);
+    // }
+
+    if (lastIndex != arr.index) {
+      content = str.substring(lastIndex, arr.index).trim();
+      //console.log(content);
+      node = NH.createText(content);
+      tree.addNode(node);
+
+      if (number !== 0) {
+        node.number = number;
       }
+    }
 
+    if (TH.isOpening(tag)) {
       tag = arr[2];
-      node = createTag(tag);
-      if (!_.isUndefined(cn.tag) && cn.tag === tag) {
-        stack.pop();
-      }
-      stack.top().addChild(node);
-      stack.push(node);
-      //console.log();
+      node = NH.createTag(tag);
+      tree.addNode(node);
     }
     else {
-      stack.pop();
-      cn = stack.top();
+      tree.addNode(null);
     }
 
     lastIndex = vre.lastIndex;
     arr = vre.exec(str);
   }
-  stack.pop();
-  stack.pop();
-  console.log(stack.size());
-  console.log(util.inspect(stack.top(), {depth: 15, colors: true}));
+
+  content = str.substring(lastIndex).trim();
+  node = NH.createText(content);
+  tree.addNode(node);
+
+
+  console.log(tree.stack.size());
+  var renderer = new rnd.USFMRenderer();
+  fs.writeFileSync('res.txt', renderer.renderNode(tree.root, -1));
 }
 
 
+var dirNames = [
+  'en-kjv-usfm+'
+  //'am-eab-usfm-from-text',
+  //'ru-synod-usfm-from-text [saved]'
+];
+
+var bids = ['PSA'];
+
 bids.forEach(function(bid) {
   dirNames.forEach(function(dn) {
-    var file = findBook(cfg.bibleDir(dn).from, bid);
+    var file = lb.findBook(cfg.bibleDir(dn).from, bid);
     if (file === null) {
       log.info('failed to find book with id: %s', bid);
       return;
     }
 
     log.info(file);
-    parse(file);
+    parseUSFMBook(file);
+
+    //console.log(util.inspect(tree.root, {depth: 15, colors: true}));
   });
 
 });
