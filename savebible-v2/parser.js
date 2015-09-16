@@ -80,20 +80,16 @@ USFMTree.prototype.reset = function() {
   this.stack = new Stack();
   this.root  = NH.createTag('');
   this.stack.push(this.root);
-  this.nre = /\d+/;
+  this.nre = /\d+\s+/;
 };
 
 USFMTree.prototype.unwind = function(tag) {
-  var tmp = this.stack.top();
-  while (tmp !== null) {
-    if (NH.isTag(tmp) && tag === tmp.tag) {
-      this.stack.pop();
-      tmp = this.stack.top();
-      return;
-    }
-    this.stack.pop();
-    tmp = this.stack.top();
+  var top = this.stack.top();
+  while (top !== null && top.tag !== tag) {
+    top = this.stack.pop();
   }
+  if (top !== null)
+    this.stack.pop();
 };
 
 USFMTree.prototype.append = function(node) {
@@ -134,11 +130,10 @@ USFMTree.prototype.append = function(node) {
   else {
     if (NH.isTag(top) && (top.tag === TAG.V || top.tag === TAG.C)) {
       var arr = this.nre.exec(node.text);
+      if (arr !== null) {
+        top.number = arr[0].trim();
+      }
 
-      if (arr === null)
-        return;
-
-      top.number = arr[0];
       node.text = node.text.substring(arr.index + arr[0].length).trimLeft();
       if (node.text.length === 0)
         return;
@@ -150,7 +145,8 @@ USFMTree.prototype.append = function(node) {
   }
 
   top.addChild(node);
-  this.stack.push(node);
+  if (NH.isTag(node))
+    this.stack.push(node);
 };
 
 
@@ -210,13 +206,13 @@ function parseUSFMBook(file) {
 
 var dirNames = [
   //'en-kjv-usfm+ [saved]'
-  'zed'
-  //'en-kjv-usfm+'
+  //'zed'
+  'en-kjv-usfm+'
   //'am-eab-usfm-from-text',
   //'ru-synod-usfm-from-text [saved]'
 ];
 
-var bids = ['SIR'];
+var bids = ['GEN'];
 
 measur.begin('loading bible: ');
 bids.forEach(function(bid) {
