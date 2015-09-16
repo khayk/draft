@@ -44,13 +44,12 @@
 
   // TAG manipulation
   var TH = (function() {
-    var known      = /add|wj|nd|qt|dc/;
+    var known      = /add|wj|nd|qt|dc|p|q|c|v/;
     var valid      = /\\\+?(\w+)\*?/;
     var ignored    = /zw|zws|zx|zwm/;
     var translator = /add/;
     var addition   = /dc/;
     var jesusWord  = /wj/;
-
 
     // tags that do not have a closing pair
     var single    = /^(p|b|q\d+|c|v|d)$/;
@@ -192,9 +191,6 @@
   // @brief  normalize tree structure by eliminating nodes that can be merged
   //         into one
   Node.prototype.normalize = function() {
-    // if (!_.isUndefined(this.last))
-    //   delete this.last;
-
     if (!this.haveChild())
       return;
 
@@ -222,9 +218,6 @@
         if (n.haveNext()) {
           prev.next = n.getNext();
         }
-        // else {
-        //   delete prev.next;
-        // }
       }
       else {
         prev = n;

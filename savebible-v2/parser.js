@@ -128,13 +128,18 @@ USFMTree.prototype.append = function(node) {
     }
   }
   else {
-    if (NH.isTag(top) && (top.tag === TAG.V || top.tag === TAG.C)) {
-      var arr = this.nre.exec(node.text);
-      if (arr !== null) {
+    if (top.tag === TAG.V || top.tag === TAG.C) {
+
+      // setup number for verse or chapter
+      if (_.isUndefined(top.number)) {
+        var arr = this.nre.exec(node.text);
+        if (arr === null)
+          throw new Error('expecting to see number in: ' + node.text);
+
         top.number = arr[0].trim();
+        node.text = node.text.substring(arr.index + arr[0].length);
       }
 
-      node.text = node.text.substring(arr.index + arr[0].length).trimLeft();
       if (node.text.length === 0)
         return;
     }
@@ -154,33 +159,29 @@ USFMTree.prototype.append = function(node) {
 // var single = ['p', 'v', 'c', 'q', 'b', 's'];
 // var paired =  ['add', 'dc', 'nd', 'qt', 'wj'];
 var paired  = /add|dc|nd|qt|wj/;
+var knownTagsOnly = true;
 
-function parseUSFMBook(file) {
+function parseUSFMBook(str) {
   var nre = /\d+/gm;
-  var vre = /(\\\+?(\w+)\*?)/gm;
-  var str = fs.readFileSync(file, 'utf8');
+  var vre = /(\\\+?(\w+)\s?\*?)/gm;
   var tree = new USFMTree();
   var lastIndex = 0, number = 0;
   var node = null;
   var content = '';
+  str = str.replace(/\r/gm, '').replace(/\n|¶/gm, ' ').trim();
 
-  str = str.replace(/\r/gm, '')
-           .replace(/\n|¶/gm, ' ')
-           .replace(/\s{2,}/gm, ' ').trim();
+  function insertText(from, to) {
+    content = str.substring(from, to);
+    node = NH.createText(content);
+    tree.append(node);
+  }
 
   var arr = vre.exec(str);
   while (arr !== null) {
     var tag = arr[1];
-    number = 0;
 
     if (lastIndex != arr.index) {
-      content = str.substring(lastIndex, arr.index);
-      //content = content.trim();
-      node = NH.createText(content);
-      tree.append(node);
-      if (number !== 0) {
-        node.number = number;
-      }
+      insertText(lastIndex, arr.index);
     }
 
     if (TH.isOpening(tag)) {
@@ -195,11 +196,7 @@ function parseUSFMBook(file) {
     lastIndex = vre.lastIndex;
     arr = vre.exec(str);
   }
-
-  content = str.substring(lastIndex);
-  node = NH.createText(content);
-  tree.append(node);
-
+  insertText(lastIndex);
   return tree;
 }
 
@@ -224,11 +221,23 @@ bids.forEach(function(bid) {
     }
 
     log.info(file);
-    var tree = parseUSFMBook(file);
+    var str  = fs.readFileSync(file, 'utf8');
+    var tree = parseUSFMBook(str);
     //tree.root.normalize();
     console.log(tree.stack.size());
+    console.log("nodes: ", tree.root.count());
+
     var renderer = new rnd.USFMRenderer();
-    fs.writeFileSync('res.txt', renderer.renderNode(tree.root, 0, -1));
+    fs.writeFileSync('usfm.dat', renderer.renderNode(tree.root, 0, 0));
+
+    renderer = new rnd.IndentedRenderer();
+    fs.writeFileSync('usfm_indented.dat', renderer.renderNode(tree.root, 0, 0));
+
+    renderer = new rnd.TextRenderer({ textOnly: false });
+    fs.writeFileSync('text.dat', renderer.renderNode(tree.root, 0, 0));
+
+    tree.root.normalize();
+    console.log("nodes after normalize: ", tree.root.count());
 
     //console.log(util.inspect(tree.root, {depth: 15, colors: true}));
   });
@@ -239,10 +248,13 @@ measur.end();
 // scan all books
 // var dir = cfg.bibleDir(dirNames[0]).from;
 // var files = fs.readdirSync(dir, 'utf8');
+// var renderer = new rnd.USFMRenderer();
 
 // measur.begin('loading bible: ' + dir);
 // files.forEach(function(file) {
-//   var tree = parseUSFMBook(path.join(dir, file));
+//   var str  = fs.readFileSync(path.join(dir, file), 'utf8');
+//   var tree = parseUSFMBook(str);
+//   fs.writeFileSync(cfg.tmpDir() + file, renderer.renderNode(tree.root, 0, 0));
 // });
 // measur.end();
 
