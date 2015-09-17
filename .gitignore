@@ -31,6 +31,8 @@ node_modules
 # Non repo data
 savebible/attempt2/
 savebible/attempt3/
+savebible-v2/2015.09.17 etalon
+savebible-v2/tmp - Copy
 savebible-v2/config/config.json
 /savebible-v2/tmp
 /savebible-v2/test/HTML/HTML.tmLanguage
