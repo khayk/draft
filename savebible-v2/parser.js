@@ -159,7 +159,6 @@ USFMTree.prototype.append = function(node) {
 // var single = ['p', 'v', 'c', 'q', 'b', 's'];
 // var paired =  ['add', 'dc', 'nd', 'qt', 'wj'];
 var paired  = /add|dc|nd|qt|wj/;
-var knownTagsOnly = true;
 
 function parseUSFMBook(str) {
   var nre = /\d+/gm;
@@ -209,7 +208,7 @@ var dirNames = [
   //'ru-synod-usfm-from-text [saved]'
 ];
 
-var bids = ['GEN'];
+var bids = ['PHM'];
 
 measur.begin('loading bible: ');
 bids.forEach(function(bid) {
@@ -230,7 +229,7 @@ bids.forEach(function(bid) {
     var renderer = new rnd.USFMRenderer();
     fs.writeFileSync('usfm.dat', renderer.renderNode(tree.root, 0, 0));
 
-    renderer = new rnd.IndentedRenderer();
+    renderer = new rnd.IndentedUSFMRenderer();
     fs.writeFileSync('usfm_indented.dat', renderer.renderNode(tree.root, 0, 0));
 
     renderer = new rnd.TextRenderer({ textOnly: false });

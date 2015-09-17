@@ -289,17 +289,17 @@
   // };
 
 
-  var IndentedRenderer = function() {
+  var IndentedUSFMRenderer = function() {
     USFMRenderer.call(this);
     this.indented_ = true;
   };
-  inherit(IndentedRenderer, USFMRenderer);
+  inherit(IndentedUSFMRenderer, USFMRenderer);
 
-  IndentedRenderer.prototype.getTextView = function(text) {
+  IndentedUSFMRenderer.prototype.getTextView = function(text) {
     return '<' +  text + '>';
   };
 
-  IndentedRenderer.prototype.defineTagView = function(vo) {
+  IndentedUSFMRenderer.prototype.defineTagView = function(vo) {
     if (!TH.haveClosing(vo.tag)) {
       vo.newline = true;
       vo.open = '\\' + vo.tag;
@@ -571,11 +571,11 @@
   //   return '</body>\n</html>\n';
   // };
 
-  exports.Renderer         = Renderer;
-  exports.USFMRenderer     = USFMRenderer;
-  exports.IndentedRenderer = IndentedRenderer;
-  exports.TextRenderer     = TextRenderer;
-  exports.PrettyRenderer   = PrettyRenderer;
-  exports.HTMLRenderer     = HTMLRenderer;
+  exports.Renderer             = Renderer;
+  exports.USFMRenderer         = USFMRenderer;
+  exports.IndentedUSFMRenderer = IndentedUSFMRenderer;
+  exports.TextRenderer         = TextRenderer;
+  exports.PrettyRenderer       = PrettyRenderer;
+  exports.HTMLRenderer         = HTMLRenderer;
 
 })();
