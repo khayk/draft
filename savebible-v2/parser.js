@@ -58,19 +58,15 @@ Stack.prototype.pop = function() {
   return this.values.pop();
 };
 
-
-function isNodeAnyOf(node, arr) {
-  if (!NH.isTag(node))
-    return false;
-  var tag = node.tag;
-  return arr.indexOf(tag) !== -1;
-}
-
 var arr_cpq = ['c', 'p', 'q', ''];
 var arr_cp  = ['c', 'p'];
 var arr_c   = ['c', ''];
 var arr_    = [''];
 
+function isNodeAnyOf(node, arr) {
+  var tag = node.tag;
+  return arr.indexOf(tag) !== -1;
+}
 
 var USFMTree = function() {
   this.reset();
@@ -83,13 +79,32 @@ USFMTree.prototype.reset = function() {
   this.nre = /\d+\s+/;
 };
 
-USFMTree.prototype.unwind = function(tag) {
+USFMTree.prototype.specialPop = function() {
+  var prev = this.stack.pop();
+
+  // trim tailing spaces for last child nodes
+  if (!TH.haveClosing(prev.tag)) {
+    var last = prev.lastChild();
+    if (last !== null && NH.isText(last))
+      last.text = last.text.trimRight();
+  }
+
   var top = this.stack.top();
-  while (top !== null && top.tag !== tag) {
+  return top;
+};
+
+USFMTree.prototype.unwind = function(tag) {
+  var top = null;
+  while (true) {
+    top = this.stack.top();
+    if (top === null || top.tag === tag)
+      break;
+    this.stack.pop();
+  }
+
+  if (top !== null) {
     top = this.stack.pop();
   }
-  if (top !== null)
-    this.stack.pop();
 };
 
 USFMTree.prototype.append = function(node) {
@@ -98,32 +113,27 @@ USFMTree.prototype.append = function(node) {
     if (node.tag === TAG.V) {
       // pop elements from the stack to have consistent state
       while (!isNodeAnyOf(top, arr_cpq)) {
-        this.stack.pop();
-        top = this.stack.top();
+        top = this.specialPop();
       }
     }
     else if (node.tag === TAG.P || node.tag === TAG.B) {
       while (!isNodeAnyOf(top, arr_c)) {
-        this.stack.pop();
-        top = this.stack.top();
+        top = this.specialPop();
       }
     }
     else if (node.tag === TAG.Q) {
       while (!isNodeAnyOf(top, arr_cp)) {
-        this.stack.pop();
-        top = this.stack.top();
+        top = this.specialPop();
       }
     }
     else if (node.tag === TAG.C) {
       while (!isNodeAnyOf(top, arr_)) {
-        this.stack.pop();
-        top = this.stack.top();
+        top = this.specialPop();
       }
     }
     else if (!TH.haveClosing(node.tag)) {
       while (!isNodeAnyOf(top, arr_c)) {
-        this.stack.pop();
-        top = this.stack.top();
+        top = this.specialPop();
       }
     }
   }
@@ -203,12 +213,17 @@ function parseUSFMBook(str) {
 var dirNames = [
   //'en-kjv-usfm+ [saved]'
   //'zed'
-  'en-kjv-usfm+'
+  'en-kjv-usfm+ [saved]'
   //'am-eab-usfm-from-text',
   //'ru-synod-usfm-from-text [saved]'
 ];
 
-var bids = ['PHM'];
+var bids = ['SIR'];
+
+var indentedUSFMRenderer = new rnd.IndentedUSFMRenderer();
+var usfmRenderer         = new rnd.USFMRenderer();
+var textRenderer         = new rnd.TextRenderer();
+
 
 measur.begin('loading bible: ');
 bids.forEach(function(bid) {
@@ -226,14 +241,9 @@ bids.forEach(function(bid) {
     console.log(tree.stack.size());
     console.log("nodes: ", tree.root.count());
 
-    var renderer = new rnd.USFMRenderer();
-    fs.writeFileSync('usfm.dat', renderer.renderNode(tree.root, 0, 0));
-
-    renderer = new rnd.IndentedUSFMRenderer();
-    fs.writeFileSync('usfm_indented.dat', renderer.renderNode(tree.root, 0, 0));
-
-    renderer = new rnd.TextRenderer({ textOnly: false });
-    fs.writeFileSync('text.dat', renderer.renderNode(tree.root, 0, 0));
+    fs.writeFileSync('usfm.dat', usfmRenderer.renderNode(tree.root, 0, 0));
+    fs.writeFileSync('usfm_indented.dat', indentedUSFMRenderer.renderNode(tree.root, 0, 0));
+    fs.writeFileSync('text.dat', textRenderer.renderNode(tree.root, 0, 0));
 
     tree.root.normalize();
     console.log("nodes after normalize: ", tree.root.count());
@@ -245,16 +255,16 @@ measur.end();
 
 
 // scan all books
-// var dir = cfg.bibleDir(dirNames[0]).from;
-// var files = fs.readdirSync(dir, 'utf8');
-// var renderer = new rnd.USFMRenderer();
+var dir = cfg.bibleDir(dirNames[0]).from;
+var files = fs.readdirSync(dir, 'utf8');
 
-// measur.begin('loading bible: ' + dir);
-// files.forEach(function(file) {
-//   var str  = fs.readFileSync(path.join(dir, file), 'utf8');
-//   var tree = parseUSFMBook(str);
-//   fs.writeFileSync(cfg.tmpDir() + file, renderer.renderNode(tree.root, 0, 0));
-// });
-// measur.end();
+measur.begin('loading bible: ' + dir);
+files.forEach(function(file) {
+  var str  = fs.readFileSync(path.join(dir, file), 'utf8');
+  var tree = parseUSFMBook(str);
+  fs.writeFileSync(cfg.tmpDir() + file, usfmRenderer.renderNode(tree.root, 0, 0));
+  fs.writeFileSync(cfg.tmpDir() + path.basename(file, path.extname(file)) + '.txt', textRenderer.renderNode(tree.root, 0, 0));
+});
+measur.end();
 
 })();

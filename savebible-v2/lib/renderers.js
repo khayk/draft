@@ -385,6 +385,8 @@
         case TAG.Q:
           vo.newline = false;
           break;
+        case TAG.C:
+          vo.newline = (this.textOnly !== true);
         }
       }
 

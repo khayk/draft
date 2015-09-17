@@ -161,6 +161,13 @@
     return this.first;
   };
 
+  // @returns  last child node of the current node
+  Node.prototype.lastChild = function() {
+    if (_.isUndefined(this.last))
+      return null;
+    return this.last;
+  };
+
   // @returns  next node of the current node
   Node.prototype.getNext = function() {
     if (_.isUndefined(this.next))
