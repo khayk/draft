@@ -1206,7 +1206,7 @@ var TH  = cmn.TH;
     }
 
     file = path.basename(file);
-    var arr = /^(\d+)-(\w{3})(\w{2,3})-(\w+)/g.exec(file);
+    var arr = /^[A]?(\d+)-(\w{3})(\w{2,3})-(\w+)/g.exec(file);
     if (arr !== null) {
       return {
         on: parseInt(arr[1]),
@@ -1217,7 +1217,7 @@ var TH  = cmn.TH;
     }
 
     if (!strict) {
-      arr = /^(\d+)-(\w{3})/g.exec(file);
+      arr = /^[A]?(\d+)-(\w{3})/g.exec(file);
       if (arr !== null) {
         return {
           on: parseInt(arr[1]),
@@ -1227,6 +1227,31 @@ var TH  = cmn.TH;
     }
 
     return null;
+  }
+
+
+  // Encode file name based on book id and other attibutes provided in opts
+  //
+  // @param  {string} bid  book id
+  // @param  {object} opts object that have a folloing attributes
+  //                       {  strictFilename: boolean
+  //                          lang: bible language
+  //                          bibleAbbr: bible abbreviation,
+  //                          extension: file extension  }
+  //                       if strictFilename is false, lang and attr will be
+  //                       ignored
+  //
+  // @return {string}      encoded file name
+  //
+  function encodeFileName(bid, opts) {
+    var fname = _.padLeft(BBM.instance().onById(bid), 2, '0') + '-' + bid;
+    if (opts.strictFilename === true) {
+      fname += opts.lang;
+      fname += '-';
+      fname += opts.bibleAbbr.toLowerCase();
+    }
+    fname += opts.extension;
+    return fname;
   }
 
   // Scan directory and guess BBM mapping that is used to save books
@@ -1293,6 +1318,10 @@ var TH  = cmn.TH;
     var found = false;
     files.forEach(function(file) {
       var res = decodeFileName(file, true);
+      if (res === null) {
+        // try non strict decoding
+        res = decodeFileName(file, false);
+      }
       if (found === false && res !== null && res.id === bid) {
         searchable = path.join(dir, file);
         found = true;
@@ -1408,19 +1437,11 @@ var TH  = cmn.TH;
     mkdirp.sync(dir);
 
     var bible = book.parent;
-    var lang  = bible ? bible.lang : book.lang;
-    var abbr  = (bible ? bible.abbr : book.bibleAbbr).toLowerCase();
-
-    var qualifiedName = _.padLeft(BBM.instance().onById(book.te.id), 2, '0') + '-' + book.te.id;
-    if (opts.strictFilename === true) {
-      qualifiedName += lang;
-      qualifiedName += '-';
-      qualifiedName += abbr;
-    }
-    qualifiedName += opts.extension;
+    opts.lang      =  bible ? bible.lang : book.lang;
+    opts.bibleAbbr = (bible ? bible.abbr : book.bibleAbbr).toLowerCase();
 
     var content = book.render(opts.renderer);
-    fs.writeFileSync(dir + qualifiedName, content);
+    fs.writeFileSync(dir + encodeFileName(book.te.id, opts), content);
   };
 
   // Save bible books to the specified directory according to save rules
@@ -1460,6 +1481,7 @@ var TH  = cmn.TH;
   exports.saveBook        = saveBook;
   exports.saveBible       = saveBible;
   exports.decodeFileName  = decodeFileName;
+  exports.encodeFileName  = encodeFileName;
   exports.guessBBM        = guessBBM;
 
 }.call(this));

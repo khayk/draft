@@ -20,16 +20,6 @@ var TAG  = cmn.TAG;
 var TH   = cmn.TH;
 var NH   = cmn.NH;
 
-
-// open       close          ended
-// \v           .          \v, \c, \p
-// \c           .          \c
-// \p           .          \p, \c
-// \q           .          \q, \p
-// \b           .          \*
-// \s                      \*
-
-
 var Stack = function() {
   this.values = [];
 };
@@ -57,6 +47,7 @@ Stack.prototype.pop = function() {
     return null;
   return this.values.pop();
 };
+
 
 var arr_cpq = ['c', 'p', 'q', ''];
 var arr_cp  = ['c', 'p'];
@@ -99,6 +90,10 @@ USFMTree.prototype.unwind = function(tag) {
     top = this.stack.top();
     if (top === null || top.tag === tag)
       break;
+    if (!TH.haveClosing(top.tag)) {
+      log.error('Expecting to see pair for ' + tag + ' but found ' + top.tag + ' instead');
+      return;
+    }
     this.stack.pop();
   }
 
@@ -185,35 +180,44 @@ function parseUSFMBook(str) {
     tree.append(node);
   }
 
-  var arr = vre.exec(str);
-  while (arr !== null) {
-    var tag = arr[1];
+  try {
+    var arr = vre.exec(str);
+    while (arr !== null) {
+      var tag = arr[1];
 
-    if (lastIndex != arr.index) {
-      insertText(lastIndex, arr.index);
-    }
+      if (lastIndex != arr.index) {
+        insertText(lastIndex, arr.index);
+      }
 
-    if (TH.isOpening(tag)) {
-      tag = arr[2];
-      node = NH.createTag(tag);
-      tree.append(node);
-    }
-    else {
-      tree.unwind(arr[2]);
-    }
+      if (TH.isOpening(tag)) {
+        tag = arr[2];
+        node = NH.createTag(tag);
+        tree.append(node);
+      }
+      else {
+        tree.unwind(arr[2]);
+      }
 
-    lastIndex = vre.lastIndex;
-    arr = vre.exec(str);
+      lastIndex = vre.lastIndex;
+      arr = vre.exec(str);
+    }
+    insertText(lastIndex);
   }
-  insertText(lastIndex);
+  catch (e) {
+    log.error('error while parsing: ', e);
+    log.warn('location ~  %s', str.substr(lastIndex, 40));
+    throw e;
+  }
   return tree;
 }
 
 
 var dirNames = [
-  //'en-kjv-usfm+ [saved]'
-  //'zed'
+  'en-kjv-usfm',
+  'en-kjv-usfm+',
   'en-kjv-usfm+ [saved]'
+  //'en-kjv-ptx'
+  //'zed'
   //'am-eab-usfm-from-text',
   //'ru-synod-usfm-from-text [saved]'
 ];
@@ -222,8 +226,7 @@ var bids = ['SIR'];
 
 var indentedUSFMRenderer = new rnd.IndentedUSFMRenderer();
 var usfmRenderer         = new rnd.USFMRenderer();
-var textRenderer         = new rnd.TextRenderer();
-
+var textRenderer         = new rnd.TextRenderer({textOnly: false});
 
 measur.begin('loading bible: ');
 bids.forEach(function(bid) {
@@ -247,24 +250,67 @@ bids.forEach(function(bid) {
 
     tree.root.normalize();
     console.log("nodes after normalize: ", tree.root.count());
-
-    //console.log(util.inspect(tree.root, {depth: 15, colors: true}));
   });
 });
 measur.end();
 
+//return;
+dirNames.forEach(function(de) {
+  // scan all books
+  //var dir = cfg.bibleDir(dirNames[0]).from;
+  var dir = cfg.bibleDir(de).from;
+  var to  = path.join(cfg.tmpDir(), de, '/');
+  require('mkdirp').sync(to);
 
-// scan all books
-var dir = cfg.bibleDir(dirNames[0]).from;
-var files = fs.readdirSync(dir, 'utf8');
+  var files = fs.readdirSync(dir, 'utf8');
+  var trees = [];
+  var renderers = [
+    {name: 'i-usfm', ext: '.i-usfm', renderer: indentedUSFMRenderer, all: ''},
+    {name: 'usfm',   ext: '.usfm',   renderer: usfmRenderer, all: ''},
+    {name: 'text',   ext: '.txt',    renderer: textRenderer, all: ''}
+  ];
 
-measur.begin('loading bible: ' + dir);
-files.forEach(function(file) {
-  var str  = fs.readFileSync(path.join(dir, file), 'utf8');
-  var tree = parseUSFMBook(str);
-  fs.writeFileSync(cfg.tmpDir() + file, usfmRenderer.renderNode(tree.root, 0, 0));
-  fs.writeFileSync(cfg.tmpDir() + path.basename(file, path.extname(file)) + '.txt', textRenderer.renderNode(tree.root, 0, 0));
+  measur.begin('loading bible: ' + dir);
+  files.forEach(function(file) {
+    var fullpath = path.join(dir, file);
+    var str  = fs.readFileSync(fullpath, 'utf8');
+    var opts = lb.decodeFileName(fullpath);
+    if (opts === null) {
+      opts = lb.decodeFileName(fullpath, false);
+      opts.lang = 'eng';
+      opts.bibleAbbr = 'kjv';
+    }
+    opts.strictFilename = true;
+    opts.extension = '';
+    var fname = lb.encodeFileName(opts.id, opts);
+    log.info('parsing file:  %s  ->  %s', file, fname);
+
+    var tree = parseUSFMBook(str);
+    trees.push({tree: tree, fname: to + fname});
+  });
+  measur.end();
+
+  // render bibles and save on disc
+  renderers.forEach(function(ro) {
+    measur.begin('rendering "' + ro.name + '" bible');
+
+    trees.forEach(function(te) {
+      var tree = te.tree;
+      var fname = te.fname;
+      var data  = ro.renderer.renderNode(tree.root, 0, 0);
+      ro.all += data;
+      fs.writeFileSync(fname + ro.ext, data);
+    });
+
+    measur.end();
+  });
+
+  measur.begin('saving on disc');
+  renderers.forEach(function(ro) {
+    fs.writeFileSync(to + ro.name + ro.ext, ro.all);
+  });
+  measur.end();
+
 });
-measur.end();
 
 })();
