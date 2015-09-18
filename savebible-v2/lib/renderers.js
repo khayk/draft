@@ -14,6 +14,11 @@
   var TH  = cmn.TH;
   var NL  = cmn.NL;
 
+
+  /*------------------------------------------------------------------------*/
+  /*                                TagView                                 */
+  /*------------------------------------------------------------------------*/
+
   var TagView = function(renderer) {
     this.renderer_ = renderer;
     this.tvs_ = {};
@@ -50,6 +55,11 @@
     return nested === true ? ref[0] : ref[1];
   };
 
+
+  /*------------------------------------------------------------------------*/
+  /*                              Renderer                                  */
+  /*------------------------------------------------------------------------*/
+
   // Final view of the rendered bible depends on the user defined
   // functions below
   var Renderer = function() {
@@ -83,7 +93,6 @@
   // 2. consider `nested` attribute if required
   // 3. set `renderable` attribute
   // 4. newline
-
   // 5. define separators, verseSeparator, chapterSeparator
 
   // these tags have no closing tag
@@ -115,7 +124,7 @@
         }
 
         // retrieve tag view, that should be defined by concrete renderer
-        vo = this.tagView_.get(node.tag, vrd > 2);
+        vo = this.tagView_.get(node.tag, vrd > 1);
 
         // nice formatted output
         if (vo.newline === true && depth > 0) {

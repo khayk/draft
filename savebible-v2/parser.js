@@ -213,8 +213,8 @@ function parseUSFMBook(str) {
 
 
 var dirNames = [
-  'en-kjv-usfm',
   'en-kjv-usfm+',
+  'en-kjv-usfm',
   'en-kjv-usfm+ [saved]'
   //'en-kjv-ptx'
   //'zed'
@@ -222,7 +222,7 @@ var dirNames = [
   //'ru-synod-usfm-from-text [saved]'
 ];
 
-var bids = ['SIR'];
+var bids = ['GEN'];
 
 var indentedUSFMRenderer = new rnd.IndentedUSFMRenderer();
 var usfmRenderer         = new rnd.USFMRenderer();
@@ -244,9 +244,9 @@ bids.forEach(function(bid) {
     console.log(tree.stack.size());
     console.log("nodes: ", tree.root.count());
 
-    fs.writeFileSync('usfm.dat', usfmRenderer.renderNode(tree.root, 0, 0));
-    fs.writeFileSync('usfm_indented.dat', indentedUSFMRenderer.renderNode(tree.root, 0, 0));
-    fs.writeFileSync('text.dat', textRenderer.renderNode(tree.root, 0, 0));
+    fs.writeFileSync('data-usfm', usfmRenderer.renderNode(tree.root, 0, 0));
+    fs.writeFileSync('data-indented-usfm', indentedUSFMRenderer.renderNode(tree.root, 0, 0));
+    fs.writeFileSync('data-text', textRenderer.renderNode(tree.root, 0, 0));
 
     tree.root.normalize();
     console.log("nodes after normalize: ", tree.root.count());
@@ -257,7 +257,6 @@ measur.end();
 //return;
 dirNames.forEach(function(de) {
   // scan all books
-  //var dir = cfg.bibleDir(dirNames[0]).from;
   var dir = cfg.bibleDir(de).from;
   var to  = path.join(cfg.tmpDir(), de, '/');
   require('mkdirp').sync(to);
@@ -310,7 +309,6 @@ dirNames.forEach(function(de) {
     fs.writeFileSync(to + ro.name + ro.ext, ro.all);
   });
   measur.end();
-
 });
 
 })();
