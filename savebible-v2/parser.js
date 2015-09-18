@@ -1,24 +1,20 @@
-(function() {
-
-'use strict';
-
-var fs   = require('fs');
+var fs = require('fs');
 var util = require('util');
-var _    = require('lodash');
+var _ = require('lodash');
 var path = require('path');
-var cfg  = require('./config').cfg;
-var lb   = require('./lib/bible');
-var cmn  = require('./lib/common');
-var rnd  = require('./lib/renderers');
-var log  = require('log4js').getLogger('psr');
+var cfg = require('./config').cfg;
+var lb = require('./lib/bible');
+var cmn = require('./lib/common');
+var rnd = require('./lib/renderers');
+var log = require('log4js').getLogger('psr');
 var help = require('./helpers');
 
-var measur   = new help.Measurer();
+var measur = new help.Measurer();
 
 var Node = cmn.Node;
-var TAG  = cmn.TAG;
-var TH   = cmn.TH;
-var NH   = cmn.NH;
+var TAG = cmn.TAG;
+var TH = cmn.TH;
+var NH = cmn.NH;
 
 var Stack = function() {
   this.values = [];
@@ -50,9 +46,9 @@ Stack.prototype.pop = function() {
 
 
 var arr_cpq = ['c', 'p', 'q', ''];
-var arr_cp  = ['c', 'p'];
-var arr_c   = ['c', ''];
-var arr_    = [''];
+var arr_cp = ['c', 'p'];
+var arr_c = ['c', ''];
+var arr_ = [''];
 
 function isNodeAnyOf(node, arr) {
   var tag = node.tag;
@@ -65,7 +61,7 @@ var USFMTree = function() {
 
 USFMTree.prototype.reset = function() {
   this.stack = new Stack();
-  this.root  = NH.createTag('');
+  this.root = NH.createTag('');
   this.stack.push(this.root);
   this.nre = /\d+\s+/;
 };
@@ -110,29 +106,20 @@ USFMTree.prototype.append = function(node) {
       while (!isNodeAnyOf(top, arr_cpq)) {
         top = this.specialPop();
       }
-    }
-    else if (node.tag === TAG.P || node.tag === TAG.B) {
-      while (!isNodeAnyOf(top, arr_c)) {
-        top = this.specialPop();
-      }
-    }
-    else if (node.tag === TAG.Q) {
-      while (!isNodeAnyOf(top, arr_cp)) {
-        top = this.specialPop();
-      }
-    }
-    else if (node.tag === TAG.C) {
+    } else if (node.tag === TAG.C) {
       while (!isNodeAnyOf(top, arr_)) {
         top = this.specialPop();
       }
-    }
-    else if (!TH.haveClosing(node.tag)) {
+    } else if (node.tag === TAG.Q) {
+      while (!isNodeAnyOf(top, arr_cp)) {
+        top = this.specialPop();
+      }
+    } else if (!TH.haveClosing(node.tag)) {
       while (!isNodeAnyOf(top, arr_c)) {
         top = this.specialPop();
       }
     }
-  }
-  else {
+  } else {
     if (top.tag === TAG.V || top.tag === TAG.C) {
 
       // setup number for verse or chapter
@@ -147,8 +134,7 @@ USFMTree.prototype.append = function(node) {
 
       if (node.text.length === 0)
         return;
-    }
-    else {
+    } else {
       if (node.text.trim().length === 0)
         return;
     }
@@ -163,13 +149,14 @@ USFMTree.prototype.append = function(node) {
 // var text = null;
 // var single = ['p', 'v', 'c', 'q', 'b', 's'];
 // var paired =  ['add', 'dc', 'nd', 'qt', 'wj'];
-var paired  = /add|dc|nd|qt|wj/;
+var paired = /add|dc|nd|qt|wj/;
 
 function parseUSFMBook(str) {
   var nre = /\d+/gm;
   var vre = /(\\\+?(\w+)\s?\*?)/gm;
   var tree = new USFMTree();
-  var lastIndex = 0, number = 0;
+  var lastIndex = 0,
+    number = 0;
   var node = null;
   var content = '';
   str = str.replace(/\r/gm, '').replace(/\n|¶/gm, ' ').trim();
@@ -193,8 +180,7 @@ function parseUSFMBook(str) {
         tag = arr[2];
         node = NH.createTag(tag);
         tree.append(node);
-      }
-      else {
+      } else {
         tree.unwind(arr[2]);
       }
 
@@ -202,8 +188,7 @@ function parseUSFMBook(str) {
       arr = vre.exec(str);
     }
     insertText(lastIndex);
-  }
-  catch (e) {
+  } catch (e) {
     log.error('error while parsing: ', e);
     log.warn('location ~  %s', str.substr(lastIndex, 40));
     throw e;
@@ -225,8 +210,8 @@ var dirNames = [
 var bids = ['GEN'];
 
 var indentedUSFMRenderer = new rnd.IndentedUSFMRenderer();
-var usfmRenderer         = new rnd.USFMRenderer();
-var textRenderer         = new rnd.TextRenderer({textOnly: false});
+var usfmRenderer = new rnd.USFMRenderer();
+var textRenderer = new rnd.TextRenderer({textOnly: false});
 
 measur.begin('loading bible: ');
 bids.forEach(function(bid) {
@@ -238,7 +223,7 @@ bids.forEach(function(bid) {
     }
 
     log.info(file);
-    var str  = fs.readFileSync(file, 'utf8');
+    var str = fs.readFileSync(file, 'utf8');
     var tree = parseUSFMBook(str);
     //tree.root.normalize();
     console.log(tree.stack.size());
@@ -258,21 +243,32 @@ measur.end();
 dirNames.forEach(function(de) {
   // scan all books
   var dir = cfg.bibleDir(de).from;
-  var to  = path.join(cfg.tmpDir(), de, '/');
+  var to = path.join(cfg.tmpDir(), de, '/');
   require('mkdirp').sync(to);
 
   var files = fs.readdirSync(dir, 'utf8');
   var trees = [];
-  var renderers = [
-    {name: 'i-usfm', ext: '.i-usfm', renderer: indentedUSFMRenderer, all: ''},
-    {name: 'usfm',   ext: '.usfm',   renderer: usfmRenderer, all: ''},
-    {name: 'text',   ext: '.txt',    renderer: textRenderer, all: ''}
-  ];
+  var renderers = [{
+    name: 'i-usfm',
+    ext: '.i-usfm',
+    renderer: indentedUSFMRenderer,
+    all: ''
+  }, {
+    name: 'usfm',
+    ext: '.usfm',
+    renderer: usfmRenderer,
+    all: ''
+  }, {
+    name: 'text',
+    ext: '.txt',
+    renderer: textRenderer,
+    all: ''
+  }];
 
   measur.begin('loading bible: ' + dir);
   files.forEach(function(file) {
     var fullpath = path.join(dir, file);
-    var str  = fs.readFileSync(fullpath, 'utf8');
+    var str = fs.readFileSync(fullpath, 'utf8');
     var opts = lb.decodeFileName(fullpath);
     if (opts === null) {
       opts = lb.decodeFileName(fullpath, false);
@@ -285,7 +281,10 @@ dirNames.forEach(function(de) {
     log.info('parsing file:  %s  ->  %s', file, fname);
 
     var tree = parseUSFMBook(str);
-    trees.push({tree: tree, fname: to + fname});
+    trees.push({
+      tree: tree,
+      fname: to + fname
+    });
   });
   measur.end();
 
@@ -296,7 +295,7 @@ dirNames.forEach(function(de) {
     trees.forEach(function(te) {
       var tree = te.tree;
       var fname = te.fname;
-      var data  = ro.renderer.renderNode(tree.root, 0, 0);
+      var data = ro.renderer.renderNode(tree.root, 0, 0);
       ro.all += data;
       fs.writeFileSync(fname + ro.ext, data);
     });
@@ -310,5 +309,3 @@ dirNames.forEach(function(de) {
   });
   measur.end();
 });
-
-})();
