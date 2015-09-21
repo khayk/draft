@@ -35,11 +35,19 @@
     };
   };
 
-  TagView.prototype.get = function(tag, nested) {
-    var ref = this.tvs_[tag];
+  TagView.prototype.get = function(node, nested) {
+    var tag = node.tag;
+    var vo = null;
 
+    if (this.renderer_.haveComplexView(node)) {
+      vo = this.template();
+      this.renderer_.defineComplexView(node, vo);
+      return vo;
+    }
+
+    var ref = this.tvs_[tag];
     if (_.isUndefined(ref)) {
-      var vo      = this.template();
+      vo          = this.template();
       vo.tag      = tag;
       vo.nested   = false;
       this.renderer_.defineTagView(vo);
@@ -48,11 +56,11 @@
       von.tag     = tag;
       von.nested  = true;
       this.renderer_.defineTagView(von);
-      ref = [von, vo];
+      ref = [vo, von];
 
       this.tvs_[tag] = ref;
     }
-    return nested === true ? ref[0] : ref[1];
+    return nested === false ? ref[0] : ref[1];
   };
 
 
@@ -86,6 +94,27 @@
   Renderer.prototype.getNumberView     = function(tag, number) { throw new Error('implement defineNumberView!'); };
   Renderer.prototype.getTextView       = function(text)        { throw new Error('implement getTextView!'); };
 
+  // ONLY special case should be processed by this function
+  // normally the renderer should define tag view through defineTagView,
+  // but if any node needs special processing it can be done with this function
+  // on exit vo object filled with neccessary fields for custom processing
+  Renderer.prototype.defineComplexView = function(node, vo)    { throw new Error('implement defineComplexView!'); };
+
+  // you can overwrite this function to make rendering process of any tag
+  // as flexible as you wish
+  // @returns   true    if the tag have dynamic view
+  //            false   if the tag have static view
+  //
+  // if function returns true
+  Renderer.prototype.haveComplexView   = function(node) {
+    if (node.tag === TAG.P) {
+      var child = node.firstChild();
+      if (child !== null && NH.isText(child))
+        return true;
+    }
+    return false;
+  };
+
 
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode = function(node, depth, vrd) {
@@ -104,7 +133,7 @@
         }
 
         // retrieve tag view, that should be defined by concrete renderer
-        vo = this.tagView_.get(node.tag, vrd > 1);
+        vo = this.tagView_.get(node, vrd > 1);
 
         // nice formatted output
         if (vo.newline === true && depth > 0) {
@@ -228,6 +257,12 @@
   };
   inherit(USFMRenderer, Renderer);
 
+  USFMRenderer.prototype.defineComplexView = function(node, vo) {
+    vo.tag = node.tag;
+    this.defineTagView(vo);
+    vo.open += ' ';
+  };
+
   USFMRenderer.prototype.defineTagView = function(vo) {
     if (!TH.haveClosing(vo.tag)) {
       vo.newline = true;
@@ -325,6 +360,10 @@
   };
   inherit(TextRenderer, Renderer);
 
+  TextRenderer.prototype.defineComplexView = function(node, vo) {
+    vo.renderable = false;
+  };
+
   TextRenderer.prototype.defineTagView = function(vo) {
     if (vo.tag === '')
       return;
@@ -384,7 +423,7 @@
 
     if (vo.renderable === true && vo.tag === TAG.TOC2) {
       vo.open = '== ';
-      vo.close = ' ==';
+      vo.close = ' ==\n';
     }
 
     // if (vo.tag === '')

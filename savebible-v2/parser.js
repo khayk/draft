@@ -184,9 +184,9 @@ function parseUSFM(str) {
 
 
 var dirNames = [
-  'en-kjv-usfm+'
-  // 'en-kjv-usfm',
-  // 'en-kjv-usfm+ [saved]'
+  'en-kjv-usfm+',
+  'en-kjv-usfm',
+  'en-kjv-usfm+ [saved]'
   //'en-kjv-ptx'
   //'zed'
   //'am-eab-usfm-from-text',
@@ -221,7 +221,6 @@ bids.forEach(function(bid) {
   });
 });
 measur.end();
-
 return;
 
 function handleDirectory(de) {
@@ -232,29 +231,13 @@ function handleDirectory(de) {
 
   var files = fs.readdirSync(dir, 'utf8');
   var roots = [];
-  var renderers = [{
-      name: 'usfm',
-      ext: '.usfm',
-      renderer: usfmRenderer,
-      all: ''
-    },
-
-    {
-      name: 'i-usfm',
-      ext: '.i-usfm',
-      renderer: indentedUSFMRenderer,
-      all: ''
-    },
-
-    {
-      name: 'text',
-      ext: '.txt',
-      renderer: textRenderer,
-      all: ''
-    }
+  var renderers = [
+    {name: 'usfm',   ext: '.usfm',   renderer: usfmRenderer,         all: ''},
+    {name: 'text',   ext: '.txt',    renderer: textRenderer,         all: ''},
+    {name: 'i-usfm', ext: '.i-usfm', renderer: indentedUSFMRenderer, all: ''}
   ];
 
-  //measur.begin('loading bible: ' + dir);
+  measur.begin('loading bible: ' + dir);
   files.forEach(function(file) {
     var fullpath = path.join(dir, file);
     var str = fs.readFileSync(fullpath, 'utf8');
@@ -275,13 +258,13 @@ function handleDirectory(de) {
       fname: to + fname
     });
   });
-  //measur.end();
+  measur.end();
 
 
   measur.begin('rendering...');
   // render bibles and save on disc
   renderers.forEach(function(ro) {
-    measur.begin('rendering "' + ro.name + '" bible');
+    //measur.begin('rendering "' + ro.name + '" bible');
 
     roots.forEach(function(te) {
       var root = te.root;
@@ -291,15 +274,13 @@ function handleDirectory(de) {
       fs.writeFileSync(fname + ro.ext, data);
     });
 
-    measur.end();
+    //measur.end();
   });
   measur.end();
 
-  //measur.begin('saving on disc');
   renderers.forEach(function(ro) {
     fs.writeFileSync(to + ro.name + ro.ext, ro.all);
   });
-  //measur.end();
 }
 
 dirNames.forEach(function(de) {
