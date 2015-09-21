@@ -39,14 +39,14 @@
     var ref = this.tvs_[tag];
 
     if (_.isUndefined(ref)) {
-      var vo = this.template();
-      vo.tag = tag;
-      vo.nested = false;
+      var vo      = this.template();
+      vo.tag      = tag;
+      vo.nested   = false;
       this.renderer_.defineTagView(vo);
 
-      var von = this.template();
-      von.tag = tag;
-      von.nested = true;
+      var von     = this.template();
+      von.tag     = tag;
+      von.nested  = true;
       this.renderer_.defineTagView(von);
       ref = [von, vo];
 
@@ -370,6 +370,11 @@
 
   var PrettyRenderer = function() {
     TextRenderer.call(this, {textOnly: false});
+
+    var src = this.renderable.source;
+    var pos = src.length - 2;
+    var regexNewSource = src.substr(0, pos) + '|toc2' + src.substr(pos);
+    this.renderable = new RegExp(regexNewSource);
   };
 
   inherit(PrettyRenderer, TextRenderer);
@@ -377,7 +382,10 @@
   PrettyRenderer.prototype.defineTagView = function(vo) {
     TextRenderer.prototype.defineTagView.call(this, vo);
 
-    this.renderable = new RegExp(this.renderable);
+    if (vo.renderable === true && vo.tag === TAG.TOC2) {
+      vo.open = '== ';
+      vo.close = ' ==';
+    }
 
     // if (vo.tag === '')
     //   return;

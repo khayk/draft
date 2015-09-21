@@ -184,9 +184,9 @@ function parseUSFM(str) {
 
 
 var dirNames = [
-  'en-kjv-usfm+',
-  'en-kjv-usfm',
-  'en-kjv-usfm+ [saved]'
+  'en-kjv-usfm+'
+  // 'en-kjv-usfm',
+  // 'en-kjv-usfm+ [saved]'
   //'en-kjv-ptx'
   //'zed'
   //'am-eab-usfm-from-text',
@@ -200,7 +200,6 @@ var usfmRenderer         = new rnd.USFMRenderer();
 var textRenderer         = new rnd.TextRenderer({textOnly: false});
 var prettyRenderer       = new rnd.PrettyRenderer();
 
-/*
 measur.begin('loading bible: ');
 bids.forEach(function(bid) {
   dirNames.forEach(function(dn) {
@@ -222,9 +221,8 @@ bids.forEach(function(bid) {
   });
 });
 measur.end();
-*/
-//return;
-//
+
+return;
 
 function handleDirectory(de) {
   // scan all books
@@ -235,23 +233,28 @@ function handleDirectory(de) {
   var files = fs.readdirSync(dir, 'utf8');
   var roots = [];
   var renderers = [{
-    name: 'i-usfm',
-    ext: '.i-usfm',
-    renderer: indentedUSFMRenderer,
-    all: ''
-  }, {
-    name: 'usfm',
-    ext: '.usfm',
-    renderer: usfmRenderer,
-    all: ''
-  }, {
-    name: 'text',
-    ext: '.txt',
-    renderer: textRenderer,
-    all: ''
-  }];
+      name: 'usfm',
+      ext: '.usfm',
+      renderer: usfmRenderer,
+      all: ''
+    },
 
-  measur.begin('loading bible: ' + dir);
+    {
+      name: 'i-usfm',
+      ext: '.i-usfm',
+      renderer: indentedUSFMRenderer,
+      all: ''
+    },
+
+    {
+      name: 'text',
+      ext: '.txt',
+      renderer: textRenderer,
+      all: ''
+    }
+  ];
+
+  //measur.begin('loading bible: ' + dir);
   files.forEach(function(file) {
     var fullpath = path.join(dir, file);
     var str = fs.readFileSync(fullpath, 'utf8');
@@ -272,8 +275,10 @@ function handleDirectory(de) {
       fname: to + fname
     });
   });
-  measur.end();
+  //measur.end();
 
+
+  measur.begin('rendering...');
   // render bibles and save on disc
   renderers.forEach(function(ro) {
     measur.begin('rendering "' + ro.name + '" bible');
@@ -288,15 +293,18 @@ function handleDirectory(de) {
 
     measur.end();
   });
+  measur.end();
 
-  measur.begin('saving on disc');
+  //measur.begin('saving on disc');
   renderers.forEach(function(ro) {
     fs.writeFileSync(to + ro.name + ro.ext, ro.all);
   });
-  measur.end();
+  //measur.end();
 }
 
 dirNames.forEach(function(de) {
+  //measur.begin('handle directory: ' + de);
   handleDirectory(de);
+  //measur.end();
 });
 

@@ -58,7 +58,7 @@ var Measurer = function() {
 
   this.begin = function(msg) {
     if (msg) {
-      log.info(_.pad(_.pad(msg, msg.length + 2, ' '), len, '-'));
+      log.info(_.pad(_.pad(msg, msg.length + 2, ' '), len - 1, '-'));
     }
     var usage = process.memoryUsage();
     heapTotal = usage.heapTotal;

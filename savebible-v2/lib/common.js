@@ -154,6 +154,16 @@
     return this;
   };
 
+  // @param {object} node  object that is going to become a next node of
+  //                       current node
+  // @return this
+  Node.prototype.setNext = function(node) {
+    if (this.haveNext())
+      node.next = this.getNext();
+    this.next = node;
+    return this;
+  };
+
   // @returns  first child node of the current node
   Node.prototype.firstChild = function() {
     if (_.isUndefined(this.first))
