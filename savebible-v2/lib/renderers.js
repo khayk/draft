@@ -68,43 +68,23 @@
   };
 
   // These functions `SHOULD BE` overridden in the derived classes
-  Renderer.prototype.defineTagView     = function(vo)          { throw new Error('implement defineTagView!'); };
-  Renderer.prototype.getNumberView     = function(tag, number) { throw new Error('implement defineNumberView!'); };
-  Renderer.prototype.getTextView       = function(text)        { throw new Error('implement getTextView!'); };
-
-  // Renderer.prototype.defineVerseView   = function(vo)    { throw new Error('implement defineVerseView!'); };
-  // Renderer.prototype.defineChapterView = function(vo)    { throw new Error('implement defineChapterView!'); };
-  // Renderer.prototype.defineBookView    = function(vo)    { throw new Error('implement defineBookView!'); };
-
+  // Every renderer should define
   //
-  // Renderer.prototype.defineTextView    = function(text)  { return text; };
-  // Renderer.prototype.defineNumberView  = function(node)  { return node.number; };
-
-  // Renderer.prototype.getVerseBegin     = function(verse) { throw new Error('implement getVerseBegin!'); };
-  // Renderer.prototype.getVerseEnd       = function(verse) { throw new Error('implement getVerseEnd!'); };
-  // Renderer.prototype.getChapterBegin   = function(chap)  { throw new Error('implement getChapterBegin!'); };
-  // Renderer.prototype.getChapterEnd     = function(chap)  { throw new Error('implement getChapterEnd!'); };
-  // Renderer.prototype.getBookBegin      = function(book)  { throw new Error('implement getBookBegin!'); };
-  // Renderer.prototype.getBookEnd        = function(book)  { throw new Error('implement getBookEnd!'); };
-
-
-  // every renderer should define
+  // [defineTagView]
   // 1. opening and closing tag view string for a given tag
   // 2. consider `nested` attribute if required
   // 3. set `renderable` attribute
-  // 4. newline
-  // 5. define separators, verseSeparator, chapterSeparator
-
-  // these tags have no closing tag
-  // \c, \v
-  // \d, \p, \b, \q
+  // 4. set `newline` flag if the tag should be displayed on the new line
   //
-  // \d - closed as soon as encountered any of tags without closing tag
+  // [getNumberView]
+  // 1. returns string that is define the view of given that with given number
   //
-  // \p - closed as soon as encountered       \p or \c or end of chapter
-  // \q - closed as soon as encountered \v or \q    \c or end of chapter
-  // \v - closed as soon as encountered \v or       \c or end of chapter
-  // \c - closed as soon as encountered             \c or end of chapter
+  // [getTextView]
+  // 1. returns string that is define the view of given text
+  //
+  Renderer.prototype.defineTagView     = function(vo)          { throw new Error('implement defineTagView!'); };
+  Renderer.prototype.getNumberView     = function(tag, number) { throw new Error('implement defineNumberView!'); };
+  Renderer.prototype.getTextView       = function(text)        { throw new Error('implement getTextView!'); };
 
 
   // These functions `SHOULD NOT` be overridden in the derived classes
@@ -277,14 +257,6 @@
     return text;
   };
 
-  // USFMRenderer.prototype.defineVerseView = function(vo) {
-  //   vo.id = this.tagView_.get(TAG.V, false).open + vo.verse.number + ' ';
-  // };
-
-  // USFMRenderer.prototype.defineChapterView = function(vo) {
-  //   vo.id  = this.tagView_.get(TAG.C, false).open + vo.chapter.number;
-  // };
-
   // USFMRenderer.prototype.defineBookView = function(vo) {
   //   var book = vo.book;
   //   var res = '';
@@ -329,31 +301,6 @@
     }
   };
 
-  // USFMRenderer.prototype.getVerseBegin = function(verse) {
-  //   return NL;
-  // };
-
-  // USFMRenderer.prototype.getVerseEnd = function(verse) {
-  //   return '';
-  // };
-
-  // USFMRenderer.prototype.getChapterBegin = function(chap) {
-  //   return NL;
-  // };
-
-  // USFMRenderer.prototype.getChapterEnd = function(chap) {
-  //   return '';
-  // };
-
-  // USFMRenderer.prototype.getBookBegin = function(book) {
-  //   return '';
-  // };
-
-  // USFMRenderer.prototype.getBookEnd = function(book) {
-  //   return NL;
-  // };
-
-
 
   /*------------------------------------------------------------------------*/
   /*                            Text Renderer                               */
@@ -370,7 +317,7 @@
     else if (typeof opts !== 'object')
       throw new TypeError('Bad arguments');
     this.textOnly   = opts.textOnly;
-    this.renderable = /add|wj|nd|qt|dc|p|q|c|v/;
+    this.renderable = /^(add|wj|nd|qt|dc|p|q|c|v)$/;
     this.isRenderable = function(tag) {
         return this.renderable.test(tag) === true;
     };
@@ -383,8 +330,8 @@
       return;
 
     vo.renderable = this.isRenderable(vo.tag);
-    if (!vo.renderable)
-      console.log('%s: is %s', vo.tag, vo.renderable ? 'renderable' : 'not renderable');
+    // if (!vo.renderable)
+    //   console.log('%s: is %s', vo.tag, vo.renderable ? 'renderable' : 'not renderable');
 
     if (vo.renderable === true) {
       if (!TH.haveClosing(vo.tag)) {
@@ -417,52 +364,57 @@
   };
 
 
-  // TextRenderer.prototype.defineVerseView = function(vo) {
-  //   if (!this.textOnly)
-  //     vo.id = vo.verse.id() + ' ';
-  // };
-
-  // TextRenderer.prototype.defineChapterView = function(vo) {
-  // };
-
-  // TextRenderer.prototype.defineBookView = function(vo) {
-  // };
-
-
-  // TextRenderer.prototype.getVerseBegin = function(verse) {
-  //   return NL;
-  // };
-
-  // TextRenderer.prototype.getVerseEnd   = function(verse) {
-  //   return '';
-  // };
-
-  // TextRenderer.prototype.getChapterBegin = function(chap) {
-  //   return '';
-  // };
-
-  // TextRenderer.prototype.getChapterEnd = function(chap)  {
-  //   return '';
-  // };
-
-  // TextRenderer.prototype.getBookBegin = function(book) {
-  //   return '';
-  // };
-
-  // TextRenderer.prototype.getBookEnd = function(book)  {
-  //   return '';
-  // };
-
-
   /*------------------------------------------------------------------------*/
   /*                          Pretty Renderer                               */
   /*------------------------------------------------------------------------*/
 
-  var PrettyRenderer = function(opts) {
-    TextRenderer.call(this, opts);
+  var PrettyRenderer = function() {
+    TextRenderer.call(this, {textOnly: false});
   };
 
   inherit(PrettyRenderer, TextRenderer);
+
+  PrettyRenderer.prototype.defineTagView = function(vo) {
+    TextRenderer.prototype.defineTagView.call(this, vo);
+
+    this.renderable = new RegExp(this.renderable);
+
+    // if (vo.tag === '')
+    //   return;
+
+    // vo.renderable = this.isRenderable(vo.tag);
+    // if (!vo.renderable)
+    //   console.log('%s: is %s', vo.tag, vo.renderable ? 'renderable' : 'not renderable');
+
+    // if (vo.renderable === true) {
+    //   if (!TH.haveClosing(vo.tag)) {
+    //     vo.newline = true;
+    //     switch (vo.tag) {
+    //     case TAG.P:
+    //     case TAG.Q:
+    //       vo.newline = false;
+    //       break;
+    //     case TAG.C:
+    //       vo.newline = (this.textOnly !== true);
+    //     }
+    //   }
+
+    //   if (TH.isTranslator(vo.tag)) {
+    //     vo.open  = '[';
+    //     vo.close = ']';
+    //   }
+    // }
+  };
+
+  PrettyRenderer.prototype.getNumberView = function(tag, number) {
+    if (tag === TAG.V) {
+      return _.padRight(number, 3, ' ');
+    }
+    else if (tag === TAG.C) {
+      return '\r\n=== ' + number + ' ===\r\n';
+    }
+    return '';
+  };
 
   // PrettyRenderer.prototype.defineVerseView = function(vo) {
   //   if (!this.textOnly)

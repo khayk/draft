@@ -50,10 +50,6 @@ var arr_cp = ['c', 'p'];
 var arr_c = ['c', ''];
 var arr_ = [''];
 
-function find(tag, arr) {
-  return arr.indexOf(tag) !== -1;
-}
-
 var USFMTree = function() {
   this.reset();
 };
@@ -67,7 +63,7 @@ USFMTree.prototype.reset = function() {
 
 USFMTree.prototype.handle = function(arr) {
   var top = this.stack.top();
-  while (!find(top.tag, arr)) {
+  while (arr.indexOf(top.tag) === -1) {
     var prev = this.stack.pop();
 
     // trim tailing spaces for last child nodes
@@ -99,16 +95,21 @@ USFMTree.prototype.unwind = function(tag) {
   }
 };
 
+
 USFMTree.prototype.append = function(node) {
   var top = this.stack.top();
   if (NH.isTag(node)) {
     if (node.tag === TAG.V) {
+      // \v - closed as soon as encountered \p, \q, \c or end of chapter
       top = this.handle(arr_cpq);
     } else if (node.tag === TAG.C) {
+      // \c - closed as soon as encountered end of chapter
       top = this.handle(arr_);
     } else if (node.tag === TAG.Q) {
+      // \q - closed as soon as encountered \p, \c or end of chapter
       top = this.handle(arr_cp);
     } else if (!TH.haveClosing(node.tag)) {
+      // other single tags closed as soon as encountered \c or end of chapter
       top = this.handle(arr_c);
     }
   } else {
@@ -141,7 +142,7 @@ USFMTree.prototype.append = function(node) {
 function parseUSFM(str) {
   var vre = /(\\\+?(\w+)\s?\*?)/gm;
   var tree = new USFMTree();
-  var lastIndex = 0, number = 0;
+  var lastIndex = 0;
   var node = null;
   var content = '';
   str = str.replace(/\r/gm, '').replace(/\n|¶/gm, ' ').trim();
@@ -192,12 +193,14 @@ var dirNames = [
   //'ru-synod-usfm-from-text [saved]'
 ];
 
-var bids = ['GEN'];
+var bids = ['SIR'];
 
 var indentedUSFMRenderer = new rnd.IndentedUSFMRenderer();
-var usfmRenderer = new rnd.USFMRenderer();
-var textRenderer = new rnd.TextRenderer({textOnly: false});
+var usfmRenderer         = new rnd.USFMRenderer();
+var textRenderer         = new rnd.TextRenderer({textOnly: false});
+var prettyRenderer       = new rnd.PrettyRenderer();
 
+/*
 measur.begin('loading bible: ');
 bids.forEach(function(bid) {
   dirNames.forEach(function(dn) {
@@ -212,15 +215,18 @@ bids.forEach(function(bid) {
     var root = parseUSFM(str);
     console.log("nodes count: ", root.count());
 
+    fs.writeFileSync('data-pretty', prettyRenderer.renderNode(root, 0, 0));
     fs.writeFileSync('data-usfm', usfmRenderer.renderNode(root, 0, 0));
     fs.writeFileSync('data-indented-usfm', indentedUSFMRenderer.renderNode(root, 0, 0));
     fs.writeFileSync('data-text', textRenderer.renderNode(root, 0, 0));
   });
 });
 measur.end();
-
+*/
 //return;
-dirNames.forEach(function(de) {
+//
+
+function handleDirectory(de) {
   // scan all books
   var dir = cfg.bibleDir(de).from;
   var to = path.join(cfg.tmpDir(), de, '/');
@@ -258,7 +264,7 @@ dirNames.forEach(function(de) {
     opts.strictFilename = true;
     opts.extension = '';
     var fname = lb.encodeFileName(opts.id, opts);
-    log.info('parsing file:  %s  ->  %s', file, fname);
+    //log.info('parsing file:  %s  ->  %s', file, fname);
 
     var root = parseUSFM(str);
     roots.push({
@@ -288,4 +294,9 @@ dirNames.forEach(function(de) {
     fs.writeFileSync(to + ro.name + ro.ext, ro.all);
   });
   measur.end();
+}
+
+dirNames.forEach(function(de) {
+  handleDirectory(de);
 });
+
