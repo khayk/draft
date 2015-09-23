@@ -2,7 +2,6 @@
   'use strict';
 
   var _       = require('lodash');
-  //var lb      = require('./bible.js');
   var cmn     = require('./common.js');
   var inherit = require('./inherit.js').inherit;
 
@@ -127,28 +126,27 @@
 
     if (NH.isText(node)) {
       res += this.getTextView(node.text);
-    } else {
-      if (node.tag !== '') {
-        if (node.tag === TAG.V)
-          vrd = 0;
+    }
+    else {
+      if (node.tag === TAG.V)
+        vrd = 0;
 
-        // retrieve tag view, that should be defined by concrete renderer
-        vo = this.tagView_.get(node, vrd > 1);
+      // retrieve tag view, that should be defined by concrete renderer
+      vo = this.tagView_.get(node, vrd > 1);
 
-        // nice formatted output
-        if (vo.newline === true && depth > 0) {
-          res += NL;
-          if (this.indented_ === true)
-            res += _.pad('', 3 * (depth - 1));
-        }
+      // nice formatted output
+      if (vo.newline === true && depth > 0) {
+        res += NL;
+        if (this.indented_ === true)
+          res += _.pad('', 3 * (depth - 1));
+      }
 
-        // skip tag if the renderer have no clue how to render it
-        if (vo.renderable) {
-          res += vo.open;
+      // skip tag if the renderer have no clue how to render it
+      if (vo.renderable) {
+        res += vo.open;
 
-          if (!_.isUndefined(node.number)) {
-            res += this.getNumberView(node.tag, node.number);
-          }
+        if (!_.isUndefined(node.number)) {
+          res += this.getNumberView(node.tag, node.number);
         }
       }
     }
@@ -160,8 +158,7 @@
     }
 
     if (this.indented_ === true && NH.isTag(node)) {
-      res += NL;
-      res += _.pad('', 3 * (depth - 1));
+      res += NL + _.pad('', 3 * (depth - 1));
     }
     res += vo.close;
     return depth === 0 ? res.trimLeft() : res;
@@ -172,18 +169,20 @@
   // @brief    render given verse based on the renderer configuration
   // @returns  string containing the rendered verse
   Renderer.prototype.renderVerse = function(verse) {
-    var vo = {
-      verse: verse,
-      id: ''
-    };
-    this.defineVerseView(vo);
-    return vo.id + this.renderNode(verse.node, 1) +
-           this.tagView_.get(TAG.V, false).close;
+    // var vo = {
+    //   verse: verse,
+    //   id: ''
+    // };
+    // this.defineVerseView(vo);
+    // return vo.id + this.renderNode(verse.node, 1) +
+    //        this.tagView_.get(TAG.V, false).close;
   };
 
   // @brief    render given chapter based on the renderer configuration
   // @returns  string containing the rendered chapter
   Renderer.prototype.renderChapter = function(chapter) {
+
+    /*
     var vo = {
       chapter: chapter,
       id: '',
@@ -208,12 +207,13 @@
     });
 
     res += this.tagView_.get(TAG.C, false).close;
-    return res;
+    return res;*/
   };
 
   // @brief    render given book based on the renderer configuration
   // @returns  string containing the rendered book
   Renderer.prototype.renderBook    = function(book) {
+    /*
     var res = '';
     var vo = {
       book: book,
@@ -229,6 +229,7 @@
       res += c.render(self);
     });
     return res;
+    */
   };
 
   // @brief    render given bible based on the renderer configuration
@@ -249,18 +250,21 @@
 
 
   // @brief  Predefined USFM renderer. Renders the bible in USFM format
-  var USFMRenderer = function() {
+  var UsfmRenderer = function() {
     Renderer.call(this);
   };
-  inherit(USFMRenderer, Renderer);
+  inherit(UsfmRenderer, Renderer);
 
-  USFMRenderer.prototype.defineComplexView = function(node, vo) {
+  UsfmRenderer.prototype.defineComplexView = function(node, vo) {
     vo.tag = node.tag;
     this.defineTagView(vo);
     vo.open += ' ';
   };
 
-  USFMRenderer.prototype.defineTagView = function(vo) {
+  UsfmRenderer.prototype.defineTagView = function(vo) {
+    if (vo.tag === '')
+      return;
+
     if (!TH.haveClosing(vo.tag)) {
       vo.newline = true;
       vo.open = '\\' + vo.tag;
@@ -281,15 +285,15 @@
     }
   };
 
-  USFMRenderer.prototype.getNumberView = function(tag, number) {
+  UsfmRenderer.prototype.getNumberView = function(tag, number) {
     return number + (tag === TAG.V ? ' ' : '');
   };
 
-  USFMRenderer.prototype.getTextView = function(text) {
+  UsfmRenderer.prototype.getTextView = function(text) {
     return text;
   };
 
-  // USFMRenderer.prototype.defineBookView = function(vo) {
+  // UsfmRenderer.prototype.defineBookView = function(vo) {
   //   var book = vo.book;
   //   var res = '';
   //   res += '\\' + TAG.ID   + ' ' + book.te.id   + ' ' + book.te.name + NL;
@@ -302,17 +306,20 @@
   // };
 
 
-  var IndentedUSFMRenderer = function() {
-    USFMRenderer.call(this);
+  var IndentedUsfmRenderer = function() {
+    UsfmRenderer.call(this);
     this.indented_ = true;
   };
-  inherit(IndentedUSFMRenderer, USFMRenderer);
+  inherit(IndentedUsfmRenderer, UsfmRenderer);
 
-  IndentedUSFMRenderer.prototype.getTextView = function(text) {
+  IndentedUsfmRenderer.prototype.getTextView = function(text) {
     return '<' +  text + '>';
   };
 
-  IndentedUSFMRenderer.prototype.defineTagView = function(vo) {
+  IndentedUsfmRenderer.prototype.defineTagView = function(vo) {
+    if (vo.tag === '')
+      return;
+
     if (!TH.haveClosing(vo.tag)) {
       vo.newline = true;
       vo.open = '\\' + vo.tag;
@@ -422,32 +429,6 @@
       vo.open = '== ';
       vo.close = ' ==\n';
     }
-
-    // if (vo.tag === '')
-    //   return;
-
-    // vo.renderable = this.isRenderable(vo.tag);
-    // if (!vo.renderable)
-    //   console.log('%s: is %s', vo.tag, vo.renderable ? 'renderable' : 'not renderable');
-
-    // if (vo.renderable === true) {
-    //   if (!TH.haveClosing(vo.tag)) {
-    //     vo.newline = true;
-    //     switch (vo.tag) {
-    //     case TAG.P:
-    //     case TAG.Q:
-    //       vo.newline = false;
-    //       break;
-    //     case TAG.C:
-    //       vo.newline = (this.textOnly !== true);
-    //     }
-    //   }
-
-    //   if (TH.isTranslator(vo.tag)) {
-    //     vo.open  = '[';
-    //     vo.close = ']';
-    //   }
-    // }
   };
 
   PrettyRenderer.prototype.getNumberView = function(tag, number) {
@@ -460,39 +441,13 @@
     return '';
   };
 
-  // PrettyRenderer.prototype.defineVerseView = function(vo) {
-  //   if (!this.textOnly)
-  //     vo.id = _.padRight(vo.verse.vn(), 3, ' ');
-  // };
-
-  // PrettyRenderer.prototype.defineChapterView = function(vo) {
-  //   vo.id = '=== ' + vo.chapter.number + ' ===\r\n';
-  // };
-
-  // PrettyRenderer.prototype.defineBookView = function(vo) {
-  //   vo.header = '== ' + vo.book.te.name + ' ==' + '\r\n';
-  // };
-
-
-  // PrettyRenderer.prototype.getChapterBegin = function(chap) {
-  //   return '\r\n\r\n';
-  // };
-
-  // PrettyRenderer.prototype.getBookBegin = function(book) {
-  //   return '\r\n';
-  // };
-
 
   /*------------------------------------------------------------------------*/
   /*                           HTML Renderer                                */
   /*------------------------------------------------------------------------*/
 
-  var HTMLRenderer = function(opts) {
+  var HtmlRenderer = function(opts) {
     Renderer.call(this, opts);
-
-    //this.discoveredParagraphs = 0;
-    this.paragraphTags = [];
-    this.otherTags = [];
 
     this.htmlBuilder = function(tag, cls) {
       return {
@@ -505,84 +460,74 @@
     this.tm = {};
     this.tm[TAG.H]   = {tag: 'div', class: 'h'};
     this.tm[TAG.C]   = {tag: 'div', class: 'c'};
-    this.tm[TAG.V]   = {tag: 'div', class: 'v'};
+    this.tm[TAG.V]   = {tag: 'span', class: 'v'};
     this.tm[TAG.P]   = {tag: 'div', class: 'p'};
 
-    this.tm[TAG.WJ]  = {tag: 'div', class: 'wj'};
-    this.tm[TAG.ND]  = {tag: 'div', class: 'nd'};
-    this.tm[TAG.QT]  = {tag: 'div', class: 'qt'};
-    this.tm[TAG.ADD] = {tag: 'div', class: 'add'};
+    this.tm[TAG.WJ]  = {tag: 'span', class: 'wj'};
+    this.tm[TAG.ND]  = {tag: 'span', class: 'nd'};
+    this.tm[TAG.QT]  = {tag: 'span', class: 'qt'};
+    this.tm[TAG.ADD] = {tag: 'span', class: 'add'};
   };
 
-  inherit(HTMLRenderer, Renderer);
+  inherit(HtmlRenderer, Renderer);
 
-  HTMLRenderer.prototype.defineTagView = function(vo) {
-    var res;
-    if (vo.tag === TAG.P) {
-      res = this.htmlBuilder(vo.tag);
-      this.paragraphTags.push(res.c);
+  HtmlRenderer.prototype.defineComplexView = function(node, vo) {
+    vo.renderable = false;
+  };
 
-      if (this.paragraphTags.length > 1) {
-        vo.open += this.paragraphTags.pop();
-        vo.open = vo.open + '\n' + res.o;
-      }
-      else {
-        vo.open = res.o;
-        vo.close = '';
-      }
-      vo.open = '\n' + vo.open;
+  HtmlRenderer.prototype.defineTagView = function(vo) {
+    if (vo.tag === '') {
+      vo.open =
+          '<!doctype html>' + NL +
+          '<html>' + NL +
+          '<head>' + NL +
+          '<link rel="stylesheet" type="text/css" href="style.css">' + NL +
+          '<meta charset="utf-8" />' + NL +
+          '</head>' + NL +
+          '<body>';
+      vo.close = NL + '</body>' + NL + '</html>' + NL;
+      vo.renderable = true;
       return;
     }
 
     var subst = this.tm[vo.tag];
-    res  = this.htmlBuilder(subst.tag, subst.class);
+    if (_.isUndefined(subst)) {
+      // @todo
+      vo.renderable = false;
+      return;
+    }
+    var res  = this.htmlBuilder(subst.tag, subst.class);
     vo.open  = res.o;
     vo.close = res.c;
+
+    if (!TH.haveClosing(vo.tag))
+      vo.newline = true;
   };
 
-  HTMLRenderer.prototype.defineVerseView = function(vo) {
-    var res = this.htmlBuilder('span', 'verseNumber');
-    vo.id   = res.o + vo.verse.number + res.c;
+  HtmlRenderer.prototype.getNumberView = function(tag, number) {
+    var res;
+    if (tag === TAG.V)
+      res = this.htmlBuilder('span', 'verseNumber');
+    else {
+      res = this.htmlBuilder('div', 'chapterNumber');
+    }
+    return res.o + number + res.c;
   };
 
-  HTMLRenderer.prototype.defineChapterView = function(vo) {
-    var res   = this.htmlBuilder('span', 'chapterNumber');
-    vo.id  = res.o + vo.chapter.number + res.c;
+  HtmlRenderer.prototype.getTextView = function(text) {
+    var res = this.htmlBuilder('span');
+    return res.o + text + res.c;
   };
 
-  HTMLRenderer.prototype.defineBookView = function(vo) {
-  };
-
-  // HTMLRenderer.prototype.getVerseBegin = function(verse) {
-  //   return '\n';
-  // };
-
-  // HTMLRenderer.prototype.getVerseEnd = function(verse) {
-  //   return '';
-  // };
-  // HTMLRenderer.prototype.getChapterBegin = function(chap) {
-  //   this.discoveredParagraphs = 0;
-  //   return '<br><br>';
-  // };
-
-  // HTMLRenderer.prototype.getChapterEnd = function(chap) {
-  //   if (this.paragraphTags.length > 0)
-  //     return this.paragraphTags.pop();
-  //   return '';
-  // };
-  // HTMLRenderer.prototype.getBookBegin = function(book) {
-  //   return '<html>\n<body>';
-  // };
-
-  // HTMLRenderer.prototype.getBookEnd = function(book) {
-  //   return '</body>\n</html>\n';
-  // };
+  /*------------------------------------------------------------------------*/
+  /*                                exports                                 */
+  /*------------------------------------------------------------------------*/
 
   exports.Renderer             = Renderer;
-  exports.USFMRenderer         = USFMRenderer;
-  exports.IndentedUSFMRenderer = IndentedUSFMRenderer;
+  exports.UsfmRenderer         = UsfmRenderer;
+  exports.IndentedUsfmRenderer = IndentedUsfmRenderer;
   exports.TextRenderer         = TextRenderer;
   exports.PrettyRenderer       = PrettyRenderer;
-  exports.HTMLRenderer         = HTMLRenderer;
+  exports.HtmlRenderer         = HtmlRenderer;
 
 })();

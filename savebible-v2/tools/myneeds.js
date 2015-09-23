@@ -35,7 +35,6 @@
   var bids = ['SIR'];
 
   bids.forEach(function(bid) {
-
     dirNames.forEach(function(dn) {
       var file = findBook(cfg.bibleDir(dn).from, bid);
       if (file === null) {
@@ -46,13 +45,10 @@
       log.info(file);
       var book = lb.loadBook(file);
       lb.saveBook(book, cfg.tmpDir(), {
-        // renderer: new rndr.HTMLRenderer({
-        //   textOnly: false
-        // }),
-        // extension: '.html'
+        renderer: new rndr.PrettyRenderer(),
+        extension: '.txt'
       });
     });
-
   });
 
   //\dc_...\dc*
@@ -64,6 +60,5 @@
   // \ip_text...         Introduction paragraph.
   // \s#_text...         Section heading.
   // \d_text...          Descriptive title
-
 
 })();

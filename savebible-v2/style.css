@@ -1,0 +1,27 @@
+/** {
+  font-family: Tahoma;
+}*/
+
+.chapterNumber {
+  margin: 0.8em 0 0.8em 0;
+  //color: #0000cc;
+  font-size: 120%;
+  font-weight: bold;
+}
+
+.verseNumber {
+  //color: #338833;
+  margin: 0 0.3em 0 0;
+  padding: 0 0;
+  font-size: 80%;
+  font-weight: bold;
+}
+
+.wj {
+  color: #c00;
+}
+
+.add {
+  font-style: italic;
+  color: gray;
+}

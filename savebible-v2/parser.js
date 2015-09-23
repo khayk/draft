@@ -15,6 +15,7 @@ var Node = cmn.Node;
 var TAG = cmn.TAG;
 var TH = cmn.TH;
 var NH = cmn.NH;
+var NL = cmn.NL;
 
 
 
@@ -29,12 +30,13 @@ var dirNames = [
   //'ru-synod-usfm-from-text [saved]'
 ];
 
-var bids = ['SIR'];
+var bids = ['MAT'];
 
-var indentedUSFMRenderer = new rnd.IndentedUSFMRenderer();
-var usfmRenderer         = new rnd.USFMRenderer();
+var indentedUsfmRenderer = new rnd.IndentedUsfmRenderer();
+var usfmRenderer         = new rnd.UsfmRenderer();
 var textRenderer         = new rnd.TextRenderer({textOnly: false});
 var prettyRenderer       = new rnd.PrettyRenderer();
+var htmlRenderer         = new rnd.HtmlRenderer();
 var parser               = new lb.Parser();
 
 measur.begin('loading bible: ');
@@ -51,10 +53,11 @@ bids.forEach(function(bid) {
     var root = parser.parse(str);
     console.log("nodes count: ", root.count());
 
-    fs.writeFileSync('data-pretty', prettyRenderer.renderNode(root));
-    fs.writeFileSync('data-usfm', usfmRenderer.renderNode(root));
-    fs.writeFileSync('data-indented-usfm', indentedUSFMRenderer.renderNode(root));
-    fs.writeFileSync('data-text', textRenderer.renderNode(root));
+    fs.writeFileSync('data.pretty', prettyRenderer.renderNode(root));
+    fs.writeFileSync('data.usfm', usfmRenderer.renderNode(root));
+    fs.writeFileSync('data.indented-usfm', indentedUsfmRenderer.renderNode(root));
+    fs.writeFileSync('data.text', textRenderer.renderNode(root));
+    fs.writeFileSync('data.html', htmlRenderer.renderNode(root));
   });
 });
 measur.end();
@@ -71,7 +74,7 @@ function handleDirectory(de) {
   var renderers = [
     {name: 'usfm',   ext: '.usfm',   renderer: usfmRenderer,         all: ''},
     {name: 'text',   ext: '.txt',    renderer: textRenderer,         all: ''},
-    {name: 'i-usfm', ext: '.i-usfm', renderer: indentedUSFMRenderer, all: ''}
+    {name: 'i-usfm', ext: '.i-usfm', renderer: indentedUsfmRenderer, all: ''}
   ];
 
   measur.begin('loading bible: ' + dir);
@@ -107,7 +110,7 @@ function handleDirectory(de) {
       var root = te.root;
       var fname = te.fname;
       var data = ro.renderer.renderNode(root);
-      ro.all += data;
+      ro.all += data + NL;
       fs.writeFileSync(fname + ro.ext, data);
     });
 
