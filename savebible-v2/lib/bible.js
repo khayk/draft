@@ -695,7 +695,7 @@ var TH  = cmn.TH;
     this.parent  = null;
     this.number  = 0;
     this.verses  = [];
-    this.markups = {};
+    //this.markups = {};
   };
 
 
@@ -782,23 +782,6 @@ var TH  = cmn.TH;
       return this.verses[number - 1];
     },
 
-    // @brief  insert special markup into chapter
-    //
-    // @param {object} node   node object containing markup info
-    // @param {number} pos    position where that markup should be show up
-    //                        if not provided, the last position will
-    //                        be selected at the insertion time
-    //
-    addMarkup: function(node, pos) {
-      if (_.isUndefined(pos))
-        pos = this.verses.length;
-
-      if (_.isUndefined(this.markups[pos])) {
-        this.markups[pos] = [];
-      }
-      this.markups[pos].push(node);
-    },
-
     // @returns  Representation of the chapter rendered with the give renderer
     render: function(renderer) {
       return renderer.renderChapter(this);
@@ -816,7 +799,6 @@ var TH  = cmn.TH;
     this.bibleAbbr = '';
     this.te        = new TocEntry('', '', '', '', '');
     this.chapters  = [];
-    this.preface   = [];
     this.header    = [];
   };
 
@@ -937,13 +919,210 @@ var TH  = cmn.TH;
   };
 
 
-  /*------------------------------------------------------------------------*/
 
+  var Stack = function() {
+    this.values = [];
+  };
+
+  Stack.prototype.size = function() {
+    return this.values.length;
+  };
+
+  Stack.prototype.empty = function() {
+    return this.values.length === 0;
+  };
+
+  Stack.prototype.top = function() {
+    if (this.values.length === 0)
+      return null;
+    return this.values[this.values.length - 1];
+  };
+
+  Stack.prototype.push = function(val) {
+    this.values.push(val);
+  };
+
+  Stack.prototype.pop = function() {
+    if (this.empty())
+      return null;
+    return this.values.pop();
+  };
+
+  var arr_cpq = ['c', 'p', 'q', ''];
+  var arr_cp = ['c', 'p'];
+  var arr_c = ['c', ''];
+  var arr_ = [''];
+
+  var ParserHelper = function() {
+    this.reset();
+  };
+
+  ParserHelper.prototype.reset = function() {
+    this.stack = new Stack();
+    this.root = NH.createTag('');
+    this.stack.push(this.root);
+    this.nre = /\d+\s+/;
+  };
+
+  ParserHelper.prototype.handle = function(arr) {
+    var top = this.stack.top();
+    while (arr.indexOf(top.tag) === -1) {
+      var prev = this.stack.pop();
+
+      // trim tailing spaces for last child nodes
+      if (!TH.haveClosing(prev.tag)) {
+        var last = prev.lastChild();
+        if (last !== null && NH.isText(last))
+          last.text = last.text.trimRight();
+      }
+      top = this.stack.top();
+    }
+    return top;
+  };
+
+
+  ParserHelper.prototype.unwind = function(tag) {
+    var top = null;
+    while (true) {
+      top = this.stack.top();
+      if (top === null || top.tag === tag)
+        break;
+      if (!TH.haveClosing(top.tag)) {
+        log.error('Expecting to see pair for ' + tag + ' but found ' + top.tag + ' instead');
+        return;
+      }
+      this.stack.pop();
+    }
+
+    if (top !== null) {
+      top = this.stack.pop();
+    }
+  };
+
+
+  ParserHelper.prototype.append = function(node) {
+    var top = this.stack.top();
+    if (NH.isTag(node)) {
+      if (node.tag === TAG.V) {
+        // \v - closed as soon as encountered \p, \q, \c or end of chapter
+        top = this.handle(arr_cpq);
+      } else if (node.tag === TAG.C) {
+        // \c - closed as soon as encountered end of chapter
+        top = this.handle(arr_);
+      } else if (node.tag === TAG.Q) {
+        // \q - closed as soon as encountered \p, \c or end of chapter
+        top = this.handle(arr_cp);
+      } else if (!TH.haveClosing(node.tag)) {
+        // other single tags closed as soon as encountered \c or end of chapter
+        top = this.handle(arr_c);
+      }
+    } else {
+      if (top.tag === TAG.C || top.tag === TAG.V) {
+
+        // setup number for verse or chapter
+        if (_.isUndefined(top.number)) {
+          var arr = this.nre.exec(node.text);
+          if (arr === null)
+            throw new Error('expecting to see number in: ' + node.text);
+
+          top.number = arr[0].trim();
+          node.text = node.text.substring(arr.index + arr[0].length);
+        }
+
+        if (node.text.length === 0)
+          return;
+      } else {
+        if (node.text.trim().length === 0)
+          return;
+      }
+    }
+    top.addChild(node);
+    if (NH.isTag(node))
+      this.stack.push(node);
+  };
+
+
+  /*------------------------------------------------------------------------*/
+  /*                                  Parser                                */
+  /*------------------------------------------------------------------------*/
 
   // @brief  Create parser object
   // @param  knownTagsOnly  the parser will collect only tags that well known
   //                        by the application. list of known tags are
   //                        controlled by TH module
+  var Parser = function(knownTagsOnly) {
+    this.vre = /(\\\+?(\w+)\s?\*?)/gm;
+    this.knownTagsOnly = _.isUndefined(knownTagsOnly) ? true : knownTagsOnly;
+  };
+
+  // @brief   parse any usfm data provided in `str` argument
+  // @param {string} str  utf8 encoded string containing data in a usfm format
+  // @return              node structure containing parsed usfm
+  Parser.prototype.parse = function(str) {
+    this.vre.lastIndex = 0;
+    var tree = new ParserHelper();
+    var lastIndex = 0;
+    var node = null;
+    var content = '';
+    str = str.replace(/\r/gm, '').replace(/\n|¶/gm, ' ').trim();
+
+    function insertText(from, to) {
+      content = str.substring(from, to);
+      node = NH.createText(content);
+      tree.append(node);
+    }
+
+    try {
+      var arr = this.vre.exec(str);
+      while (arr !== null) {
+        var tag = arr[1];
+
+        if (lastIndex != arr.index) {
+          insertText(lastIndex, arr.index);
+        }
+
+        if (TH.isOpening(tag)) {
+          tag = arr[2];
+          node = NH.createTag(tag);
+          tree.append(node);
+        } else {
+          tree.unwind(arr[2]);
+        }
+
+        lastIndex = this.vre.lastIndex;
+        arr = this.vre.exec(str);
+      }
+      insertText(lastIndex);
+    } catch (e) {
+      log.error('error while parsing: ', e);
+      log.warn('location ~  %s', str.substr(lastIndex, 40));
+      throw e;
+    }
+    return tree.root;
+  };
+
+
+  Parser.prototype.parseVerse = function(str) {
+    var verse = new Verse();
+    verse.node = this.parse(str);
+    verse.node = verse.node.firstChild();
+    //verse.node.normalize();
+    verse.number = verse.node.number;
+    return verse;
+  };
+
+  Parser.prototype.parseChapter = function(str) {
+    var chap = new Chapter();
+    chap.node = this.parse(str);
+    chap.node = chap.node.firstChild();
+    chap.number = chap.node.number;
+    return chap;
+  };
+
+  /*------------------------------------------------------------------------*/
+/*
+
+
   var Parser = function(knownTagsOnly) {
     this.knownTagsOnly = knownTagsOnly;
     this.vre = /(\\\+?(\w+)\*?)\s?/gm;
@@ -1178,6 +1357,8 @@ var TH  = cmn.TH;
     this.parseBookImpl(str, book);
     return book;
   };
+*/
+
 
 
   /*------------------------------------------------------------------------*/

@@ -119,18 +119,18 @@
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode = function(node, depth, vrd) {
     var res = '';
+    depth = _.isUndefined(depth) ? 0 : depth;
+    vrd = _.isUndefined(vrd) ? 0 : vrd;
 
     // get default template for verse object
     var vo = this.tagView_.template();
 
     if (NH.isText(node)) {
       res += this.getTextView(node.text);
-    }
-    else {
+    } else {
       if (node.tag !== '') {
-        if (node.tag === TAG.V) {
+        if (node.tag === TAG.V)
           vrd = 0;
-        }
 
         // retrieve tag view, that should be defined by concrete renderer
         vo = this.tagView_.get(node, vrd > 1);
@@ -153,10 +153,10 @@
       }
     }
 
-    if (vo.renderable && node.haveChild()) {
-      res += this.renderNode(node.first, depth + 1, vrd + 1);
-      if (depth === 0)
-        res = res.trimLeft();
+    var child = node.firstChild();
+    while (vo.renderable && child !== null) {
+      res += this.renderNode(child, depth + 1, vrd + 1);
+      child = child.getNext();
     }
 
     if (this.indented_ === true && NH.isTag(node)) {
@@ -164,10 +164,7 @@
       res += _.pad('', 3 * (depth - 1));
     }
     res += vo.close;
-
-    if (node.haveNext())
-      res += this.renderNode(node.next, depth, vrd);
-    return res;
+    return depth === 0 ? res.trimLeft() : res;
   };
 
 
