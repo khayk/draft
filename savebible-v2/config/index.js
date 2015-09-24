@@ -93,4 +93,3 @@ module.exports.cfg            = cfg;
 module.exports.logFileLoading = logFileLoading;
 
 logFileLoading(__filename);
-

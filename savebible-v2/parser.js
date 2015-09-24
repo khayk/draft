@@ -18,9 +18,9 @@ var NH     = cmn.NH;
 var NL     = cmn.NL;
 
 var dirNames = [
-  'en-kjv-usfm+',
-  'en-kjv-usfm',
-  'en-kjv-usfm+ [saved]'
+  'en-kjv-usfm+'
+  // 'en-kjv-usfm',
+  // 'en-kjv-usfm+ [saved]'
 ];
 
 var bids = ['MAT'];

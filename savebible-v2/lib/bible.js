@@ -570,7 +570,7 @@ var TH  = cmn.TH;
         linkTo: function(ln, to) {
           var ref = this.getMeta(to);
           if (ref === null)
-            throw new Error('You can only link to an existing language. Absent: ' + to);
+            throw new Error('You can only link to an existing language. Missing: ' + to);
           var meta = new Meta();
           meta.lex = ref.lex;
           meta.toc = ref.toc;
@@ -596,10 +596,17 @@ var TH  = cmn.TH;
 
 
   // Bible verse model
-  var Verse = function() {
+  // @param {object} node  valid node object that is satisfy usfm verse rules
+  var Verse = function(node) {
     this.parent = null;
-    this.node   = null;
-    this.number = 0;
+
+    if (_.isUndefined(node) || node === null)
+      throw new Error('undefined or null node object in Verse constructor');
+    if (!node.isTag() || node.tag !== TAG.V || !NH.haveNumber(node))
+      throw new Error('invalid node in Verse constructor');
+
+    this.node   = node;
+    this.number = this.node.number;
   };
 
   Verse.prototype = {
@@ -691,11 +698,23 @@ var TH  = cmn.TH;
 
 
   // Bible chapter model
-  var Chapter = function() {
+  var Chapter = function(node) {
     this.parent  = null;
-    this.number  = 0;
+
+    if (_.isUndefined(node) || node === null)
+      throw new Error('undefined or null node object in Chapter constructor');
+    if (!node.isTag() || node.tag !== TAG.C || !NH.haveNumber(node))
+      throw new Error('invalid node in Chapter constructor');
+    this.node = node;
+    this.number = this.node.number;
     this.verses  = [];
-    //this.markups = {};
+
+    var verseNodes = [];
+    var self = this;
+    node.findAll(TAG.V, verseNodes);
+    verseNodes.forEach(function(vnode) {
+      self.addVerse(new Verse(vnode));
+    });
   };
 
 
@@ -961,7 +980,7 @@ var TH  = cmn.TH;
     this.stack = new Stack();
     this.root = NH.createTag('');
     this.stack.push(this.root);
-    this.nre = /\d+\s+/;
+    this.nre = /\d+(\s+)?/;
   };
 
   ParserHelper.prototype.handle = function(arr) {
@@ -972,7 +991,7 @@ var TH  = cmn.TH;
       // trim tailing spaces for last child nodes
       if (!TH.haveClosing(prev.tag)) {
         var last = prev.lastChild();
-        if (last !== null && NH.isText(last))
+        if (last !== null && last.isText())
           last.text = last.text.trimRight();
       }
       top = this.stack.top();
@@ -1002,7 +1021,7 @@ var TH  = cmn.TH;
 
   ParserHelper.prototype.append = function(node) {
     var top = this.stack.top();
-    if (NH.isTag(node)) {
+    if (node.isTag()) {
       if (node.tag === TAG.V) {
         // \v - closed as soon as encountered \p, \q, \c or end of chapter
         top = this.handle(arr_cpq);
@@ -1037,7 +1056,7 @@ var TH  = cmn.TH;
       }
     }
     top.addChild(node);
-    if (NH.isTag(node))
+    if (node.isTag())
       this.stack.push(node);
   };
 
@@ -1103,16 +1122,12 @@ var TH  = cmn.TH;
 
 
   Parser.prototype.parseVerse = function(str) {
-    var verse = new Verse();
-    verse.node = this.parse(str);
-    //verse.number = NH.getValue(verse.node, 'number', 0);
+    var verse = new Verse(this.parse(str).firstChild());
     return verse;
   };
 
   Parser.prototype.parseChapter = function(str) {
-    var chap = new Chapter();
-    chap.node = this.parse(str).firstChild();
-    chap.number = NH.getValue(chap.node, 'number', 0);
+    var chap = new Chapter(this.parse(str).firstChild());
     return chap;
   };
 

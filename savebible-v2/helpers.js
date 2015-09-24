@@ -190,5 +190,4 @@ exports.HiResTimer             = HiResTimer;
 exports.Measurer               = Measurer;
 exports.SearchResultPrettifier = SearchResultPrettifier;
 
-
 require('./config').logFileLoading(__filename);

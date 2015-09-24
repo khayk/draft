@@ -124,6 +124,19 @@
         return d;
       },
 
+      // @return true if the the tag can contain inside the children the tag
+      //              with the same name, otherwise returns false
+      canContainItself: function(tag) {
+        switch (tag) {
+          case TAG.V:
+          case TAG.C:
+          case TAG.P:
+          case TAG.Q:
+            return false;
+        }
+        return true;
+      },
+
       // @returns  an object containing all unique tags that are discovered
       //           during application run time
       discovered: function() {
@@ -143,6 +156,9 @@
   // @param {object} node  object that is going to become child
   // @return this
   Node.prototype.addChild = function(node) {
+    if (!this.isTag())
+      throw new Error('Only tag node can have child nodes');
+
     if (this.firstChild() === null) {
       this.first = node;
       this.last  = node;
@@ -151,16 +167,6 @@
       this.last.next = node;
       this.last = node;
     }
-    return this;
-  };
-
-  // @param {object} node  object that is going to become a next node of
-  //                       current node
-  // @return this
-  Node.prototype.setNext = function(node) {
-    if (this.haveNext())
-      node.next = this.getNext();
-    this.next = node;
     return this;
   };
 
@@ -178,6 +184,21 @@
     return this.last;
   };
 
+  // @returns  true if the current node have at least one child node
+  Node.prototype.haveChild = function() {
+    return !_.isUndefined(this.first);
+  };
+
+  // @param {object} node  object that is going to become a next node of
+  //                       current node
+  // @return this
+  Node.prototype.setNext = function(node) {
+    if (this.haveNext())
+      node.next = this.getNext();
+    this.next = node;
+    return this;
+  };
+
   // @returns  next node of the current node
   Node.prototype.getNext = function() {
     if (_.isUndefined(this.next))
@@ -190,9 +211,18 @@
     return !_.isUndefined(this.next);
   };
 
-  // @returns  true if the current node have at least one child node
-  Node.prototype.haveChild = function() {
-    return !_.isUndefined(this.first);
+  // @returns  true for nodes representing usfm tag, otherwise false
+  Node.prototype.isTag = function() {
+    if (_.isUndefined(this.tag))
+      return false;
+    return true;
+  };
+
+  // @returns  true for nodes representing text, otherwise false
+  Node.prototype.isText = function() {
+    if (_.isUndefined(this.text))
+      return false;
+    return true;
   };
 
   // @returns  number of all nodes contained in the nodes tree
@@ -205,6 +235,26 @@
     return count;
   };
 
+  Node.prototype.findAll = function(tag, res) {
+    if (!this.isTag())
+      throw new Error('Unable to search into non-tag node');
+
+    var child = this.firstChild();
+    while (child !== null) {
+      if (child.isTag()) {
+        if (child.tag === tag) {
+          res.push(child);
+          if (TH.canContainItself(tag))
+            child.findAll(tag, res);
+        }
+        else {
+          child.findAll(tag, res);
+        }
+      }
+      child = child.getNext();
+    }
+  };
+
   // @brief  normalize tree structure by eliminating nodes that can be merged
   //         into one
   Node.prototype.normalize = function() {
@@ -213,7 +263,7 @@
 
     var n = this.first, current = null;
     while (n !== null) {
-      if (NH.isTag(n)) {
+      if (n.isTag()) {
         current = null;
         n.normalize();
       } else {
@@ -231,7 +281,7 @@
     n = this.first;
     var prev = null;
     while (n !== null) {
-      if (NH.isText(n) && n.text === '') {
+      if (n.isText() && n.text === '') {
         if (n.haveNext()) {
           prev.next = n.getNext();
         }
@@ -246,25 +296,18 @@
 
   var NH = (function() {
     return {
-      // @returns  true if the specified node contain usfm tag, otherwise false
-      isTag: function(node) {
-        if (!_.isUndefined(node.tag))
-          return true;
-        return false;
-      },
+      // getValue: function(node, attr, def) {
+      //   var ref = node[attr];
+      //   if (_.isUndefined(ref))
+      //     return def;
+      //   return ref;
+      // },
 
-      // @returns  true if the specified node is a text node
-      isText: function(node) {
-        if (!_.isUndefined(node.text))
-          return true;
-        return false;
-      },
-
-      getValue: function(node, attr, def) {
-        var ref = node[attr];
-        if (_.isUndefined(ref))
-          return def;
-        return ref;
+      // @return true if the specified node contain number attribute
+      haveNumber: function(node) {
+        if (_.isUndefined(node.number))
+          return false;
+        return true;
       },
 
       // @param {string} tag  usfm tag of form \\tag, or \\+tag

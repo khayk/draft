@@ -108,7 +108,7 @@
   Renderer.prototype.haveComplexView   = function(node) {
     if (node.tag === TAG.P) {
       var child = node.firstChild();
-      if (child !== null && NH.isText(child))
+      if (child !== null && child.isText())
         return true;
     }
     return false;
@@ -124,7 +124,7 @@
     // get default template for verse object
     var vo = this.tagView_.template();
 
-    if (NH.isText(node)) {
+    if (node.isText()) {
       res += this.getTextView(node.text);
     }
     else {
@@ -157,7 +157,7 @@
       child = child.getNext();
     }
 
-    if (this.indented_ === true && NH.isTag(node)) {
+    if (this.indented_ === true && node.isTag()) {
       res += NL + _.pad('', 3 * (depth - 1));
     }
     res += vo.close;
@@ -170,77 +170,27 @@
   // @returns  string containing the rendered verse
   Renderer.prototype.renderVerse = function(verse) {
     return this.renderNode(verse.node);
-
-    // var vo = {
-    //   verse: verse,
-    //   id: ''
-    // };
-    // this.defineVerseView(vo);
-    // return vo.id + this.renderNode(verse.node, 1) +
-    //        this.tagView_.get(TAG.V, false).close;
   };
 
   // @brief    render given chapter based on the renderer configuration
   // @returns  string containing the rendered chapter
   Renderer.prototype.renderChapter = function(chapter) {
-
-    /*
-    var vo = {
-      chapter: chapter,
-      id: '',
-      verseSeparator: NL
-    };
-    this.defineChapterView(vo);
-    var res = vo.id, self = this;
-
-    chapter.verses.forEach(function(v) {
-      // res += self.getVerseBegin(v);
-      var nodes = chapter.markups[v.number - 1];
-      if (!_.isUndefined(nodes)) {
-        nodes.forEach(function(node) {
-          res += self.closePendingTags(node.tag);
-          self.pendingTags_.push(node.tag);
-          res += self.renderNode(node, 1);
-        });
-      }
-      if (res.length !== 0)
-        res += vo.verseSeparator;
-      res += v.render(self);
-    });
-
-    res += this.tagView_.get(TAG.C, false).close;
-    return res;*/
+    return this.renderNode(chapter.node);
   };
 
   // @brief    render given book based on the renderer configuration
   // @returns  string containing the rendered book
-  Renderer.prototype.renderBook    = function(book) {
-    /*
-    var res = '';
-    var vo = {
-      book: book,
-      header: '',
-      chapterSeparator: NL
-    };
-    this.defineBookView(vo);
-    res += vo.header;
-    var self = this;
-    book.chapters.forEach(function(c) {
-      if (res.length !== 0)
-        res += vo.chapterSeparator;
-      res += c.render(self);
-    });
-    return res;
-    */
+  Renderer.prototype.renderBook = function(book) {
+    return this.renderNode(book.node);
   };
 
   // @brief    render given bible based on the renderer configuration
   // @returns  string containing the rendered bible
-  Renderer.prototype.renderBible   = function(bible) {
+  Renderer.prototype.renderBible = function(bible) {
     var res = '';
     var self = this;
     bible.books.forEach(function(b) {
-      res += b.render(self);
+      res += b.render(self) + NL;
     });
     return res;
   };
