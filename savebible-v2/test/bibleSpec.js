@@ -454,16 +454,17 @@ describe('module TAGs', function() {
 
 
 describe('core components', function() {
-
   describe('bible interface', function() {
-    var v1 = new Verse();
-    var v2 = new Verse();
-    var c1 = new Chapter();
-    var c2 = new Chapter();
-    var b1 = new Book();
-    var b2 = new Book();
+    var parser = new Parser();
+    var v1 = parser.parseVerse('\\v 0');
+    var v2 = parser.parseVerse('\\v 0');
+    var c1 = parser.parseChapter('\\c 0');
+    var c2 = parser.parseChapter('\\c 0');
+    var b1 = parser.parseBook('\\id GEN Genesis');
+    var b2 = parser.parseBook('\\id EXO Exodus');
     var bb = new Bible();
 
+    // isolated behavior
     describe('isolated behavior', function() {
       it('verse', function() {
         expect(v1.id()).to.be.equal('null 0: 0');
@@ -498,16 +499,14 @@ describe('core components', function() {
         expect(b1.prev()).to.be.equal(null);
         expect(b1.numChapters()).to.be.equal(0);
         expect(b1.ref()).to.be.deep.equal({
-          ix: 0,
+          ix: 1,
           cn: 0,
           vn: 0
         });
       });
-
-      it('bible', function() {});
     });
 
-
+    // combined behavior
     describe('combined behavior', function() {
       var tid1 = 'MAT';
       var tid2 = 'MRK';
@@ -536,14 +535,24 @@ describe('core components', function() {
         v2.number = 2;
         expect(c1.addVerse.bind(c1, v2)).to.throw();
 
-        var cx = new Chapter();
-        var vx = new Verse();
-        vx.number = 1;
-        var v4 = new Verse();
-        v4.number = 4;
+        var cx = parser.parseChapter('\\c 0');
+        var vx = parser.parseVerse('\\v 1');
+        var v4 = parser.parseVerse('\\v 4');
         expect(cx.addVerse.bind(cx, vx)).to.not.throw();
         expect(cx.addVerse.bind(cx, v4)).to.not.throw();
       });
+
+    });
+
+    // dsfsdf
+  });
+});
+
+/*
+  describe('bible interface', function() {
+
+
+    describe('combined behavior', function() {
 
       it('verse', function() {
         expect(v1.id()).to.be.equal(tid1 + ' 1:1');
@@ -1139,7 +1148,7 @@ describe('search functionality', function() {
 
 /*------------------------------------------------------------------------*/
 
-
+/*
 describe('module BibleSearch', function() {
   var text = [
     {s: 'And Isaac loved Esau, because he did eat of [his] venison: but Rebekah loved Jacob.', r: 1},
@@ -1217,7 +1226,7 @@ describe('module BibleSearch', function() {
   it('navigation', function() {
   });
 });
-
+*/
 
 /*------------------------------------------------------------------------*/
 

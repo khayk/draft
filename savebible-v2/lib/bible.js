@@ -307,19 +307,6 @@ var TH  = cmn.TH;
     }
   };
 
-  // Compare current object with specified one
-  //
-  // @param  {object} te table of content single entry
-  // @return {bool}   true if all field are the same, otherwise false
-  // //
-  // TocEntry.prototype.equal = function(te) {
-  //   return  this.id === te.id &&
-  //           this.abbr === te.abbr &&
-  //           this.name === te.name &&
-  //           this.lname === te.lname &&
-  //           this.desc === te.desc;
-  // };
-
   // Make sure the the current object is a valid table of content
   // entry: i.e. all mandatory fields are presented and not empty
   TocEntry.prototype.validate = function() {
@@ -606,7 +593,7 @@ var TH  = cmn.TH;
       throw new Error('invalid node in Verse constructor');
 
     this.node   = node;
-    this.number = this.node.number;
+    this.number = parseInt(this.node.number);
   };
 
   Verse.prototype = {
@@ -706,12 +693,12 @@ var TH  = cmn.TH;
     if (!node.isTag() || node.tag !== TAG.C || !NH.haveNumber(node))
       throw new Error('invalid node in Chapter constructor');
     this.node = node;
-    this.number = this.node.number;
+    this.number = parseInt(this.node.number);
     this.verses  = [];
 
     var verseNodes = [];
     var self = this;
-    node.findAll(TAG.V, verseNodes);
+    node.find(TAG.V, verseNodes);
     verseNodes.forEach(function(vnode) {
       self.addVerse(new Verse(vnode));
     });
@@ -782,6 +769,7 @@ var TH  = cmn.TH;
         log.warn('detected verse gap while adding verse ' + verse.id());
         while (verse.number - this.numVerses() > 1) {
           // add empty verses to fill gap
+
           var dummy = new Verse();
           dummy.parent = this;
           dummy.number = this.numVerses() + 1;
@@ -811,14 +799,52 @@ var TH  = cmn.TH;
   /*------------------------------------------------------------------------*/
 
 
-  var Book = function() {
-    this.parent    = null;
+  var Book = function(node) {
+
+    if (_.isUndefined(node) || node === null)
+      throw new Error('undefined or null node object in Book constructor');
+    if (!node.isTag() || node.tag !== '')
+      throw new Error('invalid node in Book constructor');
+
+    this.parent   = null;
+    this.node     = node;
+    this.chapters = [];
     this.index     = 0;
     this.lang      = '';
     this.bibleAbbr = '';
     this.te        = new TocEntry('', '', '', '', '');
-    this.chapters  = [];
-    this.header    = [];
+
+    var self = this;
+    node.enum(false, function(n) {
+      if (n.tag === TAG.C) {
+        self.addChapter(new Chapter(n));
+      } else {
+        var str = n.firstChild().text;
+        console.log(str);
+        if (n.tag === TAG.ID) {
+          var arr = /(\w+)\s+(.+)/gm.exec(str);
+          if (arr === null)
+            throw new Error('Failed to identify book id');
+          self.te.id = arr[1];
+        } else if (n.tag === TAG.TOC1) {
+          self.te.desc = str.trim();
+        } else if (n.tag === TAG.TOC2) {
+          self.te.name = str.trim();
+        } else if (n.tag === TAG.TOC3) {
+          self.te.abbr = str.trim();
+        } else if (n.tag === TAG.IDE) {
+          if (str !== 'UTF-8')
+            throw new Error(util.format('Unknown encoding %s in %s book.', str, self.te.id));
+        } else {
+          log.warn('Unknown tag inside book: ' + n.tag);
+        }
+      }
+    });
+
+    // @todo: fill abbreviation based on default values
+    if (!BBM.instance().existsId(this.te.id))
+      throw new Error('Invalid book id: ' + this.te.id);
+    this.index = BBM.instance().onById(this.te.id);
   };
 
 
@@ -1131,6 +1157,10 @@ var TH  = cmn.TH;
     return chap;
   };
 
+  Parser.prototype.parseBook = function(str) {
+    var book = new Book(this.parse(str));
+    return book;
+  };
 
   /*------------------------------------------------------------------------*/
 /*

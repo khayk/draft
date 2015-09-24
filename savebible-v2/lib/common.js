@@ -106,6 +106,19 @@
         return jesusWord.test(tag) === true;
       },
 
+      // @return true if the the tag can contain inside the children the tag
+      //              with the same name, otherwise returns false
+      isSelfContained: function(tag) {
+        switch (tag) {
+          case TAG.V:
+          case TAG.C:
+          case TAG.P:
+          case TAG.Q:
+            return false;
+        }
+        return true;
+      },
+
       // @returns   true if tag should be completed with closing tag, otherwise false
       haveClosing: function(tag) {
         return paired.test(tag) === true;
@@ -122,19 +135,6 @@
         if (arr !== null)
           return arr[1];
         return d;
-      },
-
-      // @return true if the the tag can contain inside the children the tag
-      //              with the same name, otherwise returns false
-      canContainItself: function(tag) {
-        switch (tag) {
-          case TAG.V:
-          case TAG.C:
-          case TAG.P:
-          case TAG.Q:
-            return false;
-        }
-        return true;
       },
 
       // @returns  an object containing all unique tags that are discovered
@@ -235,7 +235,31 @@
     return count;
   };
 
-  Node.prototype.findAll = function(tag, res) {
+  // @brief  enumerate all child nodes of current node and call specified
+  //         callback for each tag.
+  // @param {bool} recursive   set false to enumerate only child nodes without
+  //                           sub-children nodes. true value will result
+  //                           enumeration of all nodes with sub children
+  Node.prototype.enum = function(recursive, callback) {
+    if (!this.isTag())
+      throw new Error('Unable to enum non-tag node');
+
+    var child = this.firstChild();
+    while (child !== null) {
+      if (child.isTag()) {
+        callback(child);
+        if (recursive)
+          child.enum(recursive, callback);
+      }
+      child = child.getNext();
+    }
+  };
+
+  // @brief  find all nodes with specified tag in whole subtree of the
+  //         current node and keep results in the res array
+  // @param {string} tag   search-able tag
+  // @param {array}  res   array to hold resulted nodes
+  Node.prototype.find = function(tag, res) {
     if (!this.isTag())
       throw new Error('Unable to search into non-tag node');
 
@@ -244,7 +268,7 @@
       if (child.isTag()) {
         if (child.tag === tag) {
           res.push(child);
-          if (TH.canContainItself(tag))
+          if (TH.isSelfContained(tag))
             child.findAll(tag, res);
         }
         else {

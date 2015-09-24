@@ -99,7 +99,6 @@ function handleDirectory(de) {
   // render bibles and save on disc
   renderers.forEach(function(ro) {
     //measur.begin('rendering "' + ro.name + '" bible');
-
     roots.forEach(function(te) {
       var root = te.root;
       var fname = te.fname;
@@ -107,7 +106,6 @@ function handleDirectory(de) {
       ro.all += data + NL;
       fs.writeFileSync(fname + ro.ext, data);
     });
-
     //measur.end();
   });
   measur.end();
