@@ -598,8 +598,8 @@ var TH  = cmn.TH;
   // Bible verse model
   var Verse = function() {
     this.parent = null;
+    this.node   = null;
     this.number = 0;
-    this.node   = NH.createTag('', null);
   };
 
   Verse.prototype = {
@@ -645,7 +645,7 @@ var TH  = cmn.TH;
     },
 
     // @returns  The next verse of the chapter containing current verse
-    //           null if there is not any more verse after this one
+    //           null if there are no more verses after this one
     next: function() {
       if (this.parent)
         return this.parent.getVerse(this.number + 1);
@@ -1105,19 +1105,17 @@ var TH  = cmn.TH;
   Parser.prototype.parseVerse = function(str) {
     var verse = new Verse();
     verse.node = this.parse(str);
-    verse.node = verse.node.firstChild();
-    //verse.node.normalize();
-    verse.number = verse.node.number;
+    //verse.number = NH.getValue(verse.node, 'number', 0);
     return verse;
   };
 
   Parser.prototype.parseChapter = function(str) {
     var chap = new Chapter();
-    chap.node = this.parse(str);
-    chap.node = chap.node.firstChild();
-    chap.number = chap.node.number;
+    chap.node = this.parse(str).firstChild();
+    chap.number = NH.getValue(chap.node, 'number', 0);
     return chap;
   };
+
 
   /*------------------------------------------------------------------------*/
 /*

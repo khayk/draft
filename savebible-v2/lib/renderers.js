@@ -169,6 +169,8 @@
   // @brief    render given verse based on the renderer configuration
   // @returns  string containing the rendered verse
   Renderer.prototype.renderVerse = function(verse) {
+    return this.renderNode(verse.node);
+
     // var vo = {
     //   verse: verse,
     //   id: ''

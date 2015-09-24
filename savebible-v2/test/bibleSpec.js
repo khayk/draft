@@ -28,7 +28,7 @@ var Bible           = lb.Bible;
 var Parser          = lb.Parser;
 
 var Renderer        = rndr.Renderer;
-var USFMRenderer    = rndr.USFMRenderer;
+var UsfmRenderer    = rndr.UsfmRenderer;
 var TextRenderer    = rndr.TextRenderer;
 
 var loadBible       = lb.loadBible;
@@ -631,7 +631,7 @@ describe('core components', function() {
   describe('usfm format', function() {
     var parser    = new Parser(true);
     var parserAll = new Parser(false);
-    var usfmRndr  = new USFMRenderer();
+    var usfmRndr  = new UsfmRenderer();
     var textRndr  = new TextRenderer();
 
     it('file name info', function() {
@@ -732,7 +732,7 @@ describe('core components', function() {
     var bible          = null;
     var textAndIdsRndr = new TextRenderer({textOnly: false});
     var textRndr       = new TextRenderer();
-    var usfmRndr       = new USFMRenderer();
+    var usfmRndr       = new UsfmRenderer();
 
     it('reading from hdd', function() {
       var filesDir = path.join(__dirname, 'usfm/');
@@ -827,7 +827,7 @@ describe('core components', function() {
 
 });
 
-
+return;
 /*------------------------------------------------------------------------*/
 
 

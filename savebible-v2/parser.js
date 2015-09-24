@@ -1,33 +1,26 @@
-var fs = require('fs');
-var util = require('util');
-var _ = require('lodash');
-var path = require('path');
-var cfg = require('./config').cfg;
-var lb = require('./lib/bible');
-var cmn = require('./lib/common');
-var rnd = require('./lib/renderers');
-var log = require('log4js').getLogger('psr');
-var help = require('./helpers');
+var fs     = require('fs');
+var util   = require('util');
+var _      = require('lodash');
+var path   = require('path');
+var cfg    = require('./config').cfg;
+var lb     = require('./lib/bible');
+var cmn    = require('./lib/common');
+var rnd    = require('./lib/renderers');
+var log    = require('log4js').getLogger('psr');
+var help   = require('./helpers');
 
 var measur = new help.Measurer();
 
-var Node = cmn.Node;
-var TAG = cmn.TAG;
-var TH = cmn.TH;
-var NH = cmn.NH;
-var NL = cmn.NL;
-
-
-
+var Node   = cmn.Node;
+var TAG    = cmn.TAG;
+var TH     = cmn.TH;
+var NH     = cmn.NH;
+var NL     = cmn.NL;
 
 var dirNames = [
   'en-kjv-usfm+',
   'en-kjv-usfm',
   'en-kjv-usfm+ [saved]'
-  //'en-kjv-ptx'
-  //'zed'
-  //'am-eab-usfm-from-text',
-  //'ru-synod-usfm-from-text [saved]'
 ];
 
 var bids = ['MAT'];
@@ -62,6 +55,7 @@ bids.forEach(function(bid) {
 });
 measur.end();
 //return;
+
 
 function handleDirectory(de) {
   // scan all books

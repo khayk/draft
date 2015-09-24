@@ -1,5 +1,6 @@
 var _      = require('lodash');
 var lb     = require('../lib/bible.js');
+var rndr   = require('../lib/renderers.js');
 
 var BBM       = lb.BBM;
 var Verse     = lb.Verse;
@@ -47,6 +48,10 @@ var createBook = function(id, numChapters, numVerses) {
   }
   return book;
 };
+
+var x = createVerse(randomVerse());
+console.log(x.render(new rndr.UsfmRenderer()));
+
 
 exports.createVerse   = createVerse;
 exports.createChapter = createChapter;

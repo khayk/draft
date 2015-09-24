@@ -260,6 +260,13 @@
         return false;
       },
 
+      getValue: function(node, attr, def) {
+        var ref = node[attr];
+        if (_.isUndefined(ref))
+          return def;
+        return ref;
+      },
+
       // @param {string} tag  usfm tag of form \\tag, or \\+tag
       // @returns  new Node object that is contains specified tag
       createTag: function(tag) {
