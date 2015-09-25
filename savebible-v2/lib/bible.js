@@ -770,7 +770,11 @@ var TH  = cmn.TH;
         while (verse.number - this.numVerses() > 1) {
           // add empty verses to fill gap
 
-          var dummy = new Verse();
+          var node = new cmn.Node();
+          node.tag = TAG.V;
+          node.number = 0;
+
+          var dummy = new Verse(node);
           dummy.parent = this;
           dummy.number = this.numVerses() + 1;
           this.verses.push(dummy);
@@ -822,7 +826,7 @@ var TH  = cmn.TH;
         var str = n.firstChild().text;
         console.log(str);
         if (n.tag === TAG.ID) {
-          var arr = /(\w+)\s+(.+)/gm.exec(str);
+          var arr = /(\w+)(\s+(.+))?/gm.exec(str);
           if (arr === null)
             throw new Error('Failed to identify book id');
           self.te.id = arr[1];
