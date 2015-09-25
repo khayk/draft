@@ -16,6 +16,7 @@ var tc      = require('./dataCreators.js');
 var dusfm   = require('./dataUSFM.js');
 
 var TH              = cmn.TH;
+var TAG             = cmn.TAG;
 
 var BBM             = lb.BBM;
 var MC              = lb.MC;
@@ -540,19 +541,42 @@ describe('core components', function() {
         var v4 = parser.parseVerse('\\v 4');
         expect(cx.addVerse.bind(cx, vx)).to.not.throw();
         expect(cx.addVerse.bind(cx, v4)).to.not.throw();
+
+        // verse creator
+        var creator = function(node) {
+          return new Verse(node);
+        };
+
+        var node = new cmn.Node();
+        expect(creator.bind(creator, node)).to.throw('invalid node in Verse constructor');
+        node.tag = TAG.V;
+        expect(creator.bind(creator, node)).to.throw('invalid node in Verse constructor');
+        expect(creator.bind(creator, null)).to.throw('undefined or null node object in Verse constructor');
+        expect(creator.bind(creator)).to.throw('undefined or null node object in Verse constructor');
+
+        // switch to chapter creator
+        creator = function(node) {
+          return new Chapter(node);
+        };
+
+        node = new cmn.Node();
+        expect(creator.bind(creator, node)).to.throw('invalid node in Chapter constructor');
+        node.tag = TAG.C;
+        expect(creator.bind(creator, node)).to.throw('invalid node in Chapter constructor');
+        expect(creator.bind(creator, null)).to.throw('undefined or null node object in Chapter constructor');
+        expect(creator.bind(creator)).to.throw('undefined or null node object in Chapter constructor');
+
+        // switch to book creator
+        creator = function(node) {
+          return new Book(node);
+        };
+        expect(creator.bind(creator, null)).to.throw('undefined or null node object in Book constructor');
+        expect(creator.bind(creator)).to.throw('undefined or null node object in Book constructor');
+
+        node = new cmn.Node();
+        node.tag = 'book';
+        expect(creator.bind(creator, node)).to.throw('invalid node in Book constructor');
       });
-
-    });
-
-    // dsfsdf
-  });
-});
-
-/*
-  describe('bible interface', function() {
-
-
-    describe('combined behavior', function() {
 
       it('verse', function() {
         expect(v1.id()).to.be.equal(tid1 + ' 1:1');
@@ -633,6 +657,17 @@ describe('core components', function() {
           }
         }
       });
+    });
+
+    // dsfsdf
+
+  });
+});
+
+/*
+  describe('bible interface', function() {
+
+    describe('combined behavior', function() {
     });
   });
 
