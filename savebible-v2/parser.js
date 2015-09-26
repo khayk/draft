@@ -31,6 +31,7 @@ var textRenderer         = new rnd.TextRenderer({textOnly: false});
 var prettyRenderer       = new rnd.PrettyRenderer();
 var htmlRenderer         = new rnd.HtmlRenderer();
 var parser               = new lb.Parser();
+//var parser               = new lb.Parser(['zw', 'zws', 'zx', 'zwm']);
 
 measur.begin('loading bible: ');
 bids.forEach(function(bid) {
@@ -48,7 +49,7 @@ bids.forEach(function(bid) {
 
     fs.writeFileSync('data.pretty', prettyRenderer.renderNode(root));
     fs.writeFileSync('data.usfm', usfmRenderer.renderNode(root));
-    fs.writeFileSync('data.indented-usfm', indentedUsfmRenderer.renderNode(root));
+    //fs.writeFileSync('data.indented-usfm', indentedUsfmRenderer.renderNode(root));
     fs.writeFileSync('data.text', textRenderer.renderNode(root));
     fs.writeFileSync('data.html', htmlRenderer.renderNode(root));
   });
@@ -67,8 +68,8 @@ function handleDirectory(de) {
   var roots = [];
   var renderers = [
     {name: 'usfm',   ext: '.usfm',   renderer: usfmRenderer,         all: ''},
-    {name: 'text',   ext: '.txt',    renderer: textRenderer,         all: ''},
-    {name: 'i-usfm', ext: '.i-usfm', renderer: indentedUsfmRenderer, all: ''}
+    {name: 'text',   ext: '.txt',    renderer: textRenderer,         all: ''}
+    //{name: 'i-usfm', ext: '.i-usfm', renderer: indentedUsfmRenderer, all: ''}
   ];
 
   measur.begin('loading bible: ' + dir);

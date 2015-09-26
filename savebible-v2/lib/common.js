@@ -46,15 +46,30 @@
   var TH = (function() {
     var known      = /add|wj|nd|qt|dc|p|q|c|v/;
     var valid      = /\\\+?(\w+)\*?/;
-    var ignored    = /zw|zws|zx|zwm/;
-    var translator = /add/;
-    var addition   = /dc/;
-    var jesusWord  = /wj/;
+    var ignored    = /^(zw|zws|zx|zwm)$/;
 
-    // tags that do not have a closing pair
-    var single    = /^(p|b|q\d+|c|v|d)$/;
-    var paired    = /add|wj|nd|qt|dc|zw|f|zws|zx|zwm|ior/;
+    var translator = /add/;
+    var jesusWord  = /wj/;
+    //var addition   = /dc/;
+
+    // var single     = /^(p|b|q\d+|c|v|d)$/;
+
+    // tags that do have a closing pair
+    var paired     = /add|wj|nd|qt|dc|zw|f|zws|zx|zwm|ior/;
+
     var discovered = {};
+
+    // here are presented almost all tags of usfm language
+    // @todo:hayk  construct list of paired tag automatically
+    var identifications = /^(id|ide|sts|rem|h|toc\d)$/;
+    var title           = /^(mt|mte|ms|mr|s|r|d)$/;
+    var chapOrVerse     = /^(c|v)$/;
+    var paragraphs      = /^(p|m)$/;
+    var poetry          = /^(q\d?|b)$/;
+    var footnotes       = /^(f|fr|fk|fq|fqa|fl|fp|fv|ft|fcd|fm)$/;
+    var crossReference  = /^(x)$/;
+    var specialText     = /^(add|nd|pn|qt|wj)$/;
+    var styling         = /^(em|bd|it|bdit|no|sc)$/;
 
     return {
       // @brief  build tag statistics, how many times that tag is found in the
@@ -93,18 +108,19 @@
 
       // @returns   true for translator tags
       isTranslator: function(tag) {
-        return translator.test(tag) === true;
-      },
-
-      // @returns   true for addition tags
-      isAddition: function(tag) {
-        return addition.test(tag) === true;
+        return TAG.ADD === tag;
+        //return translator.test(tag) === true;
       },
 
       // @returns   true for tags identifying Jesus Words
       isJesusWord: function(tag) {
         return jesusWord.test(tag) === true;
       },
+
+      // @returns   true for addition tags
+      // isAddition: function(tag) {
+      //   return addition.test(tag) === true;
+      // },
 
       // @return true if the the tag can contain inside the children the tag
       //              with the same name, otherwise returns false
@@ -208,7 +224,7 @@
 
   // @returns  true if the current node have element following itself
   Node.prototype.haveNext = function() {
-    return !_.isUndefined(this.next);
+    return !_.isUndefined(this.next) && this.next !== null;
   };
 
   // @returns  true for nodes representing usfm tag, otherwise false
@@ -228,7 +244,7 @@
   // @returns  number of all nodes contained in the nodes tree
   Node.prototype.count = function() {
     var count = 1;
-    if (this.haveChild())
+    if (this.haveChild() )
       count += this.first.count();
     if (this.haveNext())
       count += this.next.count();

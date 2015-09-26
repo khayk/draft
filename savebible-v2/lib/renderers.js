@@ -310,7 +310,7 @@
     this.textOnly   = opts.textOnly;
     this.renderable = /^(add|wj|nd|qt|dc|p|q|c|v)$/;
     this.isRenderable = function(tag) {
-        return this.renderable.test(tag) === true;
+      return this.renderable.test(tag) === true;
     };
     Renderer.call(this);
   };

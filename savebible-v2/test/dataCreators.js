@@ -12,7 +12,7 @@ var Parser    = lb.Parser;
 var verses = '\\v {{number}} \\wj Blessed \\+add are\\+add* the poor in ' +
   'spirit: for theirs is the kingdom of heaven.\\wj*';
 
-var parser = new Parser(true);
+var parser = new Parser();
 
 var randomVerse = function() {
   return verses;

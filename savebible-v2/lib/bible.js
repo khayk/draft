@@ -824,7 +824,6 @@ var TH  = cmn.TH;
         self.addChapter(new Chapter(n));
       } else {
         var str = n.firstChild().text;
-        console.log(str);
         if (n.tag === TAG.ID) {
           var arr = /(\w+)(\s+(.+))?/gm.exec(str);
           if (arr === null)
@@ -1037,7 +1036,8 @@ var TH  = cmn.TH;
       if (top === null || top.tag === tag)
         break;
       if (!TH.haveClosing(top.tag)) {
-        log.error('Expecting to see pair for ' + tag + ' but found ' + top.tag + ' instead');
+        log.error('Expecting to see pair for ' + tag +
+                  ' but found ' + top.tag + ' instead');
         return;
       }
       this.stack.pop();
@@ -1081,7 +1081,7 @@ var TH  = cmn.TH;
         if (node.text.length === 0)
           return;
       } else {
-        if (node.text.trim().length === 0)
+        if (!top.haveChild() && node.text.trim().length === 0)
           return;
       }
     }
@@ -1096,12 +1096,59 @@ var TH  = cmn.TH;
   /*------------------------------------------------------------------------*/
 
   // @brief  Create parser object
-  // @param  knownTagsOnly  the parser will collect only tags that well known
-  //                        by the application. list of known tags are
-  //                        controlled by TH module
-  var Parser = function(knownTagsOnly) {
+  // @param ignoredTags (optional)  array of tags to be ignored by parser
+  //                    ifto collect all tags do not pass anything
+  var Parser = function(ignoredTags) {
     this.vre = /(\\\+?(\w+)\s?\*?)/gm;
-    this.knownTagsOnly = _.isUndefined(knownTagsOnly) ? true : knownTagsOnly;
+    if (_.isUndefined(ignoredTags))
+      this.ignoredTags = [];
+    else if (!_.isArray(ignoredTags))
+      throw new Error('expected array in Parser constructor');
+    else
+      this.ignoredTags = ignoredTags;
+    this.ignoredTags.sort();
+  };
+
+  // @returns true if the specified tag will be ignored by the parser
+  //          otherwise false
+  Parser.prototype.isIgnoredTag =  function(tag) {
+    if (this.ignoredTags.length === 0)
+      return false;
+    return this.ignoredTags.indexOf(tag) !== -1;
+  };
+
+  // @brief  scan specified node and remove any tag nodes from the ignore list.
+  //         the call of this function have no effect if parser have not
+  //         ignored tags list
+  // @return node
+  Parser.prototype.removeIgnoredTags = function(node) {
+    if (this.ignoredTags.length === 0)
+      return node;
+
+    var child = node.firstChild();
+    var prev = null;
+    while (child !== null) {
+      if (child.isTag()) {
+        if (this.isIgnoredTag(child.tag)) {
+          if (prev !== null) {
+            if (prev.haveNext()) {
+              prev.next = child.getNext();
+            }
+          }
+          else
+            node.first = child.getNext();
+        }
+        else {
+          prev  = child;
+          this.removeIgnoredTags(child);
+        }
+      }
+      else {
+        prev  = child;
+      }
+      child = child.getNext();
+    }
+    return node;
   };
 
   // @brief   parse any usfm data provided in `str` argument
@@ -1147,6 +1194,8 @@ var TH  = cmn.TH;
       log.warn('location ~  %s', str.substr(lastIndex, 40));
       throw e;
     }
+    this.removeIgnoredTags(tree.root);
+    tree.root.normalize();
     return tree.root;
   };
 
