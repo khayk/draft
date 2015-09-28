@@ -709,15 +709,15 @@ describe('core components', function() {
       it('save as usfm', function() {
         dusfm.verses.forEach(function(o) {
           var ref      = o.data;
-          var orig     = ref.orig.replace(/\n/g, ' ');
+          var orig     = ref.orig.replace(/\n/g, ' ').replace(/\s+/g, ' ');
 
           var verse    = parser.parseVerse(ref.orig);
           var restored = verse.render(usfmRndr);
-          expect(ref.parsed).to.equal(restored);
+          expect(restored).to.equal(ref.parsed);
 
           verse        = parserAll.parseVerse(ref.orig);
           restored     = verse.render(usfmRndr);
-          expect(orig).to.equal(restored);
+          expect(restored).to.equal(orig);
         });
       });
 

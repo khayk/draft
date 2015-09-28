@@ -46,7 +46,7 @@
   var TH = (function() {
     var known      = /add|wj|nd|qt|dc|p|q|c|v/;
     var valid      = /\\\+?(\w+)\*?/;
-    var ignored    = /^(zw|zws|zx|zwm)$/;
+    var ignored    = /^(zw|zws|zx|zwm|f)$/;
 
 
     var translator = /add/;
@@ -72,7 +72,7 @@
     var specialText     = /^(add|nd|pn|qt|wj)$/;
     var styling         = /^(em|bd|it|bdit|no|sc)$/;
 
-    var arrayIgnoredTags = ['zw', 'zws', 'zx', 'zwm'];
+    var arrayIgnoredTags = ['zw', 'zws', 'zx', 'zwm', 'f'];
 
     return {
       // @brief  build tag statistics, how many times that tag is found in the
@@ -335,6 +335,8 @@
         }
       }
       else {
+        if (n.isText())
+          n.text = n.text.replace(/\s{2,}/gm, ' ');
         prev = n;
       }
       n = n.getNext();

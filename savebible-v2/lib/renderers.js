@@ -20,7 +20,7 @@
 
   var TagView = function(renderer) {
     this.renderer_ = renderer;
-    this.tvs_ = {};
+    this.tvs_      = {};
   };
 
   TagView.prototype.template = function() {
@@ -118,8 +118,6 @@
   // These functions `SHOULD NOT` be overridden in the derived classes
   Renderer.prototype.renderNode = function(node, depth, vrd) {
     var res = '';
-    depth = _.isUndefined(depth) ? 0 : depth;
-    vrd = _.isUndefined(vrd) ? 0 : vrd;
 
     // get default template for verse object
     var vo = this.tagView_.template();
@@ -169,19 +167,19 @@
   // @brief    render given verse based on the renderer configuration
   // @returns  string containing the rendered verse
   Renderer.prototype.renderVerse = function(verse) {
-    return this.renderNode(verse.node);
+    return this.renderNode(verse.node, 0, 0);
   };
 
   // @brief    render given chapter based on the renderer configuration
   // @returns  string containing the rendered chapter
   Renderer.prototype.renderChapter = function(chapter) {
-    return this.renderNode(chapter.node);
+    return this.renderNode(chapter.node, 0, 0);
   };
 
   // @brief    render given book based on the renderer configuration
   // @returns  string containing the rendered book
   Renderer.prototype.renderBook = function(book) {
-    return this.renderNode(book.node);
+    return this.renderNode(book.node, 0, 0);
   };
 
   // @brief    render given bible based on the renderer configuration

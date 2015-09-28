@@ -56,9 +56,9 @@
     data: {
       orig: '\\v 19 And Jesus said unto him, \\wj Why  callest thou me good? none\n' +
         '\\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj*',
-      parsed: '\\v 19 And Jesus said unto him, \\wj Why  callest thou me good? ' +
+      parsed: '\\v 19 And Jesus said unto him, \\wj Why callest thou me good? ' +
         'none \\+add is\\+add* good, save one, \\+add that is\\+add*, God.\\wj*',
-      text: '19 And Jesus said unto him, Why  callest thou me good? none [is] ' +
+      text: '19 And Jesus said unto him, Why callest thou me good? none [is] ' +
         'good, save one, [that is], God.'
     }
   },
@@ -84,8 +84,8 @@
         '\\+zw \\+zws G1526 \\+zws*\\+zwm robinson:V-PXI-3P 14 \\+zwm*\\+zw*are\\+zx \\+zx*\n' +
         '\\+zw \\+zws G3588 G5207 \\+zws*\\+zwm robinson:T-NPM robinson:N-NPM 15 16 \\+zwm*\\+zw*the\n' +
         ' children\\+zx \\+zx* \\+zw \\+zws G1658 \\+zws*\\+zwm robinson:A-NPM 13 \\+zwm*\\+zw*free\\+zx \\+zx*.\\wj*',
-      parsed: '\\v 26 Peter saith unto him, Of strangers . Jesus saith unto him, \\wj Then are the  children free.\\wj*',
-      text: '26 Peter saith unto him, Of strangers . Jesus saith unto him, Then are the  children free.'
+      parsed: '\\v 26 Peter saith unto him, Of strangers . Jesus saith unto him, \\wj Then are the children free.\\wj*',
+      text: '26 Peter saith unto him, Of strangers . Jesus saith unto him, Then are the children free.'
     }
   },
   {
@@ -110,10 +110,10 @@
         '\\zw \\+zws G5119 \\+zws*\\+zwm robinson:ADV 18 \\+zwm*\\zw*Then\\zx \\zx*\n' +
         '\\zw \\+zws G863 \\+zws*\\+zwm robinson:V-PAI-3S 19 \\+zwm*\\zw*he suffered\\zx \\zx*\n' +
         '\\zw \\+zws G846 \\+zws*\\+zwm robinson:P-ASM 20 \\+zwm*\\zw*him\\zx \\zx*.',
-      parsed: '\\v 15 And Jesus answering said unto him, \\wj Suffer  \\+add ' +
-        'it   to be so\\+add* now: for thus it becometh us to fulfil all ' +
+      parsed: '\\v 15 And Jesus answering said unto him, \\wj Suffer \\+add ' +
+        'it to be so\\+add* now: for thus it becometh us to fulfil all ' +
         'righteousness.\\wj* Then he suffered him.',
-      text: '15 And Jesus answering said unto him, Suffer  [it   to be so] now: ' +
+      text: '15 And Jesus answering said unto him, Suffer [it to be so] now: ' +
         'for thus it becometh us to fulfil all righteousness. Then he suffered him.'
     }
   },

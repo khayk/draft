@@ -18,8 +18,8 @@ var NH     = cmn.NH;
 var NL     = cmn.NL;
 
 var dirNames = [
-  'en-kjv-usfm+'
-  // 'en-kjv-usfm',
+  'en-kjv-usfm+',
+  'en-kjv-usfm'
   // 'en-kjv-usfm+ [saved]'
 ];
 
@@ -47,11 +47,11 @@ bids.forEach(function(bid) {
     var root = parser.parse(str);
     console.log("nodes count: ", root.count());
 
-    fs.writeFileSync('data.pretty', prettyRenderer.renderNode(root));
-    fs.writeFileSync('data.usfm', usfmRenderer.renderNode(root));
-    //fs.writeFileSync('data.indented-usfm', indentedUsfmRenderer.renderNode(root));
-    fs.writeFileSync('data.text', textRenderer.renderNode(root));
-    fs.writeFileSync('data.html', htmlRenderer.renderNode(root));
+    fs.writeFileSync('data.pretty', prettyRenderer.renderNode(root, 0, 0));
+    fs.writeFileSync('data.usfm', usfmRenderer.renderNode(root, 0, 0));
+    //fs.writeFileSync('data.indented-usfm', indentedUsfmRenderer.renderNode(root, 0, 0));
+    fs.writeFileSync('data.text', textRenderer.renderNode(root, 0, 0));
+    fs.writeFileSync('data.html', htmlRenderer.renderNode(root, 0, 0));
   });
 });
 measur.end();
@@ -103,7 +103,7 @@ function handleDirectory(de) {
     roots.forEach(function(te) {
       var root = te.root;
       var fname = te.fname;
-      var data = ro.renderer.renderNode(root);
+      var data = ro.renderer.renderNode(root, 0, 0);
       ro.all += data + NL;
       fs.writeFileSync(fname + ro.ext, data);
     });
