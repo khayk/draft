@@ -437,8 +437,7 @@ describe('module TAGs', function() {
   });
 
   it('ignored tags', function() {
-    var arrIgnored = ['zw', 'zx', 'zwm', 'zws'];
-    arrIgnored.forEach(function(a) {
+    TH.arrayIgnored().forEach(function(a) {
       expect(TH.isIgnored(a)).to.equal(true);
     });
   });
@@ -663,7 +662,7 @@ describe('core components', function() {
 
   // usfm format parsing
   describe('usfm format', function() {
-    var parser    = new Parser(['zw', 'zws', 'zx', 'zwm']);
+    var parser    = new Parser(TH.arrayIgnored());
     var parserAll = new Parser();
     var usfmRndr  = new UsfmRenderer();
     var textRndr  = new TextRenderer({ textOnly: false });
@@ -722,33 +721,22 @@ describe('core components', function() {
         });
       });
 
-      // it('save as text', function() {
-      //   dusfm.verses.forEach(function(o) {
-      //     var ref = o.data;
-      //     var orig = ref.orig.replace(/\n/g, ' ').trim();
-      //     var verse = parser.parseVerse(orig);
-      //     var restored = verse.render(textRndr);
-      //     if (!_.isUndefined(ref.textKnown))
-      //       expect(ref.textKnown).to.equal(restored);
-      //     else
-      //       expect(ref.text).to.equal(restored);
-      //   });
-      // });
+      it('save as text', function() {
+        dusfm.verses.forEach(function(o) {
+          var ref      = o.data;
+          var orig     = ref.orig.replace(/\n/g, ' ').trim();
+          var verse    = parser.parseVerse(orig);
+          var restored = verse.render(textRndr);
+          expect(ref.text).to.equal(restored);
+        });
+      });
     });
-
-
   });
-});
-
-/*
-
-  describe('usfm format', function() {
-  });
-
 
   describe('parse book', function() {
     var parser = new Parser();
     var tmp = dusfm.bookTemplate;
+
     it('with invalid input', function() {
       var str = tmp.replace('{{ID}}', 'id ');
       expect(parser.parseBook.bind(parser, str)).to.throw('Failed to identify book id');
@@ -759,11 +747,11 @@ describe('core components', function() {
 
       str = tmp.replace('{{ID}}', 'id KKK');
       expect(parser.parseBook.bind(parser, str)).to.throw('Invalid book id: KKK');
-
       expect(parser.parseBook.bind(parser, {obj:1})).to.throw('parseBook expects a string argument');
     });
   });
 
+  // rendering
   describe('rendering', function() {
     var bible          = null;
     var textAndIdsRndr = new TextRenderer({textOnly: false});
@@ -773,7 +761,6 @@ describe('core components', function() {
     it('reading from hdd', function() {
       var filesDir = path.join(__dirname, 'usfm/');
       bible = loadBible(filesDir, {
-        knownTagsOnly: false,
         tocOverwrite: false
       });
 
@@ -785,6 +772,7 @@ describe('core components', function() {
       expect(book.ref()).to.be.deep.equal({ix: BBM.instance().onById('MAT'), cn: 0, vn: 0});
     });
 
+    // save data to hdd
     it('saving to hdd', function() {
       var filesDir = path.join(__dirname, 'usfm/');
       var tempDir = path.join(__dirname, 'to_delete/');
@@ -797,7 +785,6 @@ describe('core components', function() {
 
       // read the bible that we have saved just now
       var bible1 = loadBible(tempDir, {
-        knownTagsOnly: false,
         tocOverwrite: false
       });
       rimraf.sync(tempDir);
@@ -824,10 +811,11 @@ describe('core components', function() {
         bible.render(textRndr);
     });
 
-    it('text with bad argumets', function() {
+  });
+});
 
-    });
-
+/*
+  describe('rendering', function() {
     it('complain for incomplete renderer', function() {
       // creating custom rendere
       var CustomRenderer = function() {

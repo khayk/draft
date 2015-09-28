@@ -38,17 +38,37 @@ function buildTestData() {
 // console.log(vstr);
 // console.log(cstr);
 
-var parser = new lb.Parser(['zw', 'zws', 'zx', 'zwm']);
+var parser = new lb.Parser();
 var usfmRenderer = new rnd.UsfmRenderer();
 var textRenderer = new rnd.TextRenderer({numberOnly: false});
 
-vstr = verseTemplate.replace('{{number}}', 1);
-var verse = parser.parseVerse(vstr);
-console.log(verse.render(usfmRenderer));
 
-verse.node.normalize();
-console.log('after normalize: ', verse.node.count());
-console.log(verse.render(usfmRenderer));
+var bookTemplate = '' +
+    '\\id \n' +
+    '\\h Genesis\n' +
+    '\\toc1 The First Book of Moses, called Genesis\n' +
+    '\\toc2 Genesis\n' +
+    '\\toc3 Gen\n' +
+    '\\mt The First Book of Moses, called Genesis\n' +
+    '\\{{ENCODING}}\n' +
+    '\\c 1\n' +
+    '\\p\n' +
+    '\\q\n' +
+    '\\v 1  first\n' +
+    '\\c 2\n' +
+    '\\p\n' +
+    '\\v 1 second\n' +
+    '\\c 3  \n' +
+    '\\v 1 third\n' +
+    '\\p\n' +
+    '\\v 2 forth\n';
+
+var book = parser.parseBook(bookTemplate);
+console.log(book.render(usfmRenderer));
+
+// verse.node.normalize();
+// console.log('after normalize: ', verse.node.count());
+// console.log(verse.render(usfmRenderer));
 
 
 // console.log(verse.render(textRenderer));

@@ -823,7 +823,10 @@ var TH  = cmn.TH;
       if (n.tag === TAG.C) {
         self.addChapter(new Chapter(n));
       } else {
-        var str = n.firstChild().text;
+        var str = '';
+        var child = n.firstChild();
+        if (child !== null && child.isText())
+          str = child.text;
         if (n.tag === TAG.ID) {
           var arr = /(\w+)(\s+(.+))?/gm.exec(str);
           if (arr === null)
@@ -839,7 +842,11 @@ var TH  = cmn.TH;
           if (str !== 'UTF-8')
             throw new Error(util.format('Unknown encoding %s in %s book.', str, self.te.id));
         } else {
-          log.warn('Unknown tag inside book: ' + n.tag);
+          if (n.tag !== TAG.H && n.tag !== TAG.MT)
+            log.warn('Unknown tag inside book: ' + n.tag);
+          else {
+            // @todo:hayk  use tags \h and \mt
+          }
         }
       }
     });
@@ -1211,251 +1218,11 @@ var TH  = cmn.TH;
   };
 
   Parser.prototype.parseBook = function(str) {
+    if (typeof str !== 'string')
+      throw new Error('parseBook expects a string argument');
     var book = new Book(this.parse(str));
     return book;
   };
-
-  /*------------------------------------------------------------------------*/
-/*
-
-
-  var Parser = function(knownTagsOnly) {
-    this.knownTagsOnly = knownTagsOnly;
-    this.vre = /(\\\+?(\w+)\*?)\s?/gm;
-
-    var versesBreak     = {};
-    versesBreak[TAG.B]  = 1;
-    versesBreak[TAG.P]  = 1;
-    versesBreak[TAG.Q]  = 1;
-    versesBreak[TAG.IE] = 1;
-    versesBreak[TAG.V]  = 1;
-
-    // deal with child nodes
-    var childTextNode = function (node, str, from, to) {
-      var text = str.substring(from, to);
-      if (text.length > 0) {
-        node.addChild(NH.createText(text));
-      }
-    };
-
-    var extractHeader = function(header, book) {
-      // extract book headers
-      var re = /(\\\w+)\s+?(.*)/gm;
-      var arr = null;
-      while ((arr = re.exec(header)) !== null) {
-        var tag = TH.name(arr[1]);
-        TH.onTag(tag);
-        var str = arr[2];
-        if (tag === TAG.ID) {
-          arr = /(\w+)\s+(.+)/gm.exec(str);
-          if (arr === null)
-            throw new Error('Failed to identify book id');
-          book.te.id = arr[1];
-        } else {
-          if (tag === TAG.TOC1) {
-            book.te.desc = str.trim();
-          } else if (tag === TAG.TOC2) {
-            book.te.name = str.trim();
-          } else if (tag === TAG.TOC3) {
-            book.te.abbr = str.trim();
-          } else if (tag === TAG.IDE) {
-            if (str !== 'UTF-8')
-              throw new Error(util.format('Unknown encoding %s in %s book.', str, book.te.id));
-          } else {
-            book.header.push({tag: tag, value: str});
-          }
-        }
-      }
-
-      // @todo: fill abbreviation based on default values
-      if (!BBM.instance().existsId(book.te.id))
-        throw new Error('Invalid book id: ' + book.te.id);
-      book.index = BBM.instance().onById(book.te.id);
-    };
-
-    this.parseVerseImpl = function(str, vnode) {
-      var ind = 0;
-      var arr = this.vre.exec(str);
-      var re  = this.vre;
-      var stack = [];
-      var node;
-
-      stack.push(vnode);
-
-      while (true) {
-        node = stack[stack.length - 1];
-        if (arr !== null) {
-          // collect the available text
-          if (ind < arr.index && node !== null) {
-            childTextNode(node, str, ind, arr.index);
-          }
-
-          var tag = TH.name(arr[1]);
-
-          // let the system collect information about all
-          // tags that we see while processing the file
-          TH.onTag(tag);
-
-          if (TH.isOpening(arr[1])) {
-            var compoundNode = NH.createTag(tag);
-
-            // collect known tags only
-            if (this.knownTagsOnly === true) {
-              if (TH.isKnown(tag)) {
-                node.addChild(compoundNode);
-              }
-            } else {
-              node.addChild(compoundNode);
-            }
-
-            ind = arr.index + arr[0].length;
-            arr = re.exec(str);
-            stack.push(compoundNode);
-          } else {
-            // closing tag
-            ind = arr.index + arr[1].length;
-            arr = re.exec(str);
-            stack.pop();
-          }
-        } else {
-          // collect remaining text
-          if (ind < str.length && node !== null) {
-            childTextNode(node, str, ind, str.length);
-          }
-          return;
-        }
-      }
-    };
-
-    var that  = this;
-
-    function buildVerse(vn, vstr, chap) {
-      if (vn !== 0) {
-        var v = that.parseVerse(vstr);
-        v.number = vn;
-        vn = 0;
-        chap.addVerse(v);
-        vstr = '';
-      }
-    }
-
-    // helps to perform chapter parsing
-    this.parseChapterImpl = function(str, chap) {
-      var vstr = '', vn = 0, arr = null, tag;
-      var re = /^(\\\w+\d?)((\s+)(\d+))?/gm;
-
-      // process chapter line by line
-      var lines = str.match(/[^\r\n]+/g);
-
-      lines.forEach(function(line) {
-        re.lastIndex = 0;
-        arr = re.exec(line);
-        if (arr === null) {
-          vstr += line + ' ';
-        }
-        else {
-          tag = TH.name(arr[1]);
-          if (_.isUndefined(versesBreak[tag]))
-            vstr += line + ' ';
-          else {
-            buildVerse(vn, vstr, chap);
-            vstr = '';
-            vn = 0;
-            if (TAG.V === tag) {
-              // start a new verse
-              vn = parseInt(arr[4]);
-              vstr = line.substring(arr[0].length) + ' ';
-            }
-            else {
-              var node = NH.createTag(tag);
-              chap.addMarkup(node);
-            }
-          }
-        }
-      });
-      buildVerse(vn, vstr, chap);
-    };
-
-    // helps to perform book parsing
-    this.parseBookImpl = function(str, book) {
-      var re = /\\c\s+(\d+)/gm;
-      var arr = re.exec(str);
-      var lastIndex = 0, cstr = '', cn = '';
-      if (arr !== null) {
-        var header = str.substring(0, arr.index);
-        extractHeader(header, book);
-        lastIndex = re.lastIndex;
-        cn = arr[1];
-      }
-
-      // find chapters
-      while (true) {
-        arr = re.exec(str);
-        if (arr !== null)
-          cstr = str.substring(lastIndex, arr.index);
-        else
-          cstr = str.substring(lastIndex);
-
-        var c = this.parseChapter(cstr);
-        c.parent = book;
-        c.number = parseInt(cn);
-        book.addChapter(c);
-
-        if (arr === null)
-          return;
-        lastIndex = re.lastIndex;
-        cn = arr[1];
-      }
-    };
-  };
-
-  // @param {string} str  string in a USFM format
-  Parser.prototype.parseVerse = function(str) {
-    // extract verse number if it is provided
-
-    var vn  = 0;
-    var re  = /\\v\s(\d+)/g;
-    var arr = re.exec(str);
-    var tmp = str;
-    if (arr !== null) {
-      vn = parseInt(arr[1]);
-      tmp = str.substring(re.lastIndex);
-    }
-
-    // get rid of CR (carriage return) character, and replace
-    // LF (line feed) characters with space
-    tmp = tmp.replace(/\r/gm, '')
-             .replace(/\n|¶/gm, ' ')
-             .replace(/\s{2,}/gm, ' ')
-             .trim();
-
-    this.vre.lastIndex = 0;
-    var verse = new Verse();
-    this.parseVerseImpl(tmp, verse.node);
-    verse.node.normalize();
-    verse.number = vn;
-    return verse;
-  };
-
-
-  Parser.prototype.parseChapter = function(str) {
-    var chap = new Chapter();
-    this.parseChapterImpl(str, chap);
-    return chap;
-  };
-
-
-  Parser.prototype.parseBook = function(str) {
-    if (typeof str !== 'string')
-      throw new Error('parseBook expects a string argument');
-
-    var book = new Book();
-    this.parseBookImpl(str, book);
-    return book;
-  };
-*/
-
-
 
   /*------------------------------------------------------------------------*/
 
@@ -1569,8 +1336,8 @@ var TH  = cmn.TH;
     }
 
     // setup default values for options missing entities
-    if (_.isUndefined(opts.knownTagsOnly))
-      opts.knownTagsOnly = true;
+    if (_.isUndefined(opts.ignoredTags))
+      opts.ignoredTags = [];
     if (_.isUndefined(opts.strictFilename))
       opts.strictFilename = true;
     if (_.isUndefined(opts.lang))
@@ -1617,7 +1384,7 @@ var TH  = cmn.TH;
   function loadBook(file, opts, parser) {
     opts = fillMissingOptions(opts);
     if (_.isUndefined(parser))
-      parser = new Parser(opts.knownTagsOnly);
+      parser = new Parser(opts.ignoredTags);
 
     var info = decodeFileName(file, opts.strictFilename);
     if (info === null)
@@ -1653,7 +1420,7 @@ var TH  = cmn.TH;
     dir        = path.normalize(dir + '/');
     var files  = fs.readdirSync(dir, 'utf8');
     var bible  = new Bible();
-    var parser = new Parser(opts.knownTagsOnly);
+    var parser = new Parser(opts.ignoredTags);
 
     files.forEach(function(file) {
       // skip files with unknown extension
@@ -1706,7 +1473,7 @@ var TH  = cmn.TH;
     if (_.isUndefined(opts.strictFilename))
       opts.strictFilename = true;
     if (_.isUndefined(opts.renderer))
-      opts.renderer = new rndrs.USFMRenderer();
+      opts.renderer = new rndrs.UsfmRenderer();
     if (_.isUndefined(opts.extension))
       opts.extension = '.usfm';
 

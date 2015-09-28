@@ -2,6 +2,7 @@ var path        = require('path');
 var log4js      = require('log4js');
 var cfg         = require('./config').cfg;
 var lb          = require('./lib/bible');
+var cmn         = require('./lib/common');
 var help        = require('./helpers');
 var readline    = require('readline');
 var measur      = new help.Measurer();
@@ -11,6 +12,8 @@ var log         = log4js.getLogger('nav');
 
 var BibleSearch = search.BibleSearch;
 var MC          = lb.MC;
+var TAG         = cmn.TAG;
+var TH          = cmn.TH;
 
 var startupInitialization = function() {
   MC.instance().load(path.join(cfg.mediaDir(), 'meta'));
@@ -37,7 +40,7 @@ var inputs = [
   inputs.forEach(function(input) {
     measur.begin('loading bible: ' + input[0]);
     var bible = lb.loadBible(cfg.bibleDir(input[0]).from, {
-      knownTagsOnly: true,
+      ignoredTags: TH.arrayIgnored(),
       strictFilename: false
     });
     measur.end();

@@ -48,6 +48,7 @@
     var valid      = /\\\+?(\w+)\*?/;
     var ignored    = /^(zw|zws|zx|zwm)$/;
 
+
     var translator = /add/;
     var jesusWord  = /wj/;
     //var addition   = /dc/;
@@ -70,6 +71,8 @@
     var crossReference  = /^(x)$/;
     var specialText     = /^(add|nd|pn|qt|wj)$/;
     var styling         = /^(em|bd|it|bdit|no|sc)$/;
+
+    var arrayIgnoredTags = ['zw', 'zws', 'zx', 'zwm'];
 
     return {
       // @brief  build tag statistics, how many times that tag is found in the
@@ -157,6 +160,11 @@
       //           during application run time
       discovered: function() {
         return discovered;
+      },
+
+      // @returns  array containing predefined ignored tags
+      arrayIgnored: function() {
+        return arrayIgnoredTags;
       }
     };
   })();
@@ -285,10 +293,10 @@
         if (child.tag === tag) {
           res.push(child);
           if (TH.isSelfContained(tag))
-            child.findAll(tag, res);
+            child.find(tag, res);
         }
         else {
-          child.findAll(tag, res);
+          child.find(tag, res);
         }
       }
       child = child.getNext();

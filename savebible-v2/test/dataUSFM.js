@@ -47,7 +47,7 @@
         'son\\zx \\zx*.',
       parsed: '\\v 9 For this \\add is\\add* the word of promise, At this time ' +
         'will I come, and Sara shall have a son.',
-      text: '2 For this [is] the word of promise, At this time will I come,' +
+      text: '9 For this [is] the word of promise, At this time will I come,' +
         ' and Sara shall have a son.'
     }
   },
@@ -122,7 +122,7 @@
     data: {
       orig: '\\v 1 ',
       parsed: '\\v 1 ',
-      text: '1'
+      text: '1 '
     }
   },
   {
@@ -140,7 +140,7 @@
   // sample book
   // @todo do not like this, change, refactor
   exports.bookTemplate = '' +
-    '\\{{ID}}  Genesis\n' +
+    '\\{{ID}}\n' +
     '\\h Genesis\n' +
     '\\toc1 The First Book of Moses, called Genesis\n' +
     '\\toc2 Genesis\n' +
@@ -149,6 +149,7 @@
     '\\{{ENCODING}}\n' +
     '\\c 1\n' +
     '\\p\n' +
+    '\\q\n' +
     '\\v 1  first\n' +
     '\\c 2\n' +
     '\\p\n' +

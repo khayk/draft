@@ -5,8 +5,12 @@ var fs     = require('fs');
 var cfg    = require('./config').cfg;
 var help   = require('./helpers');
 var lb     = require('./lib/bible');
+var rndr   = require('./lib/renderers');
 var srch   = require('./lib/search');
+var cmn    = require('./lib/common');
 
+var TH     = cmn.TH;
+var TAG    = cmn.TAG;
 var MC     = lb.MC;
 var measur = new help.Measurer();
 
@@ -35,12 +39,14 @@ var bible = null;
 
 function benchmarkBibleLoad(name) {
   stress(function() {
-    bible = lb.loadBible(cfg.bibleDir(name).from, {knownTagsOnly: true});
+    bible = lb.loadBible(cfg.bibleDir(name).from, {
+      ignoredTags: TH.arrayIgnored()
+    });
   }, 'reading bible from hdd', 1);
 }
 
-var usfmRenderer = new lb.USFMRenderer();
-var textRenderer = new lb.TextRenderer();
+var usfmRenderer = new rndr.UsfmRenderer();
+var textRenderer = new rndr.TextRenderer();
 
 function benchmarkBibleRendering(type) {
   var result = '';

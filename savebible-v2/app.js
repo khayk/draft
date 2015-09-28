@@ -41,7 +41,6 @@
     measur.begin('loading bible: ' + input[0]);
 
     var bible = lb.loadBible(cfg.bibleDir(input[0]).from, {
-      knownTagsOnly:  false,
       strictFilename: true
     });
     measur.end();

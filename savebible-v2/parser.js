@@ -31,7 +31,7 @@ var textRenderer         = new rnd.TextRenderer({textOnly: false});
 var prettyRenderer       = new rnd.PrettyRenderer();
 var htmlRenderer         = new rnd.HtmlRenderer();
 var parser               = new lb.Parser();
-//var parser               = new lb.Parser(['zw', 'zws', 'zx', 'zwm']);
+//var parser               = new lb.Parser(TH.arrayIgnored());
 
 measur.begin('loading bible: ');
 bids.forEach(function(bid) {
