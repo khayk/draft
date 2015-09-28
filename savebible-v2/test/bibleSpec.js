@@ -32,6 +32,7 @@ var Renderer        = rndr.Renderer;
 var UsfmRenderer    = rndr.UsfmRenderer;
 var TextRenderer    = rndr.TextRenderer;
 
+var findBook        = lb.findBook;
 var loadBible       = lb.loadBible;
 var loadBook        = lb.loadBook;
 var saveBible       = lb.saveBible;
@@ -758,6 +759,12 @@ describe('core components', function() {
     var textRndr       = new TextRenderer();
     var usfmRndr       = new UsfmRenderer();
 
+    it('locating book', function() {
+      var filesDir = path.join(__dirname, 'usfm/');
+      expect(findBook(filesDir, 'NON')).is.equal(null);
+      expect(findBook(filesDir, 'MAT')).is.not.equal(null);
+    });
+
     it('reading from hdd', function() {
       var filesDir = path.join(__dirname, 'usfm/');
       bible = loadBible(filesDir, {
@@ -800,7 +807,7 @@ describe('core components', function() {
       str = bible.render(textRndr);
     });
 
-    var samples = 100;
+    var samples = 50;
     it('usfm performance', function() {
       for (var i = 0; i < samples; ++i)
         bible.render(usfmRndr);
@@ -811,30 +818,19 @@ describe('core components', function() {
         bible.render(textRndr);
     });
 
-  });
-});
-
-/*
-  describe('rendering', function() {
     it('complain for incomplete renderer', function() {
       // creating custom rendere
       var CustomRenderer = function() {
+        Renderer.call(this);
       };
       inherit(CustomRenderer, Renderer);
       var customRndr = new CustomRenderer();
 
       var listOfMethodsToImplement = [
-        'renderableTag',
-        'getBookBegin',
-        'getBookEnd',
-        'defineBookView',
-        'getChapterBegin',
-        'getChapterEnd',
-        'defineChapterView',
+        'getTextView',
+        'getNumberView',
         'defineTagView',
-        'getVerseBegin',
-        'getVerseEnd',
-        'defineVerseView'
+        'defineComplexView',
       ];
 
       listOfMethodsToImplement.forEach(function(methodName) {
@@ -847,11 +843,11 @@ describe('core components', function() {
       // but now our renderer is properly formed, have all required methods
       bible.render(customRndr);
     });
-  });
 
+  });
 });
 
-return;
+
 /*------------------------------------------------------------------------*/
 
 
@@ -1163,13 +1159,13 @@ describe('search functionality', function() {
 
 /*------------------------------------------------------------------------*/
 
-/*
+
 describe('module BibleSearch', function() {
   var text = [
-    {s: 'And Isaac loved Esau, because he did eat of [his] venison: but Rebekah loved Jacob.', r: 1},
-    {s: 'And he went, and fetched, and brought [them] to his mother: and his mother made savoury meat, such as his father loved.', r: 2},
-    {s: 'And Jacob loved Rachel; and said, I will serve thee seven years for Rachel thy younger daughter.', r: 3},
-    {s: 'And he went in also unto Rachel, and he loved also Rachel more than Leah, and served with him yet seven other years.', r: 4}
+    {s: '\\v 1 And Isaac loved Esau, because he did eat of [his] venison: but Rebekah loved Jacob.'},
+    {s: '\\v 2 And he went, and fetched, and brought [them] to his mother: and his mother made savoury meat, such as his father loved.'},
+    {s: '\\v 3 And Jacob loved Rachel; and said, I will serve thee seven years for Rachel thy younger daughter.'},
+    {s: '\\v 4 And he went in also unto Rachel, and he loved also Rachel more than Leah, and served with him yet seven other years.'}
   ];
 
   var bs    = null;
@@ -1177,20 +1173,16 @@ describe('module BibleSearch', function() {
 
   // add words into dictionary
   before(function() {
-    var bible  = new Bible();
-    var book   = new Book();
-    var chap   = new Chapter();
     var parser = new Parser();
+    var bible  = new Bible();
+    var book   = parser.parseBook('\\id GEN Genesis');
+    var chap   = parser.parseChapter('\\c 1');
 
-    book.te.id = 'GEN';
     book.index = BBM.instance().onById(book.te.id);
-    chap.number = 1;
-
     bible.addBook(book.addChapter(chap));
 
     text.forEach(function(ti) {
       var v = parser.parseVerse(ti.s);
-      v.number = ti.r;
       chap.addVerse(v);
       ti.r = encodeRef(v.ref());
     });
@@ -1241,7 +1233,7 @@ describe('module BibleSearch', function() {
   it('navigation', function() {
   });
 });
-*/
+
 
 /*------------------------------------------------------------------------*/
 

@@ -90,7 +90,7 @@
   // 1. returns string that is define the view of given text
   //
   Renderer.prototype.defineTagView     = function(vo)          { throw new Error('implement defineTagView!'); };
-  Renderer.prototype.getNumberView     = function(tag, number) { throw new Error('implement defineNumberView!'); };
+  Renderer.prototype.getNumberView     = function(tag, number) { throw new Error('implement getNumberView!'); };
   Renderer.prototype.getTextView       = function(text)        { throw new Error('implement getTextView!'); };
 
   // ONLY special case should be processed by this function
