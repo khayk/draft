@@ -15,34 +15,39 @@ var rndr    = require('../lib/renderers.js');
 var tc      = require('./dataCreators.js');
 var dusfm   = require('./dataUSFM.js');
 
-var TH              = cmn.TH;
-var TAG             = cmn.TAG;
+var TH                   = cmn.TH;
+var NH                   = cmn.NH;
+var TAG                  = cmn.TAG;
 
-var BBM             = lb.BBM;
-var MC              = lb.MC;
-var TocEntry        = lb.TocEntry;
-var TableOfContents = lb.TableOfContents;
-var Verse           = lb.Verse;
-var Chapter         = lb.Chapter;
-var Book            = lb.Book;
-var Bible           = lb.Bible;
-var Parser          = lb.Parser;
+var BBM                  = lb.BBM;
+var MC                   = lb.MC;
+var Stack                = lb.Stack;
+var TocEntry             = lb.TocEntry;
+var TableOfContents      = lb.TableOfContents;
+var Verse                = lb.Verse;
+var Chapter              = lb.Chapter;
+var Book                 = lb.Book;
+var Bible                = lb.Bible;
+var Parser               = lb.Parser;
 
-var Renderer        = rndr.Renderer;
-var UsfmRenderer    = rndr.UsfmRenderer;
-var TextRenderer    = rndr.TextRenderer;
+var Renderer             = rndr.Renderer;
+var UsfmRenderer         = rndr.UsfmRenderer;
+var TextRenderer         = rndr.TextRenderer;
+var IndentedUsfmRenderer = rndr.IndentedUsfmRenderer;
+var PrettyRenderer       = rndr.PrettyRenderer;
+var HtmlRenderer         = rndr.HtmlRenderer;
 
-var findBook        = lb.findBook;
-var loadBible       = lb.loadBible;
-var loadBook        = lb.loadBook;
-var saveBible       = lb.saveBible;
-var encodeRef       = lb.encodeRef;
-var decodeRef       = lb.decodeRef;
-var decodeFileName  = lb.decodeFileName;
+var findBook             = lb.findBook;
+var loadBible            = lb.loadBible;
+var loadBook             = lb.loadBook;
+var saveBible            = lb.saveBible;
+var encodeRef            = lb.encodeRef;
+var decodeRef            = lb.decodeRef;
+var decodeFileName       = lb.decodeFileName;
 
-var Dictionary      = search.Dictionary;
-var Search          = search.Search;
-var BibleSearch     = search.BibleSearch;
+var Dictionary           = search.Dictionary;
+var Search               = search.Search;
+var BibleSearch          = search.BibleSearch;
 
 
 function toTitleCase(str) {
@@ -437,6 +442,14 @@ describe('module TAGs', function() {
     }
   });
 
+  it('self contained', function() {
+    expect(TH.isSelfContained('v')).to.equal(false);
+    expect(TH.isSelfContained('c')).to.equal(false);
+    expect(TH.isSelfContained('p')).to.equal(false);
+    expect(TH.isSelfContained('q')).to.equal(false);
+    expect(TH.isSelfContained('add')).to.equal(true);
+  });
+
   it('ignored tags', function() {
     TH.arrayIgnored().forEach(function(a) {
       expect(TH.isIgnored(a)).to.equal(true);
@@ -455,6 +468,37 @@ describe('module TAGs', function() {
 
 
 describe('core components', function() {
+  it('stack functionality', function() {
+    var stack = new Stack();
+    expect(stack.empty()).to.be.equal(true);
+    expect(stack.size()).to.be.equal(0);
+    expect(stack.top()).to.be.equal(null);
+    expect(stack.pop()).to.be.equal(null);
+
+    var obj = {val: 1};
+    stack.push(obj);
+    expect(stack.empty()).to.be.equal(false);
+    expect(stack.size()).to.be.equal(1);
+    expect(stack.top()).to.be.equal(obj);
+    expect(stack.pop()).to.be.equal(obj);
+    expect(stack.empty()).to.be.equal(true);
+  });
+
+  it('parser robustness', function() {
+    var parser = new Parser();
+    str = '\\v 1 \\add xx \\wj \\add* yy \\wj*';
+    expect(parser.parse.bind(parser, str)).to.throw(Error, /Expecting to see pair for/);
+
+    str = '\\v \\add xx \\wj \\add* yy \\wj*';
+    expect(parser.parse.bind(parser, str)).to.throw(Error, /Expecting to see number/);
+    expect(parser.isIgnoredTag('wj')).to.be.equal(false);
+
+    var fn = function(arg) {
+      var parser = new Parser(arg);
+    };
+    expect(fn.bind(fn, {})).to.throw(Error, /Expected array in Parser constructor/);
+    expect(fn.bind(fn, '')).to.throw(Error, /Expected array in Parser constructor/);
+  });
 
   describe('bible interface', function() {
     var parser = new Parser();
@@ -549,11 +593,11 @@ describe('core components', function() {
         };
 
         var node = new cmn.Node();
-        expect(creator.bind(creator, node)).to.throw('invalid node in Verse constructor');
+        expect(creator.bind(creator, node)).to.throw('Invalid node in Verse constructor');
         node.tag = TAG.V;
-        expect(creator.bind(creator, node)).to.throw('invalid node in Verse constructor');
-        expect(creator.bind(creator, null)).to.throw('undefined or null node object in Verse constructor');
-        expect(creator.bind(creator)).to.throw('undefined or null node object in Verse constructor');
+        expect(creator.bind(creator, node)).to.throw('Invalid node in Verse constructor');
+        expect(creator.bind(creator, null)).to.throw('Undefined or null node object in Verse constructor');
+        expect(creator.bind(creator)).to.throw('Undefined or null node object in Verse constructor');
 
         // switch to chapter creator
         creator = function(node) {
@@ -561,22 +605,22 @@ describe('core components', function() {
         };
 
         node = new cmn.Node();
-        expect(creator.bind(creator, node)).to.throw('invalid node in Chapter constructor');
+        expect(creator.bind(creator, node)).to.throw('Invalid node in Chapter constructor');
         node.tag = TAG.C;
-        expect(creator.bind(creator, node)).to.throw('invalid node in Chapter constructor');
-        expect(creator.bind(creator, null)).to.throw('undefined or null node object in Chapter constructor');
-        expect(creator.bind(creator)).to.throw('undefined or null node object in Chapter constructor');
+        expect(creator.bind(creator, node)).to.throw('Invalid node in Chapter constructor');
+        expect(creator.bind(creator, null)).to.throw('Undefined or null node object in Chapter constructor');
+        expect(creator.bind(creator)).to.throw('Undefined or null node object in Chapter constructor');
 
         // switch to book creator
         creator = function(node) {
           return new Book(node);
         };
-        expect(creator.bind(creator, null)).to.throw('undefined or null node object in Book constructor');
-        expect(creator.bind(creator)).to.throw('undefined or null node object in Book constructor');
+        expect(creator.bind(creator, null)).to.throw('Undefined or null node object in Book constructor');
+        expect(creator.bind(creator)).to.throw('Undefined or null node object in Book constructor');
 
         node = new cmn.Node();
         node.tag = 'book';
-        expect(creator.bind(creator, node)).to.throw('invalid node in Book constructor');
+        expect(creator.bind(creator, node)).to.throw('Invalid node in Book constructor');
       });
 
       it('verse', function() {
@@ -749,6 +793,16 @@ describe('core components', function() {
       str = tmp.replace('{{ID}}', 'id KKK');
       expect(parser.parseBook.bind(parser, str)).to.throw('Invalid book id: KKK');
       expect(parser.parseBook.bind(parser, {obj:1})).to.throw('parseBook expects a string argument');
+
+      str = tmp.replace('{{ID}}', 'id GEN');
+      str = str.replace('{{ENCODING}}', 'ide UTF-8');
+      var book = parser.parseBook(str);
+      expect(book.numChapters()).to.be.equal(3);
+
+      var usfmRndr = new UsfmRenderer();
+      var rendered = book.getChapter(1).render(usfmRndr);
+      rendered = rendered.replace(/\r/g, '');
+      expect(str.indexOf(rendered)).to.not.equal(-1);
     });
   });
 
@@ -758,6 +812,9 @@ describe('core components', function() {
     var textAndIdsRndr = new TextRenderer({textOnly: false});
     var textRndr       = new TextRenderer();
     var usfmRndr       = new UsfmRenderer();
+    var indentUsfmRndr = new IndentedUsfmRenderer();
+    var prettyRndr     = new PrettyRenderer();
+    var htmlRndr       = new HtmlRenderer();
 
     it('locating book', function() {
       var filesDir = path.join(__dirname, 'usfm/');
@@ -807,6 +864,18 @@ describe('core components', function() {
       str = bible.render(textRndr);
     });
 
+    it('indented usfm', function() {
+      var str = bible.render(indentUsfmRndr);
+    });
+
+    it('pretty', function() {
+      var str = bible.render(prettyRndr);
+    });
+
+    it('html', function() {
+      var str = bible.render(htmlRndr);
+    });
+
     var samples = 50;
     it('usfm performance', function() {
       for (var i = 0; i < samples; ++i)
@@ -827,9 +896,9 @@ describe('core components', function() {
       var customRndr = new CustomRenderer();
 
       var listOfMethodsToImplement = [
+        'defineTagView',
         'getTextView',
         'getNumberView',
-        'defineTagView',
         'defineComplexView',
       ];
 
@@ -850,6 +919,40 @@ describe('core components', function() {
 
 /*------------------------------------------------------------------------*/
 
+describe('common functionality', function() {
+  it('node', function() {
+    var node = NH.createText('hello');
+    expect(node.addChild.bind(node, null)).to.throw(Error, /Only tag node can have child nodes/);
+
+    var world = NH.createText('world');
+    node.setNext(world);
+    expect(node.getNext()).to.equal(world);
+
+    var beautiful = NH.createText('world');
+    node.setNext(beautiful);
+    expect(node.getNext()).to.equal(beautiful);
+    expect(beautiful.getNext()).to.equal(world);
+
+    expect(node.enum.bind(node, true)).to.throw(Error, /Unable to enumerate non-tag node/);
+    expect(node.find.bind(node, [])).to.throw(Error, /Unable to search in a non-tag node/);
+
+    var root = NH.createTag('add');
+    expect(root.find.bind(root, true, [])).to.throw(Error, /Expecting string type for tag/);
+
+    root.addChild(NH.createTag('add'));
+    root.firstChild().addChild(NH.createTag('add'));
+    var res = [];
+    root.enum(true, function(n) { res += n.tag; });
+    expect(res).to.equal('addadd');
+
+    res = [];
+    root.find('add', res);
+    expect(res.length).to.deep.equal(2);
+  });
+});
+
+
+/*------------------------------------------------------------------------*/
 
 describe('search functionality', function() {
   it('dictionary', function() {
@@ -1231,6 +1334,13 @@ describe('module BibleSearch', function() {
   });
 
   it('navigation', function() {
+    var rndr = new UsfmRenderer();
+
+    expect(bs.nav('XYZ')).to.be.equal(null);
+    expect(bs.nav('GEN 1:3').render(rndr)).to.deep.equal(text[2].s);
+    expect(bs.nav('GEN 2')).to.equal(null);
+    expect(bs.nav('GEN').render(rndr)).to.deep.equal(text[0].s);
+    expect(bs.nav(':')).to.equal(null);
   });
 });
 

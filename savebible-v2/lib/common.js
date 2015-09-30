@@ -266,8 +266,7 @@
   //                           enumeration of all nodes with sub children
   Node.prototype.enum = function(recursive, callback) {
     if (!this.isTag())
-      throw new Error('Unable to enum non-tag node');
-
+      throw new Error('Unable to enumerate non-tag node');
     var child = this.firstChild();
     while (child !== null) {
       if (child.isTag()) {
@@ -285,7 +284,9 @@
   // @param {array}  res   array to hold resulted nodes
   Node.prototype.find = function(tag, res) {
     if (!this.isTag())
-      throw new Error('Unable to search into non-tag node');
+      throw new Error('Unable to search in a non-tag node');
+    if (!_.isString(tag))
+      throw new Error('Expecting string type for tag');
 
     var child = this.firstChild();
     while (child !== null) {

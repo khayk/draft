@@ -150,11 +150,11 @@
     '\\c 1\n' +
     '\\p\n' +
     '\\q\n' +
-    '\\v 1  first\n' +
+    '\\v 1 first\n' +
     '\\c 2\n' +
     '\\p\n' +
     '\\v 1 second\n' +
-    '\\c 3  \n' +
+    '\\c 3\n' +
     '\\v 1 third\n' +
     '\\p\n' +
     '\\v 2 forth\n';

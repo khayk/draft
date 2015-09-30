@@ -588,9 +588,9 @@ var TH  = cmn.TH;
     this.parent = null;
 
     if (_.isUndefined(node) || node === null)
-      throw new Error('undefined or null node object in Verse constructor');
+      throw new Error('Undefined or null node object in Verse constructor');
     if (!node.isTag() || node.tag !== TAG.V || !NH.haveNumber(node))
-      throw new Error('invalid node in Verse constructor');
+      throw new Error('Invalid node in Verse constructor');
 
     this.node   = node;
     this.number = parseInt(this.node.number);
@@ -689,17 +689,19 @@ var TH  = cmn.TH;
     this.parent  = null;
 
     if (_.isUndefined(node) || node === null)
-      throw new Error('undefined or null node object in Chapter constructor');
+      throw new Error('Undefined or null node object in Chapter constructor');
     if (!node.isTag() || node.tag !== TAG.C || !NH.haveNumber(node))
-      throw new Error('invalid node in Chapter constructor');
+      throw new Error('Invalid node in Chapter constructor');
     this.node = node;
     this.number = parseInt(this.node.number);
     this.verses  = [];
+    this.nodes = {};
 
     var verseNodes = [];
     var self = this;
     node.find(TAG.V, verseNodes);
     verseNodes.forEach(function(vnode) {
+      self.nodes[vnode.number] = vnode;
       self.addVerse(new Verse(vnode));
     });
   };
@@ -770,17 +772,25 @@ var TH  = cmn.TH;
         while (verse.number - this.numVerses() > 1) {
           // add empty verses to fill gap
 
-          var node = new cmn.Node();
-          node.tag = TAG.V;
+          var node = NH.createTag(TAG.V);
           node.number = 0;
 
           var dummy = new Verse(node);
           dummy.parent = this;
           dummy.number = this.numVerses() + 1;
           this.verses.push(dummy);
+
+          if (_.isUndefined(this.nodes[dummy.number]))
+            this.node.addChild(dummy.node);
         }
       }
       this.verses.push(verse);
+
+      // if chapter constructed from the scratch, i.e from the node that
+      // does not contain verses
+      if (_.isUndefined(this.nodes[verse.number]))
+        this.node.addChild(verse.node);
+
       return this;
     },
 
@@ -806,9 +816,9 @@ var TH  = cmn.TH;
   var Book = function(node) {
 
     if (_.isUndefined(node) || node === null)
-      throw new Error('undefined or null node object in Book constructor');
+      throw new Error('Undefined or null node object in Book constructor');
     if (!node.isTag() || node.tag !== '')
-      throw new Error('invalid node in Book constructor');
+      throw new Error('Invalid node in Book constructor');
 
     this.parent   = null;
     this.node     = node;
@@ -818,9 +828,13 @@ var TH  = cmn.TH;
     this.bibleAbbr = '';
     this.te        = new TocEntry('', '', '', '', '');
 
+    // keep chapters, key is the chapter number, value the corresponding node
+    this.nodes     = {};
+
     var self = this;
     node.enum(false, function(n) {
       if (n.tag === TAG.C) {
+        self.nodes[n.number] = n;
         self.addChapter(new Chapter(n));
       } else {
         var str = '';
@@ -842,11 +856,11 @@ var TH  = cmn.TH;
           if (str !== 'UTF-8')
             throw new Error(util.format('Unknown encoding %s in %s book.', str, self.te.id));
         } else {
-          if (n.tag !== TAG.H && n.tag !== TAG.MT)
-            log.warn('Unknown tag inside book: ' + n.tag);
-          else {
-            // @todo:hayk  use tags \h and \mt
-          }
+          // if (n.tag !== TAG.H && n.tag !== TAG.MT)
+          //   log.warn('Unknown tag inside book: ' + n.tag);
+          // else {
+          //   // @todo:hayk  use tags \h and \mt
+          // }
         }
       }
     });
@@ -902,9 +916,15 @@ var TH  = cmn.TH;
     addChapter: function(chapter) {
       chapter.parent = this;
       if ( chapter.number - this.numChapters() !== 1 ) {
-        throw new Error('detected chapter gap while adding ' + chapter.id());
+        throw new Error('Detected chapter gap while adding ' + chapter.id());
       }
       this.chapters.push(chapter);
+
+      // if book constructed from the scratch, i.e from the node that
+      // does not contain chapters
+      if (_.isUndefined(this.nodes[chapter.number]))
+        this.node.addChild(chapter.node);
+
       return this;
     },
 
@@ -951,7 +971,7 @@ var TH  = cmn.TH;
   Bible.prototype.addBook = function(book) {
     // make sure that the new book is not exist in the instance of bible
     if (!_.isUndefined(this.ids[book.te.id]))
-      throw new Error('book ' + book.te.id + ' is already exist in the bible');
+      throw new Error('Book ' + book.te.id + ' is already exist in the bible');
 
     book.parent = this;
     this.books.push(book);
@@ -1043,9 +1063,8 @@ var TH  = cmn.TH;
       if (top === null || top.tag === tag)
         break;
       if (!TH.haveClosing(top.tag)) {
-        log.error('Expecting to see pair for ' + tag +
+        throw new Error('Expecting to see pair for ' + tag +
                   ' but found ' + top.tag + ' instead');
-        return;
       }
       this.stack.pop();
     }
@@ -1079,7 +1098,7 @@ var TH  = cmn.TH;
         if (_.isUndefined(top.number)) {
           var arr = this.nre.exec(node.text);
           if (arr === null)
-            throw new Error('expecting to see number in: ' + node.text);
+            throw new Error('Expecting to see number in: ' + node.text);
 
           top.number = arr[0].trim();
           node.text = node.text.substring(arr.index + arr[0].length);
@@ -1110,7 +1129,7 @@ var TH  = cmn.TH;
     if (_.isUndefined(ignoredTags))
       this.ignoredTags = [];
     else if (!_.isArray(ignoredTags))
-      throw new Error('expected array in Parser constructor');
+      throw new Error('Expected array in Parser constructor');
     else
       this.ignoredTags = ignoredTags;
     this.ignoredTags.sort();
@@ -1197,7 +1216,6 @@ var TH  = cmn.TH;
       }
       insertText(lastIndex);
     } catch (e) {
-      log.error('error while parsing: ', e);
       log.warn('location ~  %s', str.substr(lastIndex, 40));
       throw e;
     }
@@ -1508,6 +1526,7 @@ var TH  = cmn.TH;
   exports.TableOfContents = TableOfContents;
   exports.Lexical         = Lexical;
   exports.MC              = MC;
+  exports.Stack           = Stack;
 
 
   exports.Verse           = Verse;

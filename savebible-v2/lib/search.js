@@ -14,7 +14,8 @@ var TextRenderer = lb.TextRenderer;
 (function() {
   'use strict';
 
-  var reNav = /(\w+)(\s(\d+):(\d+))?/g;
+  var reNav = /(\w+)(\s+?(\d+)(:(\d+))?)?/g;
+           // /(\w+)(\s(\d+):(\d+))?/g;
 
   var algo = (function() {
     var cacheSize = 8;
@@ -649,8 +650,8 @@ var TextRenderer = lb.TextRenderer;
         var id = arr[1], cn = 1, vn = 1;
         if (!_.isUndefined(arr[3]) && arr[3].length > 0)
           cn = parseInt(arr[3]);
-        if (!_.isUndefined(arr[4]) && arr[4].length > 0)
-          vn = parseInt(arr[4]);
+        if (!_.isUndefined(arr[5]) && arr[5].length > 0)
+          vn = parseInt(arr[5]);
 
         var book = bible_.getBook(id);
         if (book === null)
