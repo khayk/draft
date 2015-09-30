@@ -2,6 +2,7 @@ var util = require('util');
 var _    = require('lodash');
 var log  = require('log4js').getLogger('hlp');
 var lb   = require('./lib/bible');
+var rndr = require('./lib/renderers');
 
 /// Time to str
 var timeToStr = function(elapsed) {
@@ -87,7 +88,7 @@ var Measurer = function() {
 // Helper class to display search result in a human pleasant way
 var SearchResultPrettifier = function(bible) {
   var bible_    = bible;
-  var renderer_ = new lb.TextRenderer();
+  var renderer_ = new rndr.TextRenderer();
   var lex_      = lb.MC.instance().getMeta(bible_.lang).lex;
 
   // create regex object

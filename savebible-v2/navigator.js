@@ -2,6 +2,7 @@ var path        = require('path');
 var log4js      = require('log4js');
 var cfg         = require('./config').cfg;
 var lb          = require('./lib/bible');
+var rndr        = require('./lib/renderers');
 var cmn         = require('./lib/common');
 var help        = require('./helpers');
 var readline    = require('readline');
@@ -27,7 +28,7 @@ startupInitialization();
 
 var inputs = [
     ['ru-synod-usfm-from-text', 'ru', 'synod'],
-    ['en-kjv-usfm',            'en', 'kjv'],
+    ['en-kjv-usfm+',            'en', 'kjv'],
     ['am-eab-usfm-from-text',   'hy', 'eab']
     //['zed', 'en', 'zed']
     //['arm', 'hy', 'arm']
@@ -60,7 +61,7 @@ var inputs = [
 
   console.log(Object.keys(pretty));
 
-  var renderer = new lb.TextRenderer({textOnly: false});
+  var renderer = new rndr.TextRenderer({textOnly: false});
   var rl = readline.createInterface(process.stdin, process.stdout);
   rl.setPrompt('ENTER> ');
   rl.prompt();
