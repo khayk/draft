@@ -2,28 +2,23 @@
 
   'use strict';
 
-  var _    = require('lodash');
-  var fs   = require('fs');
-  var cfg  = require('../config').cfg;
-  var lb   = require('../lib/bible');
-  var rndr = require('../lib/renderers');
-  var path = require('path');
-  var log  = require('log4js').getLogger('tls');
+  var _      = require('lodash');
+  var fse    = require('fs-extra');
+  var help   = require('../helpers');
+  var cfg    = require('../config').cfg;
+  var lb     = require('../lib/bible');
+  var cmn    = require('../lib/common');
+  var rndr   = require('../lib/renderers');
+  var path   = require('path');
+  var log    = require('log4js').getLogger('tls');
+  var measur = new help.Measurer();
 
-
-  function findBook(dir, bid) {
-    var files  = fs.readdirSync(dir, 'utf8');
-    var rf = null;
-    var found = false;
-    files.forEach(function(file) {
-      var res = lb.decodeFileName(file, true);
-      if (found === false && res !== null && res.id === bid) {
-        rf = path.join(dir,  file);
-        found = true;
-      }
-    });
-    return rf;
-  }
+  var opts = [
+    {folder: 'pretty', extension: '.txt' , renderer: new rndr.PrettyRenderer()                },
+    {folder: 'usfm',   extension: '.usfm', renderer: new rndr.UsfmRenderer()                  },
+    {folder: 'text',   extension: '.txt' , renderer: new rndr.TextRenderer({textOnly: false}) },
+    {folder: 'html',   extension: '.html', renderer: new rndr.HtmlRenderer()                  }
+  ];
 
   var dirNames = [
     'en-kjv-usfm+'
@@ -31,24 +26,39 @@
     //'ru-synod-usfm-from-text [saved]'
   ];
 
-  //var bids = ['PRO', 'ECC', 'WIS', 'SIR'];
-  var bids = ['SIR'];
+  //var bids = [];
+  var bids = ['PRO', 'ECC', 'WIS', 'SIR'];
+  if (bids.length === 0) {
+    _.each(lb.BBM.instance().ids(), function(val, key) {
+      bids.push(key);
+    });
+  }
 
-  bids.forEach(function(bid) {
-    dirNames.forEach(function(dn) {
-      var file = findBook(cfg.bibleDir(dn).from, bid);
+  dirNames.forEach(function(dn) {
+    measur.begin('processing: ' + dn);
+
+    bids.forEach(function(bid) {
+      var file = lb.findBook(cfg.bibleDir(dn).from, bid);
       if (file === null) {
         log.info('failed to find book with id: %s', bid);
         return;
       }
 
-      log.info(file);
-      var book = lb.loadBook(file);
-      lb.saveBook(book, cfg.tmpDir(), {
-        renderer: new rndr.PrettyRenderer(),
-        extension: '.txt'
+      if (bids.length < 5)
+        log.info(file);
+      var book = lb.loadBook(file, {
+        ignoredTags: cmn.TH.arrayIgnored()
       });
+
+      opts.forEach(function(opt) {
+        var dir = path.join(cfg.tmpDir(), opt.folder);
+        fse.mkdirsSync(dir);
+        lb.saveBook(dir, book, opt);
+      });
+
     });
+
+    measur.end();
   });
 
   //\dc_...\dc*

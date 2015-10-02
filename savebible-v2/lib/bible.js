@@ -1,8 +1,7 @@
-var fs      = require('fs');
+var fse     = require('fs-extra');
 var path    = require('path');
 var _       = require('lodash');
 var util    = require('util');
-var mkdirp  = require('mkdirp');
 
 var help    = require('./../helpers');
 var idsmap  = require('./idsmap.js');
@@ -455,7 +454,7 @@ var TH  = cmn.TH;
   Meta.prototype.load = function(file) {
 
     // load file content
-    var data = fs.readFileSync(file, 'utf8');
+    var data = fse.readFileSync(file, 'utf8');
     var js = JSON.parse(data);
 
     // identify language
@@ -489,7 +488,7 @@ var TH  = cmn.TH;
           var that = this;
 
           dir = path.normalize(dir + '/');
-          var files  = fs.readdirSync(dir, 'utf8');
+          var files  = fse.readdirSync(dir, 'utf8');
 
           files.forEach(function(file) {
             if (path.extname(file).toLowerCase() === '.json') {
@@ -1219,8 +1218,10 @@ var TH  = cmn.TH;
       log.warn('location ~  %s', str.substr(lastIndex, 40));
       throw e;
     }
+    //console.log('nodes before optimization %d', tree.root.count());
     this.removeIgnoredTags(tree.root);
     tree.root.normalize();
+    //console.log('nodes after optimization %d', tree.root.count());
     return tree.root;
   };
 
@@ -1325,7 +1326,7 @@ var TH  = cmn.TH;
   function guessBBM(dir) {
     // preparing to load books
     dir        = path.normalize(dir + '/');
-    var files  = fs.readdirSync(dir, 'utf8');
+    var files  = fse.readdirSync(dir, 'utf8');
     var guess  = [];
 
     files.forEach(function(file) {
@@ -1375,7 +1376,7 @@ var TH  = cmn.TH;
   // @return {string}      full path of file or null if the book is not found
   //
   function findBook(dir, bid) {
-    var files = fs.readdirSync(dir, 'utf8');
+    var files = fse.readdirSync(dir, 'utf8');
     var searchable = null;
     var found = false;
     files.forEach(function(file) {
@@ -1407,7 +1408,7 @@ var TH  = cmn.TH;
     var info = decodeFileName(file, opts.strictFilename);
     if (info === null)
       throw new Error('File name requiremens are not met: ' + file);
-    var str    = fs.readFileSync(file, 'utf8');
+    var str    = fse.readFileSync(file, 'utf8');
     var book   = parser.parseBook(str);
 
     // make sure that filename and content are synchronized
@@ -1436,7 +1437,7 @@ var TH  = cmn.TH;
 
     // preparing to load books
     dir        = path.normalize(dir + '/');
-    var files  = fs.readdirSync(dir, 'utf8');
+    var files  = fse.readdirSync(dir, 'utf8');
     var bible  = new Bible();
     var parser = new Parser(opts.ignoredTags);
 
@@ -1480,10 +1481,10 @@ var TH  = cmn.TH;
 
   // Save bible book to the specified directory according to save rules
   //
+  // @param  {string} dir    directory to save book as a usfm file
   // @param  {object} book   Bible book to be stored
-  // @param  {object} opts   Save options
-  // @param  {string} dir    Directory to save book as a usfm file
-  var saveBook = function(book, dir, opts) {
+  // @param  {object} opts   save options
+  var saveBook = function(dir, book, opts) {
     if (_.isUndefined(opts)) {
       opts = {};
     }
@@ -1496,14 +1497,14 @@ var TH  = cmn.TH;
       opts.extension = '.usfm';
 
     dir = path.normalize(path.join(dir, '/'));
-    mkdirp.sync(dir);
+    fse.mkdirsSync(dir);
 
     var bible = book.parent;
     opts.lang      =  bible ? bible.lang : book.lang;
     opts.bibleAbbr = (bible ? bible.abbr : book.bibleAbbr).toLowerCase();
 
     var content = book.render(opts.renderer);
-    fs.writeFileSync(dir + encodeFileName(book.te.id, opts), content);
+    fse.writeFileSync(dir + encodeFileName(book.te.id, opts), content);
   };
 
   // Save bible books to the specified directory according to save rules
@@ -1511,9 +1512,9 @@ var TH  = cmn.TH;
   // @param  {object} bible  Bible object to be stored
   // @param  {object} opts   Save options
   // @param  {string} dir    Directory to save usfm files
-  var saveBible = function(bible, dir, opts) {
+  var saveBible = function(dir, bible, opts) {
     bible.books.forEach(function(book) {
-      saveBook(book, dir, opts);
+      saveBook(dir, book, opts);
     });
   };
 

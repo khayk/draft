@@ -1,4 +1,4 @@
-var fs     = require('fs');
+var fse    = require('fs-extra');
 var util   = require('util');
 var _      = require('lodash');
 var path   = require('path');
@@ -43,15 +43,15 @@ bids.forEach(function(bid) {
     }
 
     log.info(file);
-    var str = fs.readFileSync(file, 'utf8');
+    var str = fse.readFileSync(file, 'utf8');
     var root = parser.parse(str);
     console.log("nodes count: ", root.count());
 
-    fs.writeFileSync('data.pretty', prettyRenderer.renderNode(root, 0, 0));
-    fs.writeFileSync('data.usfm', usfmRenderer.renderNode(root, 0, 0));
-    //fs.writeFileSync('data.indented-usfm', indentedUsfmRenderer.renderNode(root, 0, 0));
-    fs.writeFileSync('data.text', textRenderer.renderNode(root, 0, 0));
-    fs.writeFileSync('data.html', htmlRenderer.renderNode(root, 0, 0));
+    fse.writeFileSync('data.pretty', prettyRenderer.renderNode(root, 0, 0));
+    fse.writeFileSync('data.usfm', usfmRenderer.renderNode(root, 0, 0));
+    //fse.writeFileSync('data.indented-usfm', indentedUsfmRenderer.renderNode(root, 0, 0));
+    fse.writeFileSync('data.text', textRenderer.renderNode(root, 0, 0));
+    fse.writeFileSync('data.html', htmlRenderer.renderNode(root, 0, 0));
   });
 });
 measur.end();
@@ -62,9 +62,9 @@ function handleDirectory(de) {
   // scan all books
   var dir = cfg.bibleDir(de).from;
   var to = path.join(cfg.tmpDir(), de, '/');
-  require('mkdirp').sync(to);
+  fse.mkdirsSync(to);
 
-  var files = fs.readdirSync(dir, 'utf8');
+  var files = fse.readdirSync(dir, 'utf8');
   var roots = [];
   var renderers = [
     {name: 'usfm',   ext: '.usfm',   renderer: usfmRenderer,         all: ''},
@@ -75,7 +75,7 @@ function handleDirectory(de) {
   measur.begin('loading bible: ' + dir);
   files.forEach(function(file) {
     var fullpath = path.join(dir, file);
-    var str = fs.readFileSync(fullpath, 'utf8');
+    var str = fse.readFileSync(fullpath, 'utf8');
     var opts = lb.decodeFileName(fullpath);
     if (opts === null) {
       opts = lb.decodeFileName(fullpath, false);
@@ -105,14 +105,14 @@ function handleDirectory(de) {
       var fname = te.fname;
       var data = ro.renderer.renderNode(root, 0, 0);
       ro.all += data + NL;
-      fs.writeFileSync(fname + ro.ext, data);
+      fse.writeFileSync(fname + ro.ext, data);
     });
     //measur.end();
   });
   measur.end();
 
   renderers.forEach(function(ro) {
-    fs.writeFileSync(to + ro.name + ro.ext, ro.all);
+    fse.writeFileSync(to + ro.name + ro.ext, ro.all);
   });
 }
 

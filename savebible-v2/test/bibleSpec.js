@@ -3,8 +3,7 @@ var _       = require('lodash');
 var expect  = require('chai').expect;
 var path    = require('path');
 var util    = require('util');
-var fs      = require('fs');
-var rimraf  = require('rimraf');
+var fs      = require('fs-extra');
 
 var cfg     = require('../config').cfg;
 var lb      = require('../lib/bible.js');
@@ -842,7 +841,7 @@ describe('core components', function() {
       var tempDir = path.join(__dirname, 'to_delete/');
       var newBBM = lb.guessBBM(filesDir);
       BBM.activate(newBBM);
-      saveBible(bible, tempDir);
+      saveBible(tempDir, bible);
 
       // activate default BBM instance
       BBM.activate();
@@ -851,7 +850,7 @@ describe('core components', function() {
       var bible1 = loadBible(tempDir, {
         tocOverwrite: false
       });
-      rimraf.sync(tempDir);
+      fs.removeSync(tempDir);
       expect(bible).to.be.deep.equal(bible1);
     });
 

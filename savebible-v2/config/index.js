@@ -2,9 +2,9 @@
 
 var nconf  = require('nconf');
 var path   = require('path');
-var mkdirp = require('mkdirp');
 var log4js = require('log4js');
 var _      = require('lodash');
+var fse    = require('fs-extra');
 
 var pathIsAbsolute = require('path-is-absolute');
 
@@ -24,7 +24,7 @@ function createLogDirectory(loggerConfig) {
   loggerConfig.appenders.forEach(function(entry) {
     if (!_.isUndefined(entry.filename)) {
       var ld = path.dirname(entry.filename);
-      mkdirp.sync(ld);
+      fse.mkdirsSync(ld);
     }
   });
 }
@@ -50,7 +50,8 @@ var cfg = (function() {
 
   if (!pathIsAbsolute(data.temp))  // if (!path.isAbsolute(data.temp))
     data.temp = path.join(root, data.temp);
-  mkdirp.sync(data.temp);
+
+  fse.mkdirsSync(data.temp);
   data.media = path.join(root, data.media);
 
   return {

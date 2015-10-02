@@ -1,10 +1,9 @@
-var mkdirp = require('mkdirp');
-var _      = require('lodash');
-var lb     = require('../lib/bible');
-var fs     = require('fs');
-var path   = require('path');
+var _    = require('lodash');
+var lb   = require('../lib/bible');
+var fse  = require('fs-extra');
+var path = require('path');
 
-var MC     = lb.MC;
+var MC   = lb.MC;
 
 
 var CRLF = '\r\n';
@@ -118,13 +117,13 @@ function createDetailedInfo(bible) {
 }
 
 function saveBibleSummary(dir, bible) {
-  mkdirp.sync(dir);
+  fse.mkdirsSync(dir);
 
   var res = createSummaryInfo(bible);
-  fs.writeFileSync(path.join(dir, '/', '00-summary.txt'), res);
+  fse.writeFileSync(path.join(dir, '/', '00-summary.txt'), res);
 
   res = createDetailedInfo(bible);
-  fs.writeFileSync(path.join(dir, '/', '00-detailed.txt'), res);
+  fse.writeFileSync(path.join(dir, '/', '00-detailed.txt'), res);
 }
 
 exports.saveBibleSummary = saveBibleSummary;

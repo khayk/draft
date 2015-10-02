@@ -11,13 +11,12 @@
   var rndr     = require('./lib/renderers');
   var search   = require('./lib/search');
   var help     = require('./helpers');
-
   var bi       = require('./tools/bible-info.js');
 
   var log      = log4js.getLogger('app');
   var measur   = new help.Measurer();
 
-  var MC          = lb.MC;
+  var MC       = lb.MC;
 
   var startupInitialization = function() {
     MC.instance().load(path.join(cfg.mediaDir(), 'meta'));
@@ -30,11 +29,9 @@
   startupInitialization();
 
   var inputs = [
-    ['en-kjv-usfm+',            'en', 'kjv+']
-    // ['ru-synod-usfm-from-text', 'ru', 'synod'],
-    // ['am-eab-usfm-from-text',   'hy', 'eab']
-    //['zed', 'en', 'zed']
-    //['arm', 'hy', 'arm']
+    ['en-kjv-usfm+',            'en', 'kjv+'],
+    ['ru-synod-usfm-from-text [saved]', 'ru', 'synod'],
+    ['am-eab-usfm-from-text',   'hy', 'eab']
   ];
 
   inputs.forEach(function(input) {
@@ -51,14 +48,16 @@
 
     measur.begin('saving bible');
 
-    bi.saveBibleSummary(cfg.tmpDir() + input[0], bible);
-    lb.saveBible(bible, cfg.tmpDir() + input[0]);
-    lb.saveBible(bible, cfg.tmpDir() + input[0], {
+    var dir = cfg.tmpDir() + input[0];
+    lb.saveBible(dir, bible);
+    lb.saveBible(dir, bible, {
       extension: '.txt',
       renderer: new rndr.TextRenderer({
         textOnly: false
       })
     });
+    bi.saveBibleSummary(dir, bible);
+
     measur.end();
   });
 

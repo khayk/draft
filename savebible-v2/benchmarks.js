@@ -89,10 +89,10 @@ var text = benchmarkBibleRendering('text');
 
 fs.writeFileSync('usfm', usfm);
 fs.writeFileSync('text', text);
-// benchmarkAllWordsSearch();
+benchmarkAllWordsSearch();
 
-// fs.writeFileSync(cfg.tmpDir() + 'usfm', usfm);
-// fs.writeFileSync(cfg.tmpDir() + 'text', text);
+fs.writeFileSync(cfg.tmpDir() + 'usfm', usfm);
+fs.writeFileSync(cfg.tmpDir() + 'text', text);
 
 // save as we want
-//lb.saveBible(bible, cfg.bibleDir('en-kjv-usfm+').to, {});
+lb.saveBible(cfg.bibleDir('en-kjv-usfm+').to, bible, {});
