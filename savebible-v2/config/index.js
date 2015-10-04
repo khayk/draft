@@ -16,42 +16,17 @@ nconf.argv()
 
 var root = path.dirname(__dirname);
 
-// make sure that logging directory do exists
-function createLogDirectory(loggerConfig) {
-  if (_.isUndefined(loggerConfig))
-    throw new Error('Application is not configured properly! Check file `config/config.json`.');
-
-  loggerConfig.appenders.forEach(function(entry) {
-    if (!_.isUndefined(entry.filename)) {
-      var ld = path.dirname(entry.filename);
-      fse.mkdirsSync(ld);
-    }
-  });
-}
-
-
-var loggerConfig = nconf.get('log4js');
-createLogDirectory(loggerConfig);
-
-
-// if started from mocha we can disable logging
-var cmd = nconf.argv().get('$0');
-if (path.basename(cmd) === '_mocha') {
-  // disable logging for all loggers
-  loggerConfig.levels = {"[all]": "ERROR"};
-}
-
-// configure logging and process with our modules
-log4js.configure(loggerConfig, {});
-
-// now logging is configured and can be used throughout of the application
+// now logging is configured and can be used throughout the application
 var cfg = (function() {
   var data = nconf.get('data');
 
-  if (!pathIsAbsolute(data.temp))  // if (!path.isAbsolute(data.temp))
-    data.temp = path.join(root, data.temp);
+  if (!pathIsAbsolute(data.output))  // if (!path.isAbsolute(data.temp))
+    data.output = path.join(root, data.output);
 
-  fse.mkdirsSync(data.temp);
+  if (!pathIsAbsolute(data.temp))  // if (!path.isAbsolute(data.temp))
+    data.temp = path.join(data.output, data.temp);
+
+  fse.mkdirsSync(data.output);
   data.media = path.join(root, data.media);
 
   return {
@@ -62,6 +37,10 @@ var cfg = (function() {
         from: data.input  + name + '/',
         to:   data.output + name + '/'
       };
+    },
+
+    outputDir: function() {
+      return data.output;
     },
 
     inputDir: function() {
@@ -82,6 +61,33 @@ var cfg = (function() {
   };
 })();
 
+
+// make sure that logging directory do exists
+function createLogDirectory(loggerConfig) {
+  if (_.isUndefined(loggerConfig))
+    throw new Error('Application is not configured properly! Check file `config/config.json`.');
+
+  loggerConfig.appenders.forEach(function(entry) {
+    if (!_.isUndefined(entry.filename)) {
+      entry.filename = entry.filename.replace('${data.output}', cfg.outputDir());
+      var ld = path.dirname(entry.filename);
+      fse.mkdirsSync(ld);
+    }
+  });
+}
+
+var loggerConfig = nconf.get('log4js');
+createLogDirectory(loggerConfig);
+
+// if started from mocha we can disable logging
+var cmd = nconf.argv().get('$0');
+if (path.basename(cmd) === '_mocha') {
+  // disable logging for all loggers
+  loggerConfig.levels = {"[all]": "ERROR"};
+}
+
+// configure logging and process with our modules
+log4js.configure(loggerConfig, {});
 log4js.getLogger().info('root dir: ' + root);
 
 function logFileLoading(filename) {

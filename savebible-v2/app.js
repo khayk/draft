@@ -30,7 +30,7 @@
 
   var inputs = [
     ['en-kjv-usfm+',            'en', 'kjv+'],
-    ['ru-synod-usfm-from-text [saved]', 'ru', 'synod'],
+    ['ru-synod-usfm-from-text', 'ru', 'synod'],
     ['am-eab-usfm-from-text',   'hy', 'eab']
   ];
 
@@ -38,7 +38,7 @@
     measur.begin('loading bible: ' + input[0]);
 
     var bible = lb.loadBible(cfg.bibleDir(input[0]).from, {
-      strictFilename: true
+      strictFilename: false
     });
     measur.end();
 
@@ -53,7 +53,7 @@
     lb.saveBible(dir, bible, {
       extension: '.txt',
       renderer: new rndr.TextRenderer({
-        textOnly: false
+        textOnly: true
       })
     });
     bi.saveBibleSummary(dir, bible);

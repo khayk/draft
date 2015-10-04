@@ -3,8 +3,8 @@
   "data": {
     "input": "C:/Users/Hayk/Dropbox (Personal)/Data/",
     "output": "./output/",
-    "temp": "./tmp/",
-    "media": "./media/"
+    "media": "./media/",
+    "temp": "./tmp/"
   },
   "log4js": {
     "appenders": [
@@ -17,7 +17,7 @@
       },
       {
         "type": "file",
-        "filename": "logs/app.log",
+        "filename": "${data.output}logs/app.log",
         "maxLogSize": 10485760,
         "numBackups": 3,
         "layout": {
