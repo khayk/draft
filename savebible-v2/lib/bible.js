@@ -1505,6 +1505,7 @@ var TH  = cmn.TH;
 
     var content = book.render(opts.renderer);
     fse.writeFileSync(dir + encodeFileName(book.te.id, opts), content);
+    return content;
   };
 
   // Save bible books to the specified directory according to save rules
@@ -1513,9 +1514,16 @@ var TH  = cmn.TH;
   // @param  {object} opts   Save options
   // @param  {string} dir    Directory to save usfm files
   var saveBible = function(dir, bible, opts) {
+    var combine = false, combined = '';
+    if (!_.isUndefined(opts) && opts.getCombined === true)
+      combine = true;
+
     bible.books.forEach(function(book) {
-      saveBook(dir, book, opts);
+      var raw = saveBook(dir, book, opts);
+      if (combine === true)
+        combined += raw;
     });
+    return combined;
   };
 
 
