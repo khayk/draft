@@ -34,8 +34,8 @@ var cfg = (function() {
       return {
         name: name,
         ext:  'usfm',
-        from: data.input  + name + '/',
-        to:   data.output + name + '/'
+        from: path.join(data.input, name),
+        to:   path.join(data.output, name)
       };
     },
 

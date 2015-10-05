@@ -28,6 +28,13 @@
 
   startupInitialization();
 
+  var opts = [
+    {folder: 'pretty', extension: '.txt' , renderer: new rndr.PrettyRenderer()                },
+    {folder: 'usfm',   extension: '.usfm', renderer: new rndr.UsfmRenderer()                  },
+    {folder: 'text',   extension: '.txt' , renderer: new rndr.TextRenderer({textOnly: false}) },
+    {folder: 'html',   extension: '.html', renderer: new rndr.HtmlRenderer()                  }
+  ];
+
   var inputs = [
     ['en-kjv-usfm+',            'en', 'kjv+'],
     ['ru-synod-usfm-from-text', 'ru', 'synod'],
@@ -36,7 +43,6 @@
 
   inputs.forEach(function(input) {
     measur.begin('loading bible: ' + input[0]);
-
     var bible = lb.loadBible(cfg.bibleDir(input[0]).from, {
       strictFilename: false
     });
@@ -47,18 +53,14 @@
     bible.abbr = input[2];
 
     measur.begin('saving bible');
-
-    var dir = cfg.tmpDir() + input[0];
-    lb.saveBible(dir, bible);
-    lb.saveBible(dir, bible, {
-      extension: '.txt',
-      renderer: new rndr.TextRenderer({
-        textOnly: true
-      })
+    var dir = path.join(cfg.outputDir(), 'bibles', input[0]);
+    opts.forEach(function(opt) {
+      var bdir = path.join(dir, opt.folder);
+      lb.saveBible(bdir, bible, opt);
     });
-    bi.saveBibleSummary(dir, bible);
-
     measur.end();
+
+    bi.saveBibleSummary(dir, bible);
   });
 
 

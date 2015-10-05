@@ -1,6 +1,6 @@
 var path   = require('path');
 var _      = require('lodash');
-var fs     = require('fs');
+var fs     = require('fs-extra');
 
 var cfg    = require('./config').cfg;
 var help   = require('./helpers');
@@ -87,12 +87,13 @@ benchmarkBibleLoad('en-kjv-usfm+');
 var usfm = benchmarkBibleRendering('usfm');
 var text = benchmarkBibleRendering('text');
 
-fs.writeFileSync('usfm', usfm);
-fs.writeFileSync('text', text);
+fs.mkdirsSync(cfg.tmpDir());
+fs.writeFileSync(cfg.tmpDir() + 'usfm', usfm);
+fs.writeFileSync(cfg.tmpDir() + 'text', text);
 benchmarkAllWordsSearch();
 
 fs.writeFileSync(cfg.tmpDir() + 'usfm', usfm);
 fs.writeFileSync(cfg.tmpDir() + 'text', text);
 
 // save as we want
-lb.saveBible(cfg.bibleDir('en-kjv-usfm+').to, bible, {});
+// lb.saveBible(cfg.bibleDir('en-kjv-usfm+').to, bible, {});
