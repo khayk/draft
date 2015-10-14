@@ -129,13 +129,13 @@
       //              with the same name, otherwise returns false
       isSelfContained: function(tag) {
         switch (tag) {
-          case TAG.V:
-          case TAG.C:
-          case TAG.P:
-          case TAG.Q:
-            return false;
+          case TAG.ADD:
+          case TAG.WJ:
+          case TAG.ND:
+          case TAG.QT:
+            return true;
         }
-        return true;
+        return false;
       },
 
       // @returns   true if tag should be completed with closing tag, otherwise false
