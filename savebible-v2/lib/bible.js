@@ -551,7 +551,7 @@ var TH  = cmn.TH;
         // @param  {string} ln  language name that is going to be linked
         // @param  {string} to  language name that is already contained in
         //                      the MC, its meta will be used for new language
-        // @return {object}     new Meta object that is connection with new
+        // @return {object}     new Meta object that is connected with new
         //                      language
         linkTo: function(ln, to) {
           var ref = this.getMeta(to);
@@ -571,6 +571,7 @@ var TH  = cmn.TH;
       instance: function() {
         if (!instance_) {
           instance_ = init();
+          instance_.load(path.join(__dirname, 'meta'));
         }
         return instance_;
       }

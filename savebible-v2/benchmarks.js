@@ -28,9 +28,7 @@ var stress = function(fn, str, count) {
 };
 
 var startupInitialization = function() {
-  MC.instance().load(path.join(cfg.mediaDir(), 'meta'));
   MC.instance().linkTo('eng', 'en');
-
   measur.begin('node ready');
   measur.end();
 };

@@ -271,7 +271,7 @@ describe('module meta', function() {
     expect(MCO.load.bind(MCO, '.')).to.throw();
     fs.unlinkSync(invalidFileName);
 
-    MCO.load(path.join(cfg.mediaDir(), 'meta'));
+    MCO.load(path.join(cfg.mediaDir(), '../lib/meta'));
     var languages = MCO.getLanguages();
 
     var obj = {'ru': ru, 'en': en, 'hy': hy};

@@ -17,9 +17,7 @@ var TAG         = cmn.TAG;
 var TH          = cmn.TH;
 
 var startupInitialization = function() {
-  MC.instance().load(path.join(cfg.mediaDir(), 'meta'));
   MC.instance().linkTo('eng', 'en');
-
   measur.begin('node ready');
   measur.end();
 };
