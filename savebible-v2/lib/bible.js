@@ -3,11 +3,9 @@ var path    = require('path');
 var _       = require('lodash');
 var util    = require('util');
 
-var help    = require('./../helpers');
 var idsmap  = require('./idsmap.js');
 var rndrs   = require('./renderers.js');
 var cmn     = require('./common.js');
-
 var log     = require('log4js').getLogger('bib');
 
 // objects from common lib

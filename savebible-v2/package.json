@@ -1,7 +1,7 @@
 {
   "name": "savebible-v2",
-  "version": "0.2.0",
-  "description": "Tool for Bible in a USFM format",
+  "version": "0.3.0",
+  "description": "Tool for Bible for USFM format",
   "author": {
     "name": "Hayk Karapetyan",
     "email": "karapetyan.hayk@gmail.com"
@@ -11,13 +11,13 @@
     "url": "https://github.com/khayk/draft"
   },
   "dependencies": {
-    "chai": "^2.2.0",
+    "chai": "^3.3.0",
     "colors": "^1.1.2",
     "fs-extra": "^0.24.0",
-    "lodash": "^3.9.3",
-    "log4js": "^0.6.26",
-    "nconf": "^0.7.1",
+    "lodash": "^3.10.1",
+    "log4js": "^0.6.27",
+    "nconf": "^0.8.2",
     "path-is-absolute": "^1.0.0"
   },
-  "readme": "ERROR: No README data found!"
+  "readme": "README.md"
 }
