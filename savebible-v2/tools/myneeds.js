@@ -21,13 +21,13 @@
   ];
 
   var dirNames = [
-    'en-kjv-usfm+'
-    //'am-eab-usfm-from-text',
+    'am-eab-usfm-from-text'
+    //'en-kjv-usfm+'
     //'ru-synod-usfm-from-text [saved]'
   ];
 
-  //var bids = [];
-  var bids = ['PRO', 'ECC', 'WIS', 'SIR'];
+  var bids = ['GEN'];
+  //var bids = ['PRO', 'ECC', 'WIS', 'SIR'];
   if (bids.length === 0) {
     _.each(lb.BBM.instance().ids(), function(val, key) {
       bids.push(key);
@@ -49,6 +49,9 @@
       var book = lb.loadBook(file, {
         ignoredTags: cmn.TH.arrayIgnored()
       });
+
+      var te = new lb.TocEntry(bids[0], 'Ծն', 'Հահա', 'երկարանուն', 'բացատրություն');
+      book.updateIds(te);
 
       opts.forEach(function(opt) {
         var dir = path.join(cfg.tmpDir(), opt.folder);

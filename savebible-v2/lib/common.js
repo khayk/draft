@@ -120,6 +120,16 @@
         return jesusWord.test(tag) === true;
       },
 
+      // @returns   true for tags identifying book
+      isBookIdentification: function(tag) {
+        return identifications.test(tag) === true;
+      },
+
+      // @returns   true for tags represents title tag
+      isTitle: function(tag) {
+        return title.test(tag) === true;
+      },
+
       // @returns   true for addition tags
       // isAddition: function(tag) {
       //   return addition.test(tag) === true;
@@ -193,6 +203,17 @@
     }
     return this;
   };
+
+  // @peram {object} node  object that is goint to become the only child
+  // @return this
+  Node.prototype.setChild = function(node) {
+    if (!this.isTag())
+      throw new Error('Only tag node can have child nodes');
+
+    this.first = node;
+    this.last  = node;
+    return this;
+  },
 
   // @returns  first child node of the current node
   Node.prototype.firstChild = function() {

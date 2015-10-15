@@ -295,6 +295,8 @@ var TH  = cmn.TH;
       if (this.id !== te.id)
         throw new Error('Unable to populate attributes from the source with different id');
 
+      if (this.abbr === '')
+        this.abbr  = te.abbr;
       if (this.name === '')
         this.name = te.name;
       if (this.lname === '')
@@ -818,9 +820,9 @@ var TH  = cmn.TH;
     if (!node.isTag() || node.tag !== '')
       throw new Error('Invalid node in Book constructor');
 
-    this.parent   = null;
-    this.node     = node;
-    this.chapters = [];
+    this.parent    = null;
+    this.node      = node;
+    this.chapters  = [];
     this.index     = 0;
     this.lang      = '';
     this.bibleAbbr = '';
@@ -829,12 +831,19 @@ var TH  = cmn.TH;
     // keep chapters, key is the chapter number, value the corresponding node
     this.nodes     = {};
 
+    // keep identification tags content nodes, where the key is a
+    // identification tag (example, \h text.  keep node containing text)
+    this.ids       = {};
+
     var self = this;
     node.enum(false, function(n) {
       if (n.tag === TAG.C) {
         self.nodes[n.number] = n;
         self.addChapter(new Chapter(n));
       } else {
+        if (TH.isBookIdentification(n.tag) || TH.isTitle(n.tag))
+          self.ids[n.tag] = n;
+
         var str = '';
         var child = n.firstChild();
         if (child !== null && child.isText())
@@ -845,7 +854,7 @@ var TH  = cmn.TH;
             throw new Error('Failed to identify book id');
           self.te.id = arr[1];
         } else if (n.tag === TAG.TOC1) {
-          self.te.desc = str.trim();
+          self.te.lname = str.trim();
         } else if (n.tag === TAG.TOC2) {
           self.te.name = str.trim();
         } else if (n.tag === TAG.TOC3) {
@@ -855,7 +864,7 @@ var TH  = cmn.TH;
             throw new Error(util.format('Unknown encoding %s in %s book.', str, self.te.id));
         } else {
           // if (n.tag !== TAG.H && n.tag !== TAG.MT)
-          //   log.warn('Unknown tag inside book: ' + n.tag);
+          //   log.warn('Unknown tag found in the book: ' + n.tag);
           // else {
           //   // @todo:hayk  use tags \h and \mt
           // }
@@ -937,6 +946,27 @@ var TH  = cmn.TH;
     // @returns  Representation of the book rendered with the give renderer
     render: function(renderer) {
       return renderer.renderBook(this);
+    },
+
+    // @brief    Update book identification fields using provided TOC
+    updateIds: function(te) {
+      if (this.te.id !== te.id)
+        throw new Error('Book ids mismatch');
+      this.te.populate(te, true);
+      this.te.validate();
+
+      function changeContent(node, text) {
+        text = text.trim();
+        if (_.isUndefined(node) || text.length === 0)
+          return;
+        var textNode = NH.createText(text);
+        node.setChild(textNode);
+      }
+
+      changeContent(this.ids[TAG.TOC1], te.lname);
+      changeContent(this.ids[TAG.TOC2], te.name);
+      changeContent(this.ids[TAG.TOC3], te.abbr);
+      changeContent(this.ids[TAG.MT],   te.desc);
     }
   };
 
@@ -991,7 +1021,16 @@ var TH  = cmn.TH;
     return this.toc;
   };
 
-
+  // @brief  Updates table of content of the bible
+  Bible.prototype.updateToc = function(toc, overwrite) {
+    this.books.forEach(function(book) {
+      var nte = toc.get(book.id);
+      if (nte === null)
+        return;
+      book.updateIds(nte);
+    });
+    this.toc.populate(toc, overwrite);
+  };
 
   var Stack = function() {
     this.values = [];
@@ -1471,7 +1510,7 @@ var TH  = cmn.TH;
       // meta object
       var meta = MC.instance().getMeta(bible.lang);
       if (meta !== null)
-        bible.toc.populate(meta.toc, opts.tocOverwrite);
+        bible.updateToc(meta.toc, opts.tocOverwrite);
       else
         log.warn('Meta object for language `%s` is missing.', bible.lang);
     }
