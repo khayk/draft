@@ -82,13 +82,15 @@ function parseBook(f, bible, id, on) {
         var vstr = line.substring(arr[0].length);
         //console.log(vstr);
 
+        //vstr = vstr.replace(/\[(.*?)\]/g, "\\add $1\\add*");
+        vstr = vstr.replace(/\[/g, '\\add ');
+        vstr = vstr.replace(/\]/g, '\\add*');
+        vstr = vstr.replace(/_(.*?)_/g, "\\add $1\\add*");
+
         if (chap === null) {
           book.preface.push(vstr);
           continue;
         }
-
-        vstr = vstr.replace(/\[/, '\\add ');
-        vstr = vstr.replace(/\]/, '\\add*');
 
         // let the USFM parser to process with verse
         var verse = usfmParser.parseVerse(vstr);

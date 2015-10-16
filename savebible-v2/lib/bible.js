@@ -1580,8 +1580,9 @@ var TH  = cmn.TH;
 
     bible.books.forEach(function(book) {
       var raw = saveBook(dir, book, opts);
-      if (combine === true)
-        combined += raw;
+      if (combined.length > 0)
+        combined += cmn.NL;
+      combined += raw;
     });
     return combined;
   };

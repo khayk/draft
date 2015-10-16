@@ -7,7 +7,7 @@
   var LF   = '\n';                    // line feed
   var CR   = '\r';                    // carriage return
   var CRLF = '\r\n';
-  var NL   = LF;
+  var NL   = CRLF;
 
   /*------------------------------------------------------------------------*/
 

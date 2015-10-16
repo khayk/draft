@@ -56,9 +56,9 @@
   }];
 
   var inputs = [
-    //['en-kjv-usfm+',            'en', 'kjv+'],
-    ['ru-synod-usfm-from-text', 'ru', 'synod']
-    //['am-eab-usfm-from-text',   'hy', 'eab']
+    ['ru-synod-usfm-from-text', 'ru', 'synod'],
+    ['en-kjv-usfm+',            'en', 'kjv'],
+    ['am-eab-usfm-from-text',   'hy', 'eab']
   ];
 
   inputs.forEach(function(input) {

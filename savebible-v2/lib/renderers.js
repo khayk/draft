@@ -377,7 +377,7 @@
 
     if (vo.renderable === true && vo.tag === TAG.TOC1) {
       vo.open = '== ';
-      vo.close = ' ==\n';
+      vo.close = ' ==' + NL;
     }
   };
 
@@ -386,7 +386,7 @@
       return _.padRight(number, 3, ' ');
     }
     else if (tag === TAG.C) {
-      return '\r\n=== ' + number + ' ===\r\n';
+      return NL + '=== ' + number + ' ===' + NL;
     }
     return '';
   };
