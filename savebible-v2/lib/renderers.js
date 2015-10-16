@@ -366,7 +366,7 @@
 
     var src = this.renderable.source;
     var pos = src.length - 2;
-    var regexNewSource = src.substr(0, pos) + '|toc2' + src.substr(pos);
+    var regexNewSource = src.substr(0, pos) + '|' + TAG.TOC1 + src.substr(pos);
     this.renderable = new RegExp(regexNewSource);
   };
 
@@ -375,7 +375,7 @@
   PrettyRenderer.prototype.defineTagView = function(vo) {
     TextRenderer.prototype.defineTagView.call(this, vo);
 
-    if (vo.renderable === true && vo.tag === TAG.TOC2) {
+    if (vo.renderable === true && vo.tag === TAG.TOC1) {
       vo.open = '== ';
       vo.close = ' ==\n';
     }

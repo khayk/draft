@@ -310,25 +310,24 @@ describe('module TableOfContents', function() {
     var toc = new TableOfContents();
     expect(toc.first()).to.equal(null);
 
-    toc.add(new TocEntry(GEN, undefined, 'name1', 'lname1', 'desc1'));
+    toc.add(new TocEntry(GEN, undefined, 'name1', 'desc1'));
     expect(toc.length()).to.equal(1);
     expect(toc.have(GEN)).to.equal(true);
 
     var itm = toc.get(GEN);
     expect(itm.abbr).to.equal('');
     expect(itm.name).to.equal('name1');
-    expect(itm.lname).to.equal('lname1');
     expect(itm.desc).to.equal('desc1');
 
     expect(toc.add.bind(toc,
-           new TocEntry(GEN, undefined, '', '', ''))).to.throw();
-    expect(toc.add(new TocEntry(EXO, '', 'name2', 'lname2', 'desc2')));
+           new TocEntry(GEN, undefined, '', ''))).to.throw();
+    expect(toc.add(new TocEntry(EXO, '', 'name2', 'desc2')));
     expect(toc.length()).to.equal(2);
 
     var toc2 = new TableOfContents();
 
-    toc2.add(new TocEntry(GEN, undefined, 'name3', 'lname3', 'desc3'));
-    toc2.add(new TocEntry(EXO, undefined, '', '', ''));
+    toc2.add(new TocEntry(GEN, undefined, 'name3', 'desc3'));
+    toc2.add(new TocEntry(EXO, undefined, '', ''));
 
     itm = toc2.get(EXO);
     itm.normalize();
@@ -340,7 +339,6 @@ describe('module TableOfContents', function() {
     itm = toc2.get(GEN);
     itm.normalize();
     expect(itm.name).to.equal('name3');
-    expect(itm.lname).to.equal('lname3');
     expect(itm.desc).to.equal('desc3');
 
     // expect to see borrowed values from first table of content
@@ -348,7 +346,6 @@ describe('module TableOfContents', function() {
     itm.normalize();
 
     expect(itm.name).to.equal('name2');
-    expect(itm.lname).to.equal('lname2');
     expect(itm.desc).to.equal('desc2');
 
     toc.get(GEN).abbr = 'Gen';
@@ -390,14 +387,14 @@ describe('module TableOfContents', function() {
     itm.abbr = 'Gen';
     expect(itm.validate.bind(itm)).to.throw('missing name with id: GEN');
     itm.name = 'Genesis';
-    expect(itm.validate.bind(itm)).to.throw('missing lname with id: GEN' );
+    expect(itm.validate.bind(itm)).to.throw('missing desc with id: GEN' );
     itm.normalize();
     expect(itm.validate.bind(itm)).not.throw();
 
     var arr = [
-      {"id":"JOS", "name":"Joshua", "abbr":"Jos",  "lname":"Joshua", "desc":"The Book of Joshua"},
-      {"id":"JDG", "name":"Judges", "abbr":"Jdg",  "lname":"Judges", "desc":"The Book of Judges"},
-      {"id":"RUT", "name":"Ruth",   "abbr":"Rut",  "lname":"Ruth",   "desc":"The Book of Ruth"  }
+      {"id":"JOS", "name":"Joshua", "abbr":"Jos",  "desc":"The Book of Joshua"},
+      {"id":"JDG", "name":"Judges", "abbr":"Jdg",  "desc":"The Book of Judges"},
+      {"id":"RUT", "name":"Ruth",   "abbr":"Rut",  "desc":"The Book of Ruth"  }
     ];
     var tocFromArray = new TableOfContents(arr);
     expect(tocFromArray.length()).to.be.equal(arr.length);
@@ -405,7 +402,6 @@ describe('module TableOfContents', function() {
       var te = tocFromArray.get(e.id);
       expect(te.name).to.be.equal(e.name);
       expect(te.abbr).to.be.equal(e.abbr);
-      expect(te.lname).to.be.equal(e.lname);
       expect(te.desc).to.be.equal(e.desc);
     });
   });

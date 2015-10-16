@@ -29,6 +29,7 @@
 
   // produce combined output of the book
   var saveCombined = true;
+  var overwriteToc = true;
 
   var opts = [{
     folder: 'pretty',
@@ -63,12 +64,14 @@
   inputs.forEach(function(input) {
     measur.begin('loading bible: ' + input[0]);
     var bible = lb.loadBible(cfg.bibleDir(input[0]).from, {
-      strictFilename: false
+      strictFilename: false,
+      tocOverwrite: overwriteToc,
+      lang: input[1]
     });
     measur.end();
 
-    if (bible.lang === '')
-      bible.lang = input[1];
+    // if (bible.lang === '')
+    //   bible.lang = input[1];
     bible.abbr = input[2];
 
     measur.begin('saving bible');

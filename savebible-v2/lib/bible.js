@@ -264,14 +264,12 @@ var TH  = cmn.TH;
   // @param {string} id    book id
   // @param {string} abbr  book abbreviation
   // @param {string} name  book name
-  // @param {string} lname book long name
   // @param {string} desc  book description
   //
-  var TocEntry = function(id, abbr, name, lname, desc) {
+  var TocEntry = function(id, abbr, name, desc) {
     this.id    = id || '';
     this.abbr  = abbr || '';
     this.name  = name || '';
-    this.lname = lname || '';
     this.desc  = desc || '';
   };
 
@@ -287,7 +285,6 @@ var TH  = cmn.TH;
         throw new Error('Unable to populate attributes from the source with different id');
       this.abbr  = te.abbr;
       this.name  = te.name;
-      this.lname = te.lname;
       this.desc  = te.desc;
     }
     else {
@@ -299,8 +296,6 @@ var TH  = cmn.TH;
         this.abbr  = te.abbr;
       if (this.name === '')
         this.name = te.name;
-      if (this.lname === '')
-        this.lname = te.lname;
       if (this.desc === '')
         this.desc = te.desc;
     }
@@ -315,20 +310,19 @@ var TH  = cmn.TH;
       throw new Error('missing abbr with id: ' + this.id);
     if (this.name === '')
       throw new Error('missing name with id: ' + this.id);
-    if (this.lname === '')
-      throw new Error('missing lname with id: ' + this.id);
+    if (this.desc === '')
+      throw new Error('missing desc with id: ' + this.id);
   };
 
   TocEntry.prototype.normalize = function() {
     this.id    = this.id.trim();
     this.abbr  = this.abbr.trim();
     this.name  = this.name.trim();
-    this.lname = this.lname.trim();
     this.desc  = this.desc.trim();
 
-    // borrow name for long name if it is empty
-    if (this.lname === '')
-      this.lname = this.name;
+    // borrow name for desc field if it is empty
+    if (this.desc === '')
+      this.desc = this.name;
   };
 
   /*------------------------------------------------------------------------*/
@@ -342,7 +336,7 @@ var TH  = cmn.TH;
     if (!_.isUndefined(tocArray)) {
       var that = this;
       tocArray.forEach(function(e) {
-        var te = new TocEntry(e.id, e.abbr, e.name, e.lname, e.desc);
+        var te = new TocEntry(e.id, e.abbr, e.name, e.desc);
         that.add(te);
       });
     }
@@ -501,6 +495,19 @@ var TH  = cmn.TH;
               }
             }
           });
+
+          var defMeta = this.defaultMeta();
+          if (defMeta === null)
+            return;
+
+          var defLang = this.defaultLang();
+          _.each(metas_, function(value, key) {
+            if (key === defLang)
+              return;
+
+            // populate from the default meta, without overwriting
+            value.toc.populate(defMeta.toc, false);
+          });
         },
 
         // @brief  clean all data stored in the container
@@ -526,6 +533,16 @@ var TH  = cmn.TH;
           if (_.isUndefined(ref))
             return null;
           return ref;
+        },
+
+        // @returns default meta object. it is the english version
+        defaultMeta: function() {
+          return this.getMeta(this.defaultLang());
+        },
+
+        // @returns name of the default language
+        defaultLang: function() {
+          return 'en';
         },
 
         // @param {string}  lang  meta language
@@ -826,7 +843,7 @@ var TH  = cmn.TH;
     this.index     = 0;
     this.lang      = '';
     this.bibleAbbr = '';
-    this.te        = new TocEntry('', '', '', '', '');
+    this.te        = new TocEntry('', '', '', '');
 
     // keep chapters, key is the chapter number, value the corresponding node
     this.nodes     = {};
@@ -854,7 +871,7 @@ var TH  = cmn.TH;
             throw new Error('Failed to identify book id');
           self.te.id = arr[1];
         } else if (n.tag === TAG.TOC1) {
-          self.te.lname = str.trim();
+          self.te.desc = str.trim();
         } else if (n.tag === TAG.TOC2) {
           self.te.name = str.trim();
         } else if (n.tag === TAG.TOC3) {
@@ -963,7 +980,7 @@ var TH  = cmn.TH;
         node.setChild(textNode);
       }
 
-      changeContent(this.ids[TAG.TOC1], te.lname);
+      changeContent(this.ids[TAG.TOC1], te.desc);
       changeContent(this.ids[TAG.TOC2], te.name);
       changeContent(this.ids[TAG.TOC3], te.abbr);
       changeContent(this.ids[TAG.MT],   te.desc);
@@ -1024,7 +1041,7 @@ var TH  = cmn.TH;
   // @brief  Updates table of content of the bible
   Bible.prototype.updateToc = function(toc, overwrite) {
     this.books.forEach(function(book) {
-      var nte = toc.get(book.id);
+      var nte = toc.get(book.te.id);
       if (nte === null)
         return;
       book.updateIds(nte);
@@ -1459,6 +1476,10 @@ var TH  = cmn.TH;
         book.lang = info.lang;
       if (!_.isUndefined(info.bibleAbbr))
         book.bibleAbbr = info.bibleAbbr;
+
+      // language does not identified, use manually specified one
+      if (book.lang.length === 0 && !_.isUndefined(opts.lang))
+        book.lang = opts.lang;
     }
 
     return book;
@@ -1504,16 +1525,15 @@ var TH  = cmn.TH;
       }
     });
 
-    if (opts.strictFilename === true) {
-      // tocOverwrite controls the method of population of bible.toc
-      // if `true` all entries will be overwritten with values from appropriate
-      // meta object
-      var meta = MC.instance().getMeta(bible.lang);
-      if (meta !== null)
-        bible.updateToc(meta.toc, opts.tocOverwrite);
-      else
-        log.warn('Meta object for language `%s` is missing.', bible.lang);
-    }
+    // tocOverwrite controls the method of population of bible.toc
+    // if `true` all entries will be overwritten with values from appropriate
+    // meta object
+    var meta = MC.instance().getMeta(bible.lang);
+    if (meta !== null)
+      bible.updateToc(meta.toc, opts.tocOverwrite);
+    else
+      log.warn('Meta object for language `%s` is missing.', bible.lang);
+
     return bible;
   }
 
