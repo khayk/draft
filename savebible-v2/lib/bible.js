@@ -1042,8 +1042,10 @@ var TH  = cmn.TH;
   Bible.prototype.updateToc = function(toc, overwrite) {
     this.books.forEach(function(book) {
       var nte = toc.get(book.te.id);
-      if (nte === null)
+      if (nte === null) {
+        log.warn('Missing TOC entry for book: ' + book.te.id);
         return;
+      }
       book.updateIds(nte);
     });
     this.toc.populate(toc, overwrite);

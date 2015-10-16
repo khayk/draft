@@ -56,9 +56,9 @@
   }];
 
   var inputs = [
-    ['en-kjv-usfm+',            'en', 'kjv+'],
-    ['ru-synod-usfm-from-text', 'ru', 'synod'],
-    ['am-eab-usfm-from-text',   'hy', 'eab']
+    //['en-kjv-usfm+',            'en', 'kjv+'],
+    ['ru-synod-usfm-from-text', 'ru', 'synod']
+    //['am-eab-usfm-from-text',   'hy', 'eab']
   ];
 
   inputs.forEach(function(input) {
@@ -70,8 +70,6 @@
     });
     measur.end();
 
-    // if (bible.lang === '')
-    //   bible.lang = input[1];
     bible.abbr = input[2];
 
     measur.begin('saving bible');
