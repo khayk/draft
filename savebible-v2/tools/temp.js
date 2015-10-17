@@ -22,7 +22,7 @@ var input  = path.join(dir, 'eng-kjv_usfm');
 var output = path.join(dir, 'eng-kjv_usfm [output]');
 
 lb.MC.instance().linkTo('eng', 'en');
-var bible = lb.loadBible(input);
+var bible = lb.loadBible(input, {types: [3]});
 
 // var guestBBM = lb.guessBBM(input);
 // lb.BBM.activate(guestBBM);

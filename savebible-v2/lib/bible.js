@@ -1422,6 +1422,8 @@ var TH  = cmn.TH;
       opts.tocOverwrite = true;
     if (_.isUndefined(opts.extension))
       opts.extension = '.usfm';
+    if (_.isUndefined(opts.types))
+      opts.types = [];
 
     return opts;
   }
@@ -1507,10 +1509,21 @@ var TH  = cmn.TH;
       if (path.extname(file).toLowerCase() !== opts.extension)
         return;
       try {
-        var book = loadBook(dir + file, opts, parser);
-
         // fill some missing attributes from the book if they are available
         var info = decodeFileName(file, opts.strictFilename);
+        if (opts.types.length > 0 && info !== null) {
+          var item = BBM.instance().itemById(info.id);
+          if (item === null)
+            return;
+
+          var type = item.type;
+          // skip book types that are missing from the types array
+          if (opts.types.indexOf(type) === -1)
+            return;
+        }
+
+        var book = loadBook(dir + file, opts, parser);
+
         if (info !== null) {
           if (book.lang.length > 0)
             bible.lang = book.lang;
