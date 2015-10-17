@@ -200,8 +200,26 @@
 
 
   // @brief  Predefined USFM renderer. Renders the bible in USFM format
-  var UsfmRenderer = function() {
+  // @param {array} ignoredTag   array of tags to ignore while rendering
+  var UsfmRenderer = function(ignoredTags) {
     Renderer.call(this);
+
+    // build ignored tags regular expression
+    if (_.isArray(ignoredTags)) {
+      var src = '';
+      ignoredTags.forEach(function(tag) {
+        if (src.length > 0)
+          src += '|';
+        src += tag;
+      });
+      this.ignored = new RegExp('^(' + src + ')$');
+    }
+
+    this.isIgnored = function(tag) {
+      if (_.isUndefined(this.ignored))
+        return false;
+      return this.ignored.test(tag) === true;
+    };
   };
   inherit(UsfmRenderer, Renderer);
 
@@ -213,6 +231,10 @@
 
   UsfmRenderer.prototype.defineTagView = function(vo) {
     if (vo.tag === '')
+      return;
+
+    vo.renderable = !this.isIgnored(vo.tag);
+    if (!vo.renderable)
       return;
 
     if (!TH.haveClosing(vo.tag)) {
@@ -243,17 +265,10 @@
     return text;
   };
 
-  // UsfmRenderer.prototype.defineBookView = function(vo) {
-  //   var book = vo.book;
-  //   var res = '';
-  //   res += '\\' + TAG.ID   + ' ' + book.te.id   + ' ' + book.te.name + NL;
-  //   res += '\\' + TAG.H    + ' ' + book.te.name + NL;
-  //   res += '\\' + TAG.TOC1 + ' ' + book.te.desc + NL;
-  //   res += '\\' + TAG.TOC2 + ' ' + book.te.name + NL;
-  //   res += '\\' + TAG.TOC3 + ' ' + book.te.abbr + NL;
-  //   res += '\\' + TAG.MT   + ' ' + book.te.desc;
-  //   vo.header = res;
-  // };
+
+  /*------------------------------------------------------------------------*/
+  /*                        Indented  USFM Renderer                         */
+  /*------------------------------------------------------------------------*/
 
 
   var IndentedUsfmRenderer = function() {

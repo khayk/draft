@@ -40,7 +40,7 @@
     folder: 'usfm',
     extension: '.usfm',
     getCombined: saveCombined,
-    renderer: new rndr.UsfmRenderer()
+    renderer: new rndr.UsfmRenderer(/*['zw', 'zx', 'f']*/)
   }, {
     folder: 'text',
     extension: '.txt',
