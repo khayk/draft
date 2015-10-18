@@ -338,9 +338,6 @@
       return;
 
     vo.renderable = this.isRenderable(vo.tag);
-    // if (!vo.renderable)
-    //   console.log('%s: is %s', vo.tag, vo.renderable ? 'renderable' : 'not renderable');
-
     if (vo.renderable === true) {
       if (!TH.haveClosing(vo.tag)) {
         vo.newline = true;
@@ -362,7 +359,7 @@
   };
 
   TextRenderer.prototype.getNumberView = function(tag, number) {
-    if (!this.textOnly)
+    if (this.textOnly === false)
       return number + (tag === TAG.V ? ' ' : '');
     return '';
   };

@@ -56,7 +56,7 @@
     // var single     = /^(p|b|q\d+|c|v|d)$/;
 
     // tags that do have a closing pair
-    var paired     = /add|wj|nd|qt|dc|zw|f|zws|zx|zwm|ior/;
+    var paired     = /add|wj|nd|qt|dc|zw|f|zws|zx|zwm|ior|tl/;
 
     var discovered = {};
 
@@ -213,7 +213,7 @@
     this.first = node;
     this.last  = node;
     return this;
-  },
+  };
 
   // @returns  first child node of the current node
   Node.prototype.firstChild = function() {

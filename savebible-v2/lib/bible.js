@@ -729,7 +729,7 @@ var TH  = cmn.TH;
       if (this.parent === null) {
         return 'null ' + this.number;
       }
-      return this.parent.te.id + ' ' + this.number;
+      return this.parent.id() + ' ' + this.number;
     },
 
     // @returns  reference for the chapter
@@ -748,7 +748,7 @@ var TH  = cmn.TH;
     // @returns  Book id containing current verse
     bid: function() {
       if (this.parent) {
-        return this.parent.te.id;
+        return this.parent.id();
       }
       return '';
     },
@@ -878,7 +878,7 @@ var TH  = cmn.TH;
           self.te.abbr = str.trim();
         } else if (n.tag === TAG.IDE) {
           if (str !== 'UTF-8')
-            throw new Error(util.format('Unknown encoding %s in %s book.', str, self.te.id));
+            throw new Error(util.format('Unknown encoding %s in %s book.', str, self.id()));
         } else {
           // if (n.tag !== TAG.H && n.tag !== TAG.MT)
           //   log.warn('Unknown tag found in the book: ' + n.tag);
@@ -890,13 +890,18 @@ var TH  = cmn.TH;
     });
 
     // @todo: fill abbreviation based on default values
-    if (!BBM.instance().existsId(this.te.id))
-      throw new Error('Invalid book id: ' + this.te.id);
-    this.index = BBM.instance().onById(this.te.id);
+    if (!BBM.instance().existsId(this.id()))
+      throw new Error('Invalid book id: ' + this.id());
+    this.index = BBM.instance().onById(this.id());
   };
 
 
   Book.prototype = {
+
+    // @returns  Book id
+    id: function() {
+      return this.te.id;
+    },
 
     // @returns  Reference for the chapter
     //           { ix: book unchangeable index,
@@ -909,7 +914,7 @@ var TH  = cmn.TH;
     // @return   Next book of the Bible, null if there are no more books
     next: function() {
       if (this.parent) {
-        var te = this.parent.getToc().next(this.te.id);
+        var te = this.parent.getToc().next(this.id());
         if (te)
           return this.parent.getBook(te.id);
       }
@@ -919,7 +924,7 @@ var TH  = cmn.TH;
     // @return   Previous book of the Bible, null if there are no more books
     prev: function() {
       if (this.parent) {
-        var te = this.parent.getToc().prev(this.te.id);
+        var te = this.parent.getToc().prev(this.id());
         if (te)
           return this.parent.getBook(te.id);
       }
@@ -967,7 +972,7 @@ var TH  = cmn.TH;
 
     // @brief    Update book identification fields using provided TOC
     updateIds: function(te) {
-      if (this.te.id !== te.id)
+      if (this.id() !== te.id)
         throw new Error('Book ids mismatch');
       this.te.populate(te, true);
       this.te.validate();
@@ -1015,12 +1020,12 @@ var TH  = cmn.TH;
   // will raise an exception
   Bible.prototype.addBook = function(book) {
     // make sure that the new book is not exist in the instance of bible
-    if (!_.isUndefined(this.ids[book.te.id]))
-      throw new Error('Book ' + book.te.id + ' is already exist in the bible');
+    if (!_.isUndefined(this.ids[book.id()]))
+      throw new Error('Book ' + book.id() + ' is already exist in the bible');
 
     book.parent = this;
     this.books.push(book);
-    this.ids[book.te.id] = this.books.length - 1;
+    this.ids[book.id()] = this.books.length - 1;
     this.toc.add(book.te);
     return this;
   };
@@ -1033,6 +1038,15 @@ var TH  = cmn.TH;
     return this.books[ref];
   };
 
+  // @returns first book in the bible. Order is defined by the Toc object
+  Bible.prototype.firstBook = function() {
+    var ti = this.toc.first();
+    if (ti) {
+      return this.getBook(ti.id);
+    }
+    return null;
+  };
+
   // @returns bible table of content object
   Bible.prototype.getToc = function() {
     return this.toc;
@@ -1041,9 +1055,9 @@ var TH  = cmn.TH;
   // @brief  Updates table of content of the bible
   Bible.prototype.updateToc = function(toc, overwrite) {
     this.books.forEach(function(book) {
-      var nte = toc.get(book.te.id);
+      var nte = toc.get(book.id());
       if (nte === null) {
-        log.warn('Missing TOC entry for book: ' + book.te.id);
+        log.warn('Missing TOC entry for book: ' + book.id());
         return;
       }
       book.updateIds(nte);
@@ -1471,7 +1485,7 @@ var TH  = cmn.TH;
     var book   = parser.parseBook(str);
 
     // make sure that filename and content are synchronized
-    if (book.te.id !== info.id) {
+    if (book.id() !== info.id) {
       log.warn('Book id from "%s" file does not match with id from file name');
     }
 
@@ -1577,7 +1591,7 @@ var TH  = cmn.TH;
     opts.bibleAbbr = (bible ? bible.abbr : book.bibleAbbr).toLowerCase();
 
     var content = book.render(opts.renderer);
-    fse.writeFileSync(dir + encodeFileName(book.te.id, opts), content);
+    fse.writeFileSync(dir + encodeFileName(book.id(), opts), content);
     return content;
   };
 
@@ -1593,9 +1607,11 @@ var TH  = cmn.TH;
 
     bible.books.forEach(function(book) {
       var raw = saveBook(dir, book, opts);
-      if (combined.length > 0)
-        combined += cmn.NL;
-      combined += raw;
+      if (combine) {
+        if (combined.length > 0)
+          combined += cmn.NL;
+        combined += raw;
+      }
     });
     return combined;
   };
