@@ -517,7 +517,6 @@ var TextRenderer = lb.TextRenderer;
     var bible_    = null;
     var lexic_    = null;
     var search_   = null;
-    var renderer_ = null;
 
     initialize(bible);
 
@@ -529,34 +528,21 @@ var TextRenderer = lb.TextRenderer;
       if (tmp === null)
         throw new Error('Bible language is not specified or supported: ' + bible_.lang);
 
-      lexic_    = tmp.lex;
-      search_   = new Search();
-      renderer_ = new rndrs.TextRenderer();
+      lexic_   = tmp.lex;
+      search_  = new Search();
+      var rndr = new rndrs.TextRenderer();
 
-      var toc   = bible_.getToc();
-      var ti    = toc.first();
+      var verse;
+      var vit = bible_.verseIterator();
+      while ((verse = vit.next()) !== null) {
+        var text = verse.render(rndr);
+        var ref  = lb.encodeRef(verse.ref());
+        text     = lexic_.removePunctuations(text);
 
-      while (ti !== null) {
-        var book = bible_.getBook(ti.id);
-        if (book !== null) {
-          var chap = book.getChapter(1);
-          while (chap !== null) {
-            var verse = chap.getVerse(1);
-            while (verse !== null) {
-              var text = verse.render(renderer_);
-              var ref = lb.encodeRef(verse.ref());
-              text = lexic_.removePunctuations(text);
-
-              // process every single word
-              var wordsArray = text.split(' ');
-              for (var i = 0; i < wordsArray.length; ++i)
-                search_.add(wordsArray[i], ref);
-              verse = verse.next();
-            }
-            chap = chap.next();
-          }
-        }
-        ti = toc.next(ti.id);
+        // process every single word
+        var wordsArray = text.split(' ');
+        for (var i = 0; i < wordsArray.length; ++i)
+          search_.add(wordsArray[i], ref);
       }
 
       // building index

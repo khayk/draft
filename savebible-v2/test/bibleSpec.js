@@ -806,7 +806,7 @@ describe('core components', function() {
     var bible          = null;
     var textAndIdsRndr = new TextRenderer({textOnly: false});
     var textRndr       = new TextRenderer();
-    var usfmRndr       = new UsfmRenderer();
+    var usfmRndr       = new UsfmRenderer(['tag1', 'tag2']);
     var indentUsfmRndr = new IndentedUsfmRenderer();
     var prettyRndr     = new PrettyRenderer();
     var htmlRndr       = new HtmlRenderer();
@@ -1275,9 +1275,11 @@ describe('module BibleSearch', function() {
     var bible  = new Bible();
     var book   = parser.parseBook('\\id GEN Genesis');
     var chap   = parser.parseChapter('\\c 1');
+    var chap2  = parser.parseChapter('\\c 2');
 
     book.index = BBM.instance().onById(book.te.id);
     bible.addBook(book.addChapter(chap));
+    book.addChapter(chap2);
 
     text.forEach(function(ti) {
       var v = parser.parseVerse(ti.s);

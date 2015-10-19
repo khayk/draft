@@ -1,15 +1,43 @@
+var cfg  = require('../config').cfg;
 var lb   = require('../lib/bible');
 var rndr = require('../lib/renderers');
-var cfg  = require('../config').cfg;
-var path = require('path');
+var srch = require('../lib/search');
 var cmn  = require('../lib/common');
+var help = require('../helpers');
+var path = require('path');
 var fs   = require('fs-extra');
 
-// var _      = require('lodash');
-// var help   = require('../helpers');
-// var cfg    = require('../config').cfg;
-// var log    = require('log4js').getLogger('tls');
-// var measur = new help.Measurer();
+var measur = new help.Measurer();
+
+var startupInitialization = function() {
+  lb.MC.instance().linkTo('eng', 'en');
+  measur.begin('node ready');
+  measur.end();
+};
+
+startupInitialization();
+
+
+
+    var parser = new lb.Parser();
+    var bible  = new lb.Bible();
+    var book   = parser.parseBook('\\id GEN Genesis');
+    var chap   = parser.parseChapter('\\c 1');
+    var chap2  = parser.parseChapter('\\c 2');
+
+
+    book.index = lb.BBM.instance().onById(book.te.id);
+    //book.addChapter(chap);
+    bible.addBook(book);
+    //book.addChapter(chap2);
+
+    var vit = bible.verseIterator();
+    var v = null;
+    while ((v = vit.next()) !== null) {
+      console.log(v.id());
+    }
+    return;
+
 
 var opts = [
   //{folder: 'usfm',   extension: '.usfm', renderer: new rndr.UsfmRenderer()                     },
@@ -18,173 +46,55 @@ var opts = [
   // {folder: 'html',   extension: '.html', renderer: new rndr.HtmlRenderer()                  }
 ];
 
-var name = 'en-kjv-usfm';
 
+var name = 'en-kjv-usfm';
 var input  = cfg.bibleDir(name).from;
 var output = cfg.bibleDir(name).to;
 
-lb.MC.instance().linkTo('eng', 'en');
-var bible = lb.loadBible(input, {types: [1, 2]});
 
-// var comb1 = lb.saveBible(output, bible, opts[0]);
-// var comb2 = '';
-
-
-var BookIterator = function(bible) {
-  var book = null;
-  return {
-    next: function() {
-      if (book === null) {
-        book = bible.firstBook();
-        return book;
-      }
-      book = book.next();
-      return book;
-    }
-  };
-};
+measur.begin('loading bible');
+var bible = lb.loadBible(input, {types: []});
+measur.end();
 
 
-var bi = new BookIterator(bible);
-var b = null;
-var count = 0;
+measur.begin('dictionary module');
+var textRndr = new rndr.TextRenderer();
+var meta     = lb.MC.instance().getMeta(bible.lang);
+if (meta === null)
+  throw new Error('Bible language is not specified or supported: ' + bible.lang);
 
-while ((b = bi.next()) !== null) {
-  ++count;
+var lexic = meta.lex;
+var dict  = new srch.Dictionary('original words');
+var vit   = bible.verseIterator();
+var verse;
+while ((verse = vit.next()) !== null) {
+  var text = verse.render(textRndr);
+  var ref  = lb.encodeRef(verse.ref());
+  text     = lexic.removePunctuations(text);
+
+  // process every single word
+  var wordsArray = text.split(' ');
+  for (var i = 0; i < wordsArray.length; ++i)
+    dict.add(wordsArray[i], ref);
 }
-console.log('Books count: %d', count);
-
-
-var ChapterIterator = function(bible) {
-  var book = null;
-  var chap = null;
-
-  return {
-    next_v2: function() {
-      chap = (chap !== null ? chap.next() : null);
-      if (chap === null) {
-        if (book === null)
-          book = bible.firstBook();
-        else
-          book = book.next();
-        if (book === null)
-          return null;
-        chap  = book.getChapter(1);
-        if (chap !== null)
-          return chap;
-      }
-      return this.next_v2();
-    },
-
-    next: function() {
-      if (book === null) {
-        book = bible.firstBook();
-        if (book === null)
-          return null;
-        chap = book.getChapter(1);
-        if (chap !== null)
-          return chap;
-      }
-
-      if (chap === null) {
-        book = book.next();
-        if (book === null)
-          return null;
-        chap = book.getChapter(1);
-        if (chap !== null)
-          return chap;
-      }
-
-      chap = chap.next();
-      if (chap !== null)
-        return chap;
-      return this.next();
-    }
-  };
-};
-
-var ChapterIterator = function(bible) {
-  var book  = bible.firstBook();
-  var chap  = (book !== null ? book.getChapter(1) : null);
-
-  return {
-    next: function() {
-      chap = (chap !== null ? chap.next() : null);
-      if (chap === null) {
-        book = book.next();
-        if (book === null)
-          return null;
-        chap = book.getChapter(1);
-      }
-      return chap;
-    }
-  };
-};
+dict.optimize();
+measur.end();
 
 
 
-var VerseIterator = function(bible) {
-  var book  = bible.firstBook();
-  var chap  = (book !== null ? book.getChapter(1) : null);
-  var verse = (chap !== null ? chap.getVerse(1) : null);
+measur.begin('search module');
+var search = new srch.Search();
+var vit    = bible.verseIterator();
+var verse;
+while ((verse = vit.next()) !== null) {
+  var text = verse.render(textRndr);
+  var ref  = lb.encodeRef(verse.ref());
+  text     = lexic.removePunctuations(text);
 
-  return {
-    first: function() {
-      return verse;
-    },
-
-    next: function() {
-      verse = (verse !== null ? verse.next() : null);
-      if (verse === null) {
-        chap = chap.next();
-        if (chap === null) {
-          book = book.next();
-          if (book === null)
-            return null;
-          chap  = book.getChapter(1);
-        }
-        verse = (chap !== null ? chap.getVerse(1) : null);
-      }
-      return verse;
-    }
-  };
-};
-
-
-it = iterator(bible);
-while ((v = it.next()) !== null) {
-  use(v);
+  // process every single word
+  var wordsArray = text.split(' ');
+  for (var i = 0; i < wordsArray.length; ++i)
+    search.add(wordsArray[i], ref);
 }
-
-var VerseIterator1 = function(bible) {
-  var ci = new ChapterIterator(bible);
-
-  var chap = ci.first();
-  var verse = (chap !== null ? chap.getVerse(1) : null);
-
-  return {
-    first: function() {
-      chap = ci.first();
-      verse = (chap !== null ? chap.getVerse(1) : null);
-    },
-
-    next: function() {
-
-    }
-  };
-};
-
-var vi = new VerseIterator(bible);
-var v = vi.first();
-var rndr = new rndr.TextRenderer();
-
-while (v !== null) {
-  var str = v.render(rndr);
-  comb2 += str + cmn.NL;
-  v = vi.next();
-}
-
-console.log(comb1.length, comb2.length);
-
-fs.writeFileSync(dir + 'comb1', comb1);
-fs.writeFileSync(dir + 'comb2', comb2);
+search.buildIndex();
+measur.end();

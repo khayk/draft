@@ -1038,15 +1038,6 @@ var TH  = cmn.TH;
     return this.books[ref];
   };
 
-  // @returns first book in the bible. Order is defined by the Toc object
-  Bible.prototype.firstBook = function() {
-    var ti = this.toc.first();
-    if (ti) {
-      return this.getBook(ti.id);
-    }
-    return null;
-  };
-
   // @returns bible table of content object
   Bible.prototype.getToc = function() {
     return this.toc;
@@ -1064,6 +1055,115 @@ var TH  = cmn.TH;
     });
     this.toc.populate(toc, overwrite);
   };
+
+  // @returns  verse iterator
+  Bible.prototype.verseIterator = function() {
+    return new VerseIterator(this);
+  };
+
+  // @returns  chapter iterator
+  Bible.prototype.chapterIterator = function() {
+    return new ChapterIterator(this);
+  };
+
+  // @returns  book iterator
+  Bible.prototype.bookIterator = function() {
+    return new BookIterator(this);
+  };
+
+
+  /*------------------------------------------------------------------------*/
+
+
+  // @brief  traverse books of the specified bible in an order they are
+  //         described in the table of content object
+  var BookIterator = function(bible) {
+    var book = null;
+    var ti = bible.toc.first();
+    if (ti !== null) {
+      book = bible.getBook(ti.id);
+    }
+
+    return {
+      next: function() {
+        var ret = book;
+        book = (book !== null ? book.next() : null);
+        return ret;
+      }
+    };
+  };
+
+
+  /*------------------------------------------------------------------------*/
+
+
+  // @brief  traverse all chapters of specified bible.
+  var ChapterIterator = function(bible) {
+    var bit  = bible.bookIterator();
+    var book = bit.next();
+    var chap = null;
+
+    return {
+      // @return  chapter of the bible in the following order:
+      //          chapter of the each book retrived by BookIterator.
+      //          return null at the end
+      next: function() {
+        if (chap === null) {
+          if (book === null)
+            return null;
+          chap = book.getChapter(1);
+          if (chap === null) {
+            book = bit.next();
+            return this.next();
+          }
+          return chap;
+        }
+        chap = chap.next();
+        if (chap !== null)
+          return chap;
+        book = bit.next();
+        return this.next();
+      }
+    };
+  };
+
+
+  /*------------------------------------------------------------------------*/
+
+
+  // @brief  traverse all verses of specified bible.
+  var VerseIterator = function(bible) {
+    var cit   = bible.chapterIterator();
+    var chap  = cit.next();
+    var verse = null;
+
+    return {
+      // @return  returns a verse of the bible in the following order:
+      //          verses of the each chapter retrived by ChapterIterator
+      //          return null at the end
+      next: function() {
+        if (verse === null) {
+          if (chap === null)
+            return null;
+          verse = chap.getVerse(1);
+          if (verse === null) {
+            chap = cit.next();
+            return this.next();
+          }
+          return verse;
+        }
+        verse = verse.next();
+        if (verse !== null)
+          return verse;
+        chap = cit.next();
+        return this.next();
+      }
+    };
+  };
+
+
+  /*------------------------------------------------------------------------*/
+
 
   var Stack = function() {
     this.values = [];
@@ -1605,14 +1705,17 @@ var TH  = cmn.TH;
     if (!_.isUndefined(opts) && opts.getCombined === true)
       combine = true;
 
-    bible.books.forEach(function(book) {
+    var bit = new BookIterator(bible);
+    var book;
+    while ((book = bit.next()) !== null) {
       var raw = saveBook(dir, book, opts);
       if (combine) {
         if (combined.length > 0)
           combined += cmn.NL;
         combined += raw;
       }
-    });
+    }
+
     return combined;
   };
 
