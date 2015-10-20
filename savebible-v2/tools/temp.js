@@ -22,28 +22,38 @@ startupInitialization();
 
 var SortedUniqueArraysCollector = function() {
   var arrays = [];
-  //var index = 0;
+
+  function sortArrays() {
+    arrays.sort(function(x, y) {
+      if (x.length < y.length) {
+        return -1;
+      }
+      if (x.length > y.length) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
+  function dumpArrays() {
+    console.log('Dumping arrays...');
+    for (i = 0; i < arrays.length; ++i)
+      console.log(arrays[i].length);
+    console.log('Dumping completed');
+  }
 
   return {
     combine: function() {
-      console.log('Collector arrays count: ', arrays.length);
+      //console.log('Collector arrays count: ', arrays.length);
       if (arrays.length === 0)
-        return null;
+        return [];
       if (arrays.length === 1)
         return arrays[0];
-
+      sortArrays();
       var res = algo.combineSortedUniqueArrays(arrays[0], arrays[1]);
       for (var i = 2; i < arrays.length; ++i) {
         res = algo.combineSortedUniqueArrays(res, arrays[i]);
       }
-
-      for (i = 0; i < arrays.length; ++i) {
-        if (arrays[i].length === 0)
-          console.error('DETECTED 0 length array');
-        else
-          console.log(arrays[i].length);
-      }
-      this.reset();
       return res;
     },
 
@@ -51,18 +61,10 @@ var SortedUniqueArraysCollector = function() {
       if (array === null)
         return;
       arrays.push(array);
-      // if (arrays.length > index) {
-      //   arrays[index++] = array;
-      // }
-      // else {
-      //   arrays.push(array);
-      //   index++;
-      // }
     },
 
     reset: function() {
       arrays = [];
-      //index = 0;
     }
   };
 };
@@ -73,7 +75,13 @@ var Node = function(letter) {
   this.letter = letter;
   this.parent = null;
   this.childs = {};
-  //this.wcount = 0;
+  this.trc    = 0;      // total references count (including child node refs)
+};
+
+Node.prototype.onRefAdded = function() {
+  this.trc++;
+  if (this.parent !== null)
+    this.parent.onRefAdded();
 };
 
 Node.prototype.addNode = function(node) {
@@ -82,7 +90,6 @@ Node.prototype.addNode = function(node) {
     this.childs[node.letter] = node;
     node.parent = this;
   }
-  //this.wcount++;
 };
 
 Node.prototype.getNode = function(letter) {
@@ -96,13 +103,17 @@ Node.prototype.addRef = function(ref) {
   if (_.isUndefined(this.refs))
     this.refs = [];
   this.refs.push(ref);
-  //this.wcount++;
+  this.onRefAdded();
 };
 
 Node.prototype.getRefs = function() {
   if (_.isUndefined(this.refs))
-    return null;
+    return [];
   return this.refs;
+};
+
+Node.prototype.totalRefsCount = function() {
+  return this.trc;
 };
 
 Node.prototype.getAllRefs = function(collector) {
@@ -123,8 +134,60 @@ Node.prototype.optimize = function() {
   }
 };
 
+Node.prototype.verify = function() {
+  _.each(this.childs, function(value, key) {
+    value.verify();
+  });
+
+  if (!_.isUndefined(this.refs)) {
+    var o = value.refs;
+    for (var i = o.length - 1; i > 0; i--) {
+      if (o[i] < o[i - 1]) {
+        throw new Error('Verification failed');
+      }
+    }
+  }
+};
+
+
 var Dictionary = function() {
   this.root = new Node('');
+};
+
+Dictionary.prototype.find = function(word) {
+  var node = this.findNode(word);
+  if (node === null)
+    return [];
+  return node.getRefs();
+};
+
+Dictionary.prototype.count = function() {
+  return this.root.totalRefsCount();
+};
+
+Dictionary.prototype.occurrence = function(word) {
+  var node = this.findNode(word);
+  if (node === null)
+    return -1;
+  return node.totalWordsCount();
+};
+
+Dictionary.prototype.add = function(word, ref) {
+  if (word.length === 0)
+    return;
+
+  var node = this.root;
+  for (var i = 0; i < word.length; i++) {
+    var letter = word[i];
+    var child = node.getNode(letter);
+    if (child === null) {
+      child = new Node(letter);
+      node.addNode(child);
+    }
+    node = child;
+  }
+  node.addRef(ref);
+  return this;
 };
 
 Dictionary.prototype.optimize = function() {
@@ -143,98 +206,57 @@ Dictionary.prototype.findNode = function(word) {
   return node;
 };
 
-Dictionary.prototype.add = function(word, ref) {
-  if (word.length === 0)
-    return;
-
-  var node = this.root;
-  for (var i = 0; i < word.length; i++) {
-    var letter = word[i];
-    var child = node.getNode(letter);
-    if (child === null) {
-      child = new Node(letter);
-      node.addNode(child);
-    }
-    //node.wcount++;
-    node = child;
-  }
-  node.addRef(ref);
-
-  // var ciWord = word.toLowerCase();
-  // if (ciWord !== word)
-  //   this.add(ciWord, ref);
-  return this;
-};
-
-
 function resultLogger(desc, word, result) {
-  if (result !== null) {
-    console.log(desc + ' [%d]: %s', result.length, word);
-  } else {
-    console.log(desc + ' [0]: %s', word);
-  }
+  console.log(desc + _.padRight(' [' + result.length + ']', 8, ' ') +  ': %s', word);
 }
 
 
 // Search functionality
 var Search = function() {
-  var dict = new Dictionary();
+  var cs_ = new Dictionary();
+  var ci_ = new Dictionary();
 
   // some temporary variables
-  var result, condidates, node;
+  var result = [];
+  var node   = null;
 
   // performs case sensitive and whole word searching
   function queryCS_WW(word) {
-    node = dict.findNode(word);
-    if (node === null)
-      return null;
-    result = node.getRefs();
+    result = cs_.find(word);
     resultLogger('CS && WW', word, result);
     return result;
   }
 
   // perform case sensitive match only
   function queryCS(word) {
-    node = dict.findNode(word);
+    node = cs_.findNode(word);
     if (node === null)
-      return null;
+      return [];
+    suaCollector.reset();
     node.getAllRefs(suaCollector);
     result = suaCollector.combine();
     resultLogger('CS', word, result);
     return result;
   }
 
-/*
   // perform whole word search, cases insensitive match
   function queryWW(ciWord, word) {
-    condidates = cim_.find(ciWord);
-
-    result = runQuery(condidates, dict_);
+    result = ci_.find(ciWord);
     resultLogger('WW', word, result);
     return result;
   }
 
   // perform search of the word, case insensitive and any part of the word
   function queryAll(ciWord, word) {
-    var wordsGroup1 = ciswm_.find(ciWord);
-    var wordsGroup2 = cim_.find(ciWord);
-    if (wordsGroup1 === null) wordsGroup1 = [];
-    if (wordsGroup2 === null) wordsGroup2 = [];
-
-    // perform super-fast merging
-    condidates = algo.combineSortedUniqueArrays(wordsGroup1, wordsGroup2);
-
-    // sort all candidates by increasing order of word occurrence
-    if (condidates !== null && condidates.length > 2) {
-      condidates.sort(function(a, b) {
-        return cim_.occurrence(a) - cim_.occurrence(b);
-      });
-    }
-
-    result = runQuery(condidates, dict_);
+    node = ci_.findNode(ciWord);
+    if (node === null)
+      return [];
+    suaCollector.reset();
+    node.getAllRefs(suaCollector);
+    result = suaCollector.combine();
     resultLogger('', word, result);
     return result;
-  }*/
+  }
 
   return {
     // add specified `word` into dictionary
@@ -245,30 +267,30 @@ var Search = function() {
       // ignore empty strings
       if (word.length === 0)
         return;
-      dict.add(word, ref);
+      cs_.add(word, ref);
+      ci_.add(word.toLowerCase(), ref);
     },
 
 
     // build index should be call if words addition is completed
     build: function() {
-      dict.optimize();
+      cs_.optimize();
+      ci_.optimize();
     },
 
 
     // get main dictionary, here we store all cases sensitive
     // unique words. i.e. no duplicate are presented
     getDictionary: function() {
-      return dict;
+      return cs_;
     },
 
 
     // show internal state of dictionaries
     getStatistics: function() {
       return {
-        'cs'   : dict.stat()
-        // 'ci'   : cim_.stat(),
-        // 'sub'  : swm_.stat(),
-        // 'cisub': ciswm_.stat()
+        'cs'   : cs_.stat(),
+        'ci'   : ci_.stat()
       };
     },
 
@@ -278,7 +300,6 @@ var Search = function() {
     // cs -> case sensitive
     // ww -> whole word
     query: function(word, opts) {
-
       if (!_.isString(word))
         throw new TypeError('Bad arguments');
 
@@ -299,6 +320,11 @@ var Search = function() {
       var caseSensitive = opts.cs;
       var wholeWord = opts.ww;
 
+      // enable whole word restriction for very short words
+      if (wholeWord === false && word.length < 3) {
+        wholeWord = true;
+      }
+
       if (caseSensitive) {
         if (wholeWord)
           return queryCS_WW(word);
@@ -315,22 +341,23 @@ var Search = function() {
   };
 };
 
-// var dict  = new Dictionary();
-// var text = 'It is going to be an amazing search engine';
-// var wordsArray = text.split(' ');
-// for (var i = 0; i < wordsArray.length; ++i)
-//   dict.add(wordsArray[i], i.toString());
+var dict  = new Dictionary();
+var text = 'It is going to be an amazing search engine';
+var wordsArray = text.split(' ');
+for (var i = 0; i < wordsArray.length; ++i)
+  dict.add(wordsArray[i], i.toString());
 
-// var n = dict.findNode('');
-// if (n === null) {
-//   console.log('Not found');
-// }
-// else {
-//   n.getAllRefs(suaCollector);
-//   console.log(suaCollector.combine());
-// }
+var n = dict.findNode('');
+if (n === null) {
+  console.log('Not found');
+}
+else {
+  n.getAllRefs(suaCollector);
+  console.log(suaCollector.combine());
+}
 
-//console.log(require('util').inspect(n, {depth: 15, colors: true}));
+console.log(require('util').inspect(n, {depth: 15, colors: true}));
+return;
 
 // console.log(dict.find('test'));
 // console.log(dict.find('case'));
@@ -386,31 +413,83 @@ measur.end();
 // newSrch.query('the');
 // measur.end();
 
-var opts = {cs: true, ww: false, op: 'and'};
+function verify(expectations, opts, desc) {
+  measur.begin('querying');
+  expectations.forEach(function(kq) {
+    var res = newSrch.query(kq.w, opts);
+    if (res.length != kq.c)
+      console.error(desc + 'Query failed for "%s", expected %d to be equal %d', kq.w, kq.c, res.length);
+  });
+  measur.end();
+}
 
-var knownQueries = [
-{w: 'Mat', c: 67},
-{w: 'the', c: 30690},
-{w: 'a', c: 31305},
-{w: 'abo', c: 1234},
-{w: 'bec', c: 1358},
-{w: 'The', c: 5093},
-{w: 'THE', c: 11},
-{w: 'that', c: 11314},
-{w: 'than', c: 1938},
-{w: 'the', c: 30690}
+
+var opts = {cs: true, ww: true, op: 'and'};
+var knownQueries_CS_WW = [
+  {w: 'Mat', c: 0},
+  {w: 'the', c: 26878},
+  {w: 'a', c: 7199},
+  {w: 'abo', c: 0},
+  {w: 'bec', c: 0},
+  {w: 'The', c: 2019},
+  {w: 'THE', c: 11},
+  {w: 'that', c: 11313},
+  {w: 'than', c: 532},
 ];
+verify(knownQueries_CS_WW, opts, 'CS && WW: ');
 
-// measur.begin('querying');
-// for (var x = 0; x < 10; ++x) {
-//   knownQueries.forEach(function(kq) {
-//     var res = newSrch.query(kq.w, opts);
-//     if (res.length != kq.c)
-//       console.error('Query failed for: %s', kq.w);
-//   });
-// }
-// measur.end();
-// return;
+
+opts.cs = true;
+opts.ww = false;
+var knownQueries_CS = [
+  {w: 'Mat', c: 67},
+  {w: 'the', c: 30690},
+  {w: 'a', c: 7199},   // 31305 - without restriction
+  {w: 'abo', c: 1234},
+  {w: 'bec', c: 1358},
+  {w: 'The', c: 5093},
+  {w: 'THE', c: 11},
+  {w: 'that', c: 11314},
+  {w: 'than', c: 694},
+  {w: 'the', c: 30690}
+];
+verify(knownQueries_CS, opts, 'CS: ');
+
+
+opts.cs = false;
+opts.ww = true;
+var knownQueries_WW = [
+  {w: 'Mat', c: 0},
+  {w: 'the', c: 27376},
+  {w: 'a', c: 7369},
+  {w: 'abo', c: 0},
+  {w: 'bec', c: 0},
+  {w: 'The', c: 27376},
+  {w: 'THE', c: 27376},
+  {w: 'that', c: 11534},
+  {w: 'THAT', c: 11534},
+  {w: 'than', c: 532},
+];
+verify(knownQueries_WW, opts, 'WW: ');
+
+
+opts.cs = false;
+opts.ww = false;
+var knownQueries_NO_RESTRICTION = [
+  {w: 'Mat', c: 215},
+  {w: 'the', c: 31312},
+  {w: 'a', c: 7369},     // 32917 - without restriction
+  {w: 'of', c: 20728},    // 21244 - without restriction
+  {w: 'abo', c: 1245},
+  {w: 'bec', c: 1554},
+  {w: 'The', c: 31312},
+  {w: 'THE', c: 31312},
+  {w: 'that', c: 11535},
+  {w: 'THAT', c: 11535},
+  {w: 'than', c: 696},
+];
+verify(knownQueries_NO_RESTRICTION, opts, 'NR: ');
+
 
 var rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('ENTER> ');
@@ -431,27 +510,3 @@ rl.on('line', function(line) {
   console.log('Have a great day!');
   process.exit(0);
 });
-
-
-
-
-
-
-
-
-// measur.begin('search module');
-// var search = new srch.Search();
-// var vit    = bible.verseIterator();
-// var verse;
-// while ((verse = vit.next()) !== null) {
-//   var text = verse.render(textRndr);
-//   var ref  = lb.encodeRef(verse.ref());
-//   text     = lexic.removePunctuations(text);
-
-//   // process every single word
-//   var wordsArray = text.split(' ');
-//   for (var i = 0; i < wordsArray.length; ++i)
-//     search.add(wordsArray[i], ref);
-// }
-// search.buildIndex();
-// measur.end();
