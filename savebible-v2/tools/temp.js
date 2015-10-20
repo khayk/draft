@@ -44,7 +44,8 @@ var SortedUniqueArraysCollector = function() {
 
   return {
     combine: function() {
-      //console.log('Collector arrays count: ', arrays.length);
+      if (arrays.length > 100)
+        console.log('Collector arrays count: ', arrays.length);
       if (arrays.length === 0)
         return [];
       if (arrays.length === 1)
@@ -254,7 +255,7 @@ var Search = function() {
     suaCollector.reset();
     node.getAllRefs(suaCollector);
     result = suaCollector.combine();
-    resultLogger('', word, result);
+    resultLogger('..', word, result);
     return result;
   }
 
@@ -272,7 +273,7 @@ var Search = function() {
     },
 
 
-    // build index should be call if words addition is completed
+    // build index should be called before performing any queries
     build: function() {
       cs_.optimize();
       ci_.optimize();
@@ -341,23 +342,23 @@ var Search = function() {
   };
 };
 
-var dict  = new Dictionary();
-var text = 'It is going to be an amazing search engine';
-var wordsArray = text.split(' ');
-for (var i = 0; i < wordsArray.length; ++i)
-  dict.add(wordsArray[i], i.toString());
+// var dict  = new Dictionary();
+// var text = 'It is going to be an amazing search engine';
+// var wordsArray = text.split(' ');
+// for (var i = 0; i < wordsArray.length; ++i)
+//   dict.add(wordsArray[i], i.toString());
 
-var n = dict.findNode('');
-if (n === null) {
-  console.log('Not found');
-}
-else {
-  n.getAllRefs(suaCollector);
-  console.log(suaCollector.combine());
-}
+// var n = dict.findNode('');
+// if (n === null) {
+//   console.log('Not found');
+// }
+// else {
+//   n.getAllRefs(suaCollector);
+//   console.log(suaCollector.combine());
+// }
 
-console.log(require('util').inspect(n, {depth: 15, colors: true}));
-return;
+// console.log(require('util').inspect(n, {depth: 15, colors: true}));
+// return;
 
 // console.log(dict.find('test'));
 // console.log(dict.find('case'));
@@ -371,7 +372,7 @@ return;
 var opts = [
   //{folder: 'usfm',   extension: '.usfm', renderer: new rndr.UsfmRenderer()                     },
   // {folder: 'pretty', extension: '.txt' , renderer: new rndr.PrettyRenderer()                },
-  {getCombined: true, folder: 'text',   extension: '.txt' , renderer: new rndr.TextRenderer({textOnly: true}) }
+  {getCombined: false, folder: 'text',   extension: '.txt' , renderer: new rndr.TextRenderer({textOnly: true}) }
   // {folder: 'html',   extension: '.html', renderer: new rndr.HtmlRenderer()                  }
 ];
 
