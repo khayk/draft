@@ -42,10 +42,33 @@ var SortedUniqueArraysCollector = function() {
     console.log('Dumping completed');
   }
 
+  function combineArrays(l, h) {
+    if (h - l === 1)
+      return algo.combineSortedUniqueArrays(arrays[l], arrays[h]);
+    else if (l == h)
+      return arrays[l];
+    else if (l > h)
+      return [];
+
+    var count = 0;
+    for (var i = l; i < h; i++)
+      count += arrays[i].length;
+    var tmp = 0;
+    for (var m = l; m < h; m++) {
+      tmp += arrays[i].length;
+      if (tmp >= count / 2)
+        break;
+    }
+    var a1 = combineArrays(l, m);
+    var a2 = combineArrays(m + 1, h);
+    return algo.combineSortedUniqueArrays(a1, a2);
+  }
+
   return {
     combine: function() {
-      if (arrays.length > 100)
+      if (arrays.length > 10)
         console.log('Collector arrays count: ', arrays.length);
+
       if (arrays.length === 0)
         return [];
       if (arrays.length === 1)
@@ -56,10 +79,46 @@ var SortedUniqueArraysCollector = function() {
         res = algo.combineSortedUniqueArrays(res, arrays[i]);
       }
       return res;
+
+      // var i = 0;
+      // var res = [];//algo.combineSortedUniqueArrays(arrays[0], arrays[1]);
+      // for (i = 0; i < arrays.length; i++) {
+      //   if (arrays[i].length < 25)
+      //     res = algo.combineSortedUniqueArrays(res, arrays[i]);
+      //   else
+      //     break;
+      // }
+      // var t = combineArrays(i, arrays.length - 1);
+      // return algo.combineSortedUniqueArrays(res, t);
+
     },
 
+    // combine: function() {
+    //   if (arrays.length > 10)
+    //     console.log('Collector arrays count: ', arrays.length);
+
+    //   tmp = 0;
+    //   for (var i = 0; i < arrays.length; ++i) {
+    //     arrays[i].forEach(useRef);
+    //   }
+    //   console.log('- >>>>>>>>>> ', tmp);
+
+    //   var keys = Object.keys(refs);
+    //   keys.sort();
+    //   var len = keys.length;
+
+    //   ensureCache(len);
+    //   var ci = 0;
+    //   for (i = 0; i < len; i++) {
+    //     var k = keys[i];
+    //     if (refs[k] !== undefined)
+    //       cache[ci++] = k;
+    //   }
+    //   return cache.slice(0, ci);
+    // },
+
     add: function(array) {
-      if (array === null)
+      if (array.length === 0)
         return;
       arrays.push(array);
     },
@@ -76,13 +135,9 @@ var Node = function(letter) {
   this.letter = letter;
   this.parent = null;
   this.childs = {};
-  this.trc    = 0;      // total references count (including child node refs)
-};
-
-Node.prototype.onRefAdded = function() {
-  this.trc++;
-  if (this.parent !== null)
-    this.parent.onRefAdded();
+  this.refs   = [];
+  this.uwc    = 0;    // unique words count (including childs words)
+  this.twc    = 0;    // total words count (including childs words)
 };
 
 Node.prototype.addNode = function(node) {
@@ -101,20 +156,15 @@ Node.prototype.getNode = function(letter) {
 };
 
 Node.prototype.addRef = function(ref) {
-  if (_.isUndefined(this.refs))
-    this.refs = [];
+  if (this.refs.length === 0) {
+    this.uwc++;
+  }
   this.refs.push(ref);
-  this.onRefAdded();
+  this.onWordAdded();
 };
 
 Node.prototype.getRefs = function() {
-  if (_.isUndefined(this.refs))
-    return [];
   return this.refs;
-};
-
-Node.prototype.totalRefsCount = function() {
-  return this.trc;
 };
 
 Node.prototype.getAllRefs = function(collector) {
@@ -124,12 +174,51 @@ Node.prototype.getAllRefs = function(collector) {
   });
 };
 
+Node.prototype.addedWordsCount = function() {
+  return this.twc;
+};
+
+Node.prototype.uniqueWordsCount = function() {
+  return this.uwc;
+};
+
+Node.prototype.onWordAdded = function() {
+  this.twc++;
+  if (this.parent !== null)
+    this.parent.onWordAdded();
+};
+
+// only for-loop declaration with concatenation
+function reverse(s) {
+  for (var i = s.length - 1, o = ''; i >= 0; o += s[i--]) { }
+  return o;
+}
+
+Node.prototype.collectWords = function(words) {
+  var refs = this.getRefs();
+  if (refs.length !== 0) {
+    var parent = this;
+    var word = '';
+    while (parent !== null) {
+      word += parent.letter;
+      parent = parent.parent;
+    }
+    word = reverse(word);
+    words[word] = {uwc: this.uwc, twc: this.twc};
+  }
+
+  _.each(this.childs, function(node, key) {
+    node.collectWords(words);
+  });
+};
+
+
 Node.prototype.optimize = function() {
   _.each(this.childs, function(value, key) {
     value.optimize();
   });
 
-  if (!_.isUndefined(this.refs)) {
+  if (this.refs.length > 1) {
     this.refs.sort();
     this.refs = _.unique(this.refs, true);
   }
@@ -140,7 +229,7 @@ Node.prototype.verify = function() {
     value.verify();
   });
 
-  if (!_.isUndefined(this.refs)) {
+  if (this.refs.length > 1) {
     var o = value.refs;
     for (var i = o.length - 1; i > 0; i--) {
       if (o[i] < o[i - 1]) {
@@ -163,14 +252,14 @@ Dictionary.prototype.find = function(word) {
 };
 
 Dictionary.prototype.count = function() {
-  return this.root.totalRefsCount();
+  return this.root.uniqueWordsCount();
 };
 
 Dictionary.prototype.occurrence = function(word) {
   var node = this.findNode(word);
   if (node === null)
-    return -1;
-  return node.totalWordsCount();
+    return 0;
+  return node.addedWordsCount();
 };
 
 Dictionary.prototype.add = function(word, ref) {
@@ -193,6 +282,13 @@ Dictionary.prototype.add = function(word, ref) {
 
 Dictionary.prototype.optimize = function() {
   this.root.optimize();
+};
+
+Dictionary.prototype.words = function() {
+  var node = this.root;
+  var words = {};
+  node.collectWords(words);
+  return words;
 };
 
 Dictionary.prototype.findNode = function(word) {
@@ -342,22 +438,24 @@ var Search = function() {
   };
 };
 
-// var dict  = new Dictionary();
-// var text = 'It is going to be an amazing search engine';
-// var wordsArray = text.split(' ');
-// for (var i = 0; i < wordsArray.length; ++i)
-//   dict.add(wordsArray[i], i.toString());
+var dict  = new Dictionary();
+var text = 'It is going to be an an amazing search engine to be';
+var wordsArray = text.split(' ');
+for (var i = 0; i < wordsArray.length; ++i)
+  dict.add(wordsArray[i], i.toString());
 
-// var n = dict.findNode('');
-// if (n === null) {
-//   console.log('Not found');
-// }
-// else {
-//   n.getAllRefs(suaCollector);
-//   console.log(suaCollector.combine());
-// }
+dict.optimize();
+var n = dict.findNode('');
+if (n === null) {
+  console.log('Not found');
+}
+else {
+  n.getAllRefs(suaCollector);
+  console.log(suaCollector.combine());
+}
 
-// console.log(require('util').inspect(n, {depth: 15, colors: true}));
+console.log(dict.words());
+//console.log(require('util').inspect(n, {depth: 15, colors: true}));
 // return;
 
 // console.log(dict.find('test'));
@@ -386,8 +484,7 @@ measur.begin('loading bible');
 var bible = lb.loadBible(input, {types: []});
 measur.end();
 
-
-measur.begin('dictionary module');
+measur.begin('search module initialization');
 var textRndr = new rndr.TextRenderer();
 var meta     = lb.MC.instance().getMeta(bible.lang);
 if (meta === null)
@@ -409,10 +506,6 @@ while ((verse = vit.next()) !== null) {
 }
 newSrch.build();
 measur.end();
-
-// measur.begin('searching');
-// newSrch.query('the');
-// measur.end();
 
 function verify(expectations, opts, desc) {
   measur.begin('querying');
@@ -489,8 +582,17 @@ var knownQueries_NO_RESTRICTION = [
   {w: 'THAT', c: 11535},
   {w: 'than', c: 696},
 ];
-verify(knownQueries_NO_RESTRICTION, opts, 'NR: ');
+verify(knownQueries_NO_RESTRICTION, opts, '..: ');
 
+
+function query(istr, opts, count) {
+  if (_.isUndefined(count))
+    count = 1;
+  measur.begin('querying', istr);
+  for (var i = 0; i < count; ++i)
+    newSrch.query(istr, opts);
+  measur.end();
+}
 
 var rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('ENTER> ');
@@ -501,9 +603,7 @@ rl.on('line', function(line) {
   if (istr === 'EXIT')
     process.exit(0);
 
-  measur.begin('querying', istr);
-  var res = newSrch.query(istr, opts);
-  measur.end();
+  query(istr, opts, 1);
 
   rl.prompt();
 
