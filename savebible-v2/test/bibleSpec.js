@@ -983,11 +983,11 @@ describe('search functionality', function() {
 
     // each word should be found in the dictionary
     dict.words().forEach(function(word) {
-      expect(dict.find(word)).is.not.equal(null);
+      expect(dict.find(word)).is.not.equal([]);
     });
 
     // should fail to find
-    expect(dict.find('not exists')).is.equal(null);
+    expect(dict.find('not exists')).to.deep.equal([]);
     expect(dict.stat()).to.have.all.keys(
       'unique',
       'total',
@@ -1090,18 +1090,18 @@ describe('search functionality', function() {
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
           res = srch.query(orig.substr(0, i), opts);
-          expect(res).to.be.equal(null);
+          expect(res).to.deep.equal([]);
         }
         if (lcase !== orig)
-          expect(srch.query(lcase, opts)).to.be.equal(null);
+          expect(srch.query(lcase, opts)).to.deep.equal([]);
         else
           expect(srch.query(lcase, opts)).to.deep.equal(axref);
         if (tcase !== orig)
-          expect(srch.query(tcase, opts)).to.be.equal(null);
+          expect(srch.query(tcase, opts)).to.deep.equal([]);
         else
           expect(srch.query(tcase, opts)).to.deep.equal(axref);
         if (ucase !== orig)
-          expect(srch.query(ucase, opts)).to.be.equal(null);
+          expect(srch.query(ucase, opts)).to.deep.equal([]);
         else
           expect(srch.query(ucase, opts)).to.deep.equal(axref);
       });
@@ -1121,15 +1121,15 @@ describe('search functionality', function() {
           expect(res).to.deep.equal(axref);
         }
         if (lcase !== orig)
-          expect(srch.query(lcase, opts)).to.be.equal(null);
+          expect(srch.query(lcase, opts)).to.deep.equal([]);
         else
           expect(srch.query(lcase, opts)).to.deep.equal(axref);
         if (tcase !== orig)
-          expect(srch.query(tcase, opts)).to.be.equal(null);
+          expect(srch.query(tcase, opts)).to.deep.equal([]);
         else
           expect(srch.query(tcase, opts)).to.deep.equal(axref);
         if (ucase !== orig)
-          expect(srch.query(ucase, opts)).to.be.equal(null);
+          expect(srch.query(ucase, opts)).to.deep.equal([]);
         else
           expect(srch.query(ucase, opts)).to.deep.equal(axref);
       });
@@ -1146,7 +1146,7 @@ describe('search functionality', function() {
         expect(res).to.deep.equal(axref);
         for (i = 3; i < orig.length; ++i) {
           res = srch.query(orig.substr(0, i), opts);
-          expect(res).to.be.equal(null);
+          expect(res).to.deep.equal([]);
         }
         expect(srch.query(lcase, opts)).to.deep.equal(axref);
         expect(srch.query(tcase, opts)).to.deep.equal(axref);
@@ -1219,7 +1219,7 @@ describe('search functionality', function() {
       expect(srch.query('third', opts)).to.deep.equal(['4']);
       expect(srch.query('And', opts)).to.deep.equal(['2', '3', '4']);
       expect(srch.query('the', opts)).to.deep.equal(['1', '2', '3', '4']);
-      expect(srch.query('The', opts)).to.deep.equal(null);
+      expect(srch.query('The', opts)).to.deep.equal([]);
     });
 
     it('cs', function() {
@@ -1247,7 +1247,7 @@ describe('search functionality', function() {
 
     it('invalid args', function() {
       opts = {cs: 'false',  ww: 'false'};
-      expect(srch.query('int', opts)).to.deep.equal(null);
+      expect(srch.query('int', opts)).to.deep.equal([]);
       expect(srch.query.bind(srch, {}, opts)).to.throw();
       expect(srch.query.bind(srch, 'int', 'aaaa')).to.throw();
     });

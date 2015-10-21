@@ -143,4 +143,75 @@ logger.fatal('fatal');
 
 var bbb = lb.loadBook(cfg.inputDir() + '/' + '01-GENeng-kjv.usfm');
 console.log(require('util').inspect(bbb.getChapter(1).getVerse(1).node, {depth: 15, colors: true}));
-return;
+
+
+
+
+/*------------------------------------------------------------------------*/
+// search verification for kjv+ version
+
+var opts = {cs: true, ww: true, op: 'and'};
+var knownQueries_CS_WW = [
+  {w: 'Mat', c: 0},
+  {w: 'the', c: 26878},
+  {w: 'a', c: 7199},
+  {w: 'abo', c: 0},
+  {w: 'bec', c: 0},
+  {w: 'The', c: 2019},
+  {w: 'THE', c: 11},
+  {w: 'that', c: 11313},
+  {w: 'than', c: 532},
+];
+verify(knownQueries_CS_WW, opts, 'CS && WW: ');
+
+
+opts.cs = true;
+opts.ww = false;
+var knownQueries_CS = [
+  {w: 'Mat', c: 67},
+  {w: 'the', c: 30690},
+  {w: 'a', c: 7199},   // 31305 - without restriction
+  {w: 'abo', c: 1234},
+  {w: 'bec', c: 1358},
+  {w: 'The', c: 5093},
+  {w: 'THE', c: 11},
+  {w: 'that', c: 11314},
+  {w: 'than', c: 694},
+  {w: 'the', c: 30690}
+];
+verify(knownQueries_CS, opts, 'CS: ');
+
+
+opts.cs = false;
+opts.ww = true;
+var knownQueries_WW = [
+  {w: 'Mat', c: 0},
+  {w: 'the', c: 27376},
+  {w: 'a', c: 7369},
+  {w: 'abo', c: 0},
+  {w: 'bec', c: 0},
+  {w: 'The', c: 27376},
+  {w: 'THE', c: 27376},
+  {w: 'that', c: 11534},
+  {w: 'THAT', c: 11534},
+  {w: 'than', c: 532},
+];
+verify(knownQueries_WW, opts, 'WW: ');
+
+
+opts.cs = false;
+opts.ww = false;
+var knownQueries_NO_RESTRICTION = [
+  {w: 'Mat', c: 215},
+  {w: 'the', c: 31312},
+  {w: 'a', c: 7369},     // 32917 - without restriction
+  {w: 'of', c: 20728},    // 21244 - without restriction
+  {w: 'abo', c: 1245},
+  {w: 'bec', c: 1554},
+  {w: 'The', c: 31312},
+  {w: 'THE', c: 31312},
+  {w: 'that', c: 11535},
+  {w: 'THAT', c: 11535},
+  {w: 'than', c: 696},
+];
+verify(knownQueries_NO_RESTRICTION, opts, '..: ');

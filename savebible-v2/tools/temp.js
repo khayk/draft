@@ -1,13 +1,14 @@
-var cfg  = require('../config').cfg;
-var lb   = require('../lib/bible');
-var rndr = require('../lib/renderers');
-var srch = require('../lib/search');
-var cmn  = require('../lib/common');
-var help = require('../helpers');
-var path = require('path');
-var fs   = require('fs-extra');
-var _    = require('lodash');
-var readline    = require('readline');
+var cfg      = require('../config').cfg;
+var lb       = require('../lib/bible');
+var rndr     = require('../lib/renderers');
+var srch     = require('../lib/search');
+var cmn      = require('../lib/common');
+var help     = require('../helpers');
+var path     = require('path');
+var fs       = require('fs-extra');
+var _        = require('lodash');
+var util     = require('util');
+var readline = require('readline');
 
 var measur = new help.Measurer();
 var algo   = srch.algo;
@@ -23,6 +24,7 @@ startupInitialization();
 var SortedUniqueArraysCollector = function() {
   var arrays = [];
 
+  // sort array by length
   function sortArrays() {
     arrays.sort(function(x, y) {
       if (x.length < y.length) {
@@ -33,35 +35,6 @@ var SortedUniqueArraysCollector = function() {
       }
       return 0;
     });
-  }
-
-  function dumpArrays() {
-    console.log('Dumping arrays...');
-    for (i = 0; i < arrays.length; ++i)
-      console.log(arrays[i].length);
-    console.log('Dumping completed');
-  }
-
-  function combineArrays(l, h) {
-    if (h - l === 1)
-      return algo.combineSortedUniqueArrays(arrays[l], arrays[h]);
-    else if (l == h)
-      return arrays[l];
-    else if (l > h)
-      return [];
-
-    var count = 0;
-    for (var i = l; i < h; i++)
-      count += arrays[i].length;
-    var tmp = 0;
-    for (var m = l; m < h; m++) {
-      tmp += arrays[i].length;
-      if (tmp >= count / 2)
-        break;
-    }
-    var a1 = combineArrays(l, m);
-    var a2 = combineArrays(m + 1, h);
-    return algo.combineSortedUniqueArrays(a1, a2);
   }
 
   return {
@@ -79,43 +52,7 @@ var SortedUniqueArraysCollector = function() {
         res = algo.combineSortedUniqueArrays(res, arrays[i]);
       }
       return res;
-
-      // var i = 0;
-      // var res = [];//algo.combineSortedUniqueArrays(arrays[0], arrays[1]);
-      // for (i = 0; i < arrays.length; i++) {
-      //   if (arrays[i].length < 25)
-      //     res = algo.combineSortedUniqueArrays(res, arrays[i]);
-      //   else
-      //     break;
-      // }
-      // var t = combineArrays(i, arrays.length - 1);
-      // return algo.combineSortedUniqueArrays(res, t);
-
     },
-
-    // combine: function() {
-    //   if (arrays.length > 10)
-    //     console.log('Collector arrays count: ', arrays.length);
-
-    //   tmp = 0;
-    //   for (var i = 0; i < arrays.length; ++i) {
-    //     arrays[i].forEach(useRef);
-    //   }
-    //   console.log('- >>>>>>>>>> ', tmp);
-
-    //   var keys = Object.keys(refs);
-    //   keys.sort();
-    //   var len = keys.length;
-
-    //   ensureCache(len);
-    //   var ci = 0;
-    //   for (i = 0; i < len; i++) {
-    //     var k = keys[i];
-    //     if (refs[k] !== undefined)
-    //       cache[ci++] = k;
-    //   }
-    //   return cache.slice(0, ci);
-    // },
 
     add: function(array) {
       if (array.length === 0)
@@ -157,7 +94,11 @@ Node.prototype.getNode = function(letter) {
 
 Node.prototype.addRef = function(ref) {
   if (this.refs.length === 0) {
-    this.uwc++;
+    var parent = this;
+    while (parent !== null) {
+      parent.uwc++;
+      parent = parent.parent;
+    }
   }
   this.refs.push(ref);
   this.onWordAdded();
@@ -241,10 +182,16 @@ Node.prototype.verify = function() {
 
 
 var Dictionary = function() {
+  this.clear();
+};
+
+Dictionary.prototype.clear = function() {
   this.root = new Node('');
 };
 
 Dictionary.prototype.find = function(word) {
+  // if (!optimized_)
+  //   throw new Error('Dictionary is not optimized. Call optimize!!!');
   var node = this.findNode(word);
   if (node === null)
     return [];
@@ -291,7 +238,47 @@ Dictionary.prototype.words = function() {
   return words;
 };
 
+
+Dictionary.prototype.stat = function(top) {
+  var self = this;
+
+  // calculate and return statistics for a dictionary
+  var index = this.words();
+  var freqIndex = {};
+  var totalWords = 0;
+  _.each(index, function(value, key) {
+    var node = self.findNode(key);
+    var o = node.addedWordsCount();
+    if (_.isUndefined(freqIndex[o]))
+      freqIndex[o] = [];
+    freqIndex[o].push(key);
+    totalWords += o;
+  });
+
+  var fk = Object.keys(freqIndex);
+  //fk.sort();
+  top = top || 10;
+
+  // construct string containing top `top` words
+  var str = '';
+  for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
+    var t = fk[i];
+    str += util.format('%s : %j\r\n', _.padRight(t, 6, ' '), freqIndex[t]);
+  }
+
+  return {
+    unique: self.count(),
+    total: self.occurrence(''),
+    freq: freqIndex,
+    index: index,
+    str: str
+  };
+};
+
 Dictionary.prototype.findNode = function(word) {
+  if (_.isUndefined(word))
+    return null;
+
   var node = this.root;
   for (var i = 0; i < word.length; i++) {
     var letter = word[i];
@@ -439,24 +426,25 @@ var Search = function() {
 };
 
 var dict  = new Dictionary();
-var text = 'It is going to be an an amazing search engine to be';
+var text = 'It is going to be an an an an an an amazing search engine to be';
 var wordsArray = text.split(' ');
 for (var i = 0; i < wordsArray.length; ++i)
   dict.add(wordsArray[i], i.toString());
 
 dict.optimize();
-var n = dict.findNode('');
-if (n === null) {
-  console.log('Not found');
-}
-else {
-  n.getAllRefs(suaCollector);
-  console.log(suaCollector.combine());
-}
+// var n = dict.findNode('');
+// if (n === null) {
+//   console.log('Not found');
+// }
+// else {
+//   n.getAllRefs(suaCollector);
+//   console.log(suaCollector.combine());
+// }
 
 console.log(dict.words());
+console.log('stat: ', dict.stat());
 //console.log(require('util').inspect(n, {depth: 15, colors: true}));
-// return;
+return;
 
 // console.log(dict.find('test'));
 // console.log(dict.find('case'));
@@ -584,6 +572,19 @@ var knownQueries_NO_RESTRICTION = [
 ];
 verify(knownQueries_NO_RESTRICTION, opts, '..: ');
 
+var dictionary = newSrch.getDictionary();
+var data = 'count: ' + dictionary.count() + '\n';
+data += 'occurrence: ' + dictionary.occurrence('') + '\n';
+var words = dictionary.words();
+var keys = Object.keys(words);
+keys.sort();
+
+keys.forEach(function(k) {
+  var o = words[k];
+  data += k + ':' + JSON.stringify(o) + '\n';
+});
+fs.writeFileSync('words', data);
+
 
 function query(istr, opts, count) {
   if (_.isUndefined(count))
@@ -602,11 +603,8 @@ rl.on('line', function(line) {
   var istr = line.trim();
   if (istr === 'EXIT')
     process.exit(0);
-
   query(istr, opts, 1);
-
   rl.prompt();
-
 }).on('close', function() {
   console.log('Have a great day!');
   process.exit(0);

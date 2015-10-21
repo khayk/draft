@@ -182,7 +182,7 @@ var TextRenderer = lb.TextRenderer;
         throw new Error('Dictionary is not optimized. Call optimize!!!');
       var o = index_[word];
       if (_.isUndefined(o))
-        return null;
+        return [];
       return o.refs;
     };
 
@@ -296,8 +296,8 @@ var TextRenderer = lb.TextRenderer;
   // `dict` and combine result into single array
   // that is sorted and contains unique elements
   function runQuery(arr, dict) {
-    if (arr === null)
-      return null;
+    if (arr.length === 0)
+      return [];
 
     var refs = [];
     arr.forEach(function(w) {
@@ -307,7 +307,7 @@ var TextRenderer = lb.TextRenderer;
     });
 
     if (refs.length === 0)
-      return null;
+      return [];
     if (refs.length === 1)
       return refs[0];
 
@@ -373,7 +373,7 @@ var TextRenderer = lb.TextRenderer;
 
       // word found in the main map
       if (dict_.occurrence(word) !== -1) {
-        if (condidates !== null)
+        if (condidates.length !== 0)
           condidates = algo.combineSortedUniqueArrays(condidates, [word]);
         else
           condidates = [word];
@@ -399,14 +399,12 @@ var TextRenderer = lb.TextRenderer;
     function queryAll(ciWord, word) {
       var wordsGroup1 = ciswm_.find(ciWord);
       var wordsGroup2 = cim_.find(ciWord);
-      if (wordsGroup1 === null) wordsGroup1 = [];
-      if (wordsGroup2 === null) wordsGroup2 = [];
 
       // perform super-fast merging
       condidates = algo.combineSortedUniqueArrays(wordsGroup1, wordsGroup2);
 
       // sort all candidates by increasing order of word occurrence
-      if (condidates !== null && condidates.length > 2) {
+      if (condidates.length > 2) {
         condidates.sort(function(a, b) {
           return cim_.occurrence(a) - cim_.occurrence(b);
         });
@@ -589,7 +587,7 @@ var TextRenderer = lb.TextRenderer;
           var w = lexic_.removePunctuations(word);
           var r = search_.query(w, opts);
 
-          if (r !== null) {
+          if (r.length > 0) {
             refs.push(r);
             res.words.push(word); // original words with punctuations
           } else if (op === OP_AND)

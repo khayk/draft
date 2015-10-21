@@ -21,18 +21,20 @@
   ];
 
   var dirNames = [
-    'am-eab-usfm-from-text'
-    //'en-kjv-usfm+'
-    //'ru-synod-usfm-from-text [saved]'
+    'am-eab-usfm-from-text',
+    'en-kjv-usfm+',
+    'ru-synod-usfm-from-text [saved]'
   ];
 
-  var bids = ['GEN'];
+  var bids = ['SIR'];
   //var bids = ['PRO', 'ECC', 'WIS', 'SIR'];
   if (bids.length === 0) {
     _.each(lb.BBM.instance().ids(), function(val, key) {
       bids.push(key);
     });
   }
+
+  lb.MC.instance().linkTo('eng', 'en');
 
   dirNames.forEach(function(dn) {
     measur.begin('processing: ' + dn);
@@ -50,7 +52,8 @@
         ignoredTags: cmn.TH.arrayIgnored()
       });
 
-      var te = new lb.TocEntry(bids[0], 'Ծն', 'Հահա', 'երկարանուն', 'բացատրություն');
+      var meta = lb.MC.instance().getMeta(book.lang);
+      var te = meta.toc.get(book.id());
       book.updateIds(te);
 
       opts.forEach(function(opt) {
