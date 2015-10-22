@@ -144,28 +144,26 @@ var SearchResultPrettifier = function(bible) {
   // @param result   return value of query
   this.expend = function(result) {
     var count = result.refs.length;
+
+    if (count < 80) {
+      var that = this;
+      result.refs.forEach(function(ref) {
+        var dref = lb.decodeRef(ref);
+        var book = bible_.getBook(lb.BBM.instance().idByOn(dref.ix));
+        var chap = book ? book.getChapter(dref.cn) : null;
+        var verse = chap ? chap.getVerse(dref.vn) : null;
+        if (verse) {
+          var res = renderer_.renderVerse(verse);
+          result.words.forEach(function(w) {
+            res = that.colorize(res, w, result.opts.cs, result.opts.ww);
+          });
+          log.info('%s  %s', _.padRight(verse.id(), 11, ' '), res);
+        }
+      });
+    }
+
     var summary = util.format('%d results for `%s`', count, result.orig);
-
     console.log(summary.red);
-
-    if (count >= 80)
-      return;
-
-    var that = this;
-    result.refs.forEach(function(ref) {
-      var dref  = lb.decodeRef(ref);
-      var book  = bible_.getBook(lb.BBM.instance().idByOn(dref.ix));
-      var chap  = book ? book.getChapter(dref.cn) : null;
-      var verse = chap ? chap.getVerse(dref.vn) : null;
-      if (verse) {
-        var res = renderer_.renderVerse(verse);
-        result.words.forEach(function(w) {
-          res = that.colorize(res, w, result.opts.cs, result.opts.ww);
-        });
-
-        log.info('%s.  %s', _.padRight(verse.id(), 11, ' '), res);
-      }
-    });
   };
 
   // display statistics of search module
