@@ -149,8 +149,10 @@ var dictionary = bs.search().getDictionary();
 var data = 'count: ' + dictionary.count() + '\n';
 data += 'occurrence: ' + dictionary.occurrence('') + '\n';
 var words = dictionary.words();
+
+
 var keys = Object.keys(words);
-keys.sort();
+keys.sort(function(a,b){return words[b].twc-words[a].twc;});
 
 keys.forEach(function(k) {
   var o = words[k];

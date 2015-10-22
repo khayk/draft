@@ -170,17 +170,21 @@ var SearchResultPrettifier = function(bible) {
 
   // display statistics of search module
   this.displayStatistics = function(stats) {
-    log.info('CS    words: %d', stats.cs.unique);
-    log.info('CI    words: %d', stats.ci.unique);
-    log.info('SUB   words: %d', stats.sub.unique);
-    log.info('CISUB words: %d', stats.cisub.unique);
+    log.info('CS unique words: %d', stats.cs.unique);
+    log.info('CI unique words: %d', stats.ci.unique);
 
+    if (!_.isUndefined(stats.sub)) {
+      log.info('SUB   words: %d', stats.sub.unique);
+      log.info('CISUB words: %d', stats.cisub.unique);
+    }
 
-    log.info('MAIN  total count: %d', stats.cs.total);
-    log.info('CIM   total count: %d', stats.ci.total);
-    log.info('SWM   total count: %d', stats.sub.total);
-    log.info('CISWM total count: %s', stats.cisub.total + '\n');
+    log.info('CS  total words: %d', stats.cs.total);
+    log.info('CI  total words: %d', stats.ci.total);
 
+    if (!_.isUndefined(stats.sub)) {
+      log.info('SWM   total count: %d', stats.sub.total);
+      log.info('CISWM total count: %s', stats.cisub.total + '\n');
+    }
   };
 };
 

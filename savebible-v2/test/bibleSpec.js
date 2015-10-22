@@ -972,17 +972,23 @@ describe('search functionality', function() {
     expect(dict.words.bind(dict)).to.throw();
     expect(dict.count()).to.be.equal(11);
 
+    // empty words should be added
+    dict.add('', '10');
+    expect(dict.count()).to.be.equal(11);
+
     // verification should fail before optimize
     expect(dict.verify.bind(dict)).to.throw();
 
     dict.optimize();
     expect(dict.count()).to.be.equal(11);
+    expect(dict.occurrence('missing')).to.be.equal(0);
+    expect(dict.occurrence()).to.be.equal(0);
 
     // optimize call on optimized array has no efffect
     dict.optimize();
 
     // each word should be found in the dictionary
-    dict.words().forEach(function(word) {
+    Object.keys(dict.words()).forEach(function(word) {
       expect(dict.find(word).length).is.not.equal(0);
     });
 
@@ -1076,7 +1082,7 @@ describe('search functionality', function() {
       expect(srch.query.bind(srch, 'dont mind')).to.throw();
       srch.build();
       srch.query('dont mind 2');
-      expect(srch.getDictionary().words()).deep.equal(['EARTH','temp', 'Other']);
+      expect(Object.keys(srch.getDictionary().words())).deep.equal(['EARTH','temp', 'Other']);
     });
 
     it('case sensitive && whole word', function() {
@@ -1328,6 +1334,7 @@ describe('module BibleSearch', function() {
     opts.ww = false;
     expect(bs.query('and loved his but', opts).refs).to.deep.equal([text[0].r, text[1].r, text[2].r, text[3].r]);
     expect(bs.query('doesnotexists', opts).refs).to.deep.equal([]);
+    expect(bs.query('k', opts).refs).to.deep.equal([]);
   });
 
   it('navigation', function() {
@@ -1335,7 +1342,9 @@ describe('module BibleSearch', function() {
 
     expect(bs.nav('XYZ')).to.be.equal(null);
     expect(bs.nav('GEN 1:3').render(rndr)).to.deep.equal(text[2].s);
+    expect(bs.nav('GEN 100:4')).to.equal(null);
     expect(bs.nav('GEN 2')).to.equal(null);
+    expect(bs.nav('GEN 1').render(rndr)).to.deep.equal(text[0].s);
     expect(bs.nav('GEN').render(rndr)).to.deep.equal(text[0].s);
     expect(bs.nav(':')).to.equal(null);
   });

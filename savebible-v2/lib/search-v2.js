@@ -27,7 +27,7 @@ var TextRenderer = lb.TextRenderer;
         cacheSize *= 2;
         cacheSize = cacheSize < nsize ? nsize : cacheSize;
         cache     = new Array(cacheSize);
-        log.info('cache size increased to: %d', cacheSize);
+        //log.info('cache size increased to: %d', cacheSize);
       }
     }
 
@@ -390,15 +390,14 @@ var TextRenderer = lb.TextRenderer;
       return node;
     };
 
-    // @returns  Array of all words
+    // @returns  Object containing all words as a key
     this.words = function() {
       if (!optimized_)
         throw new Error('Dictionary is not optimized. Call optimize!!!');
       var node = root_;
       var words = {};
       node.collectWords(words);
-      return Object.keys(words);
-      //return words;
+      return words;
     };
 
     // @param {string} word  Word that is going to be searched
@@ -407,9 +406,9 @@ var TextRenderer = lb.TextRenderer;
     //                  0 if word absent
     this.occurrence = function(word) {
       var node = this.findNode(word);
-      if (node === null || _.isUndefined(word) || word.length === 0)
-        return 0;
-      return node.addedWordsCount();
+      if (node !== null)
+        return node.addedWordsCount();
+      return 0;
     };
 
 
@@ -696,7 +695,9 @@ var TextRenderer = lb.TextRenderer;
           opts: opts
         };
         var words = text.split(' ');
-        //words.sort();
+        words = words.filter(function(w) {
+          return w.length !== 0;
+        });
         algo.sortByLength(words, algo.descending);
         words = _.unique(words, true);
 
@@ -715,7 +716,7 @@ var TextRenderer = lb.TextRenderer;
 
         var refs = [];
         words.forEach(function(word) {
-          if (stopLookup)
+          if (stopLookup === true)
             return;
 
           var w = lexic_.removePunctuations(word);
@@ -724,33 +725,30 @@ var TextRenderer = lb.TextRenderer;
           if (r.length > 0) {
             refs.push(r);
             res.words.push(word); // original words with punctuations
-          } else if (op === OP_AND)
-            stopLookup = true;
+          }
+
+          // perform intersection immidiately, to be able stop search
+          // intersection with previous results is emtpy
+          if (op === OP_AND) {
+            if (refs.length === 1)
+              res.refs = r;
+            else {
+              res.refs = algo.intersect2Array(res.refs, r);
+              stopLookup = (res.refs.length === 0);
+            }
+          }
         });
 
 
-        if (stopLookup) {
+        if (stopLookup || refs.length === 0 || op === OP_AND) {
           // result is definitely empty
           return res;
         }
 
-        // isolated result of query contained in the `refs` array
-        // now we have to form a final result based on `op` value
-        // this cases checked one by one only for the sake of optimization
-        if (refs.length === 1) {
-          res.refs = refs[0];
-        } else if (refs.length >= 2) {
-          if (op === OP_AND)
-            res.refs = algo.intersect2Array(refs[0], refs[1]);
-          else
-            res.refs = algo.union2Array(refs[0], refs[1]);
-
-          for (var i = 2; i < refs.length; ++i) {
-            if (op === OP_AND)
-              res.refs = algo.intersect2Array(res.refs, refs[i]);
-            else
-              res.refs = algo.union2Array(res.refs, refs[i]);
-          }
+        // union results
+        res.refs = refs[0];
+        for (var i = 1; i < refs.length; ++i) {
+          res.refs = algo.union2Array(res.refs, refs[i]);
         }
         return res;
       },
