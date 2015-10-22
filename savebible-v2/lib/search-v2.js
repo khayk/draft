@@ -32,7 +32,36 @@ var TextRenderer = lb.TextRenderer;
     }
 
     return {
-      // combine 2 sorted unique arrays into one sorted unique array
+      // predicate for sorting object by length in ascending order
+      ascending: function(x, y) {
+        if (x.length < y.length) {
+          return -1;
+        }
+        if (x.length > y.length) {
+          return 1;
+        }
+        return 0;
+      },
+
+      // predicate for sorting object by length in descending order
+      descending: function(x, y) {
+        if (x.length > y.length) {
+          return -1;
+        }
+        if (x.length < y.length) {
+          return 1;
+        }
+        return 0;
+      },
+
+      // sort array by length
+      sortByLength: function(arrays, order) {
+        if (_.isUndefined(order))
+          order = this.ascending;
+        arrays.sort(order);
+      },
+
+      // merge 2 sorted unique arrays into one sorted unique array
       union2Array: function(a, b) {
         if (a.length === 0)
           return b.slice();
@@ -85,6 +114,7 @@ var TextRenderer = lb.TextRenderer;
           }
         }
         return cache.slice(0, sz);
+
       },
 
       // intersect 2 sorted unique arrays into one sorted unique array
@@ -116,6 +146,28 @@ var TextRenderer = lb.TextRenderer;
         }
 
         return cache.slice(0, sz);
+      },
+
+      // merge multiple sorted unique arrays into one sorted unique array
+      unionMultipleArrays: function(arrays) {
+        if (arrays.length === 0)
+          return [];
+        if (arrays.length === 1)
+          return arrays[0];
+
+        algo.sortByLength(arrays);
+
+        var res = this.union2Array(arrays[0], arrays[1]);
+        for (var i = 2; i < arrays.length; ++i) {
+          res = this.union2Array(res, arrays[i]);
+        }
+        return res;
+      },
+
+      // @return  reversed input string
+      reverse: function(str) {
+        for (var i = str.length - 1, o = ''; i >= 0; o += str[i--]) {}
+        return o;
       }
     };
   })();
@@ -124,112 +176,265 @@ var TextRenderer = lb.TextRenderer;
   /*------------------------------------------------------------------------*/
 
 
-  // Keep track of all occurrences (refs) of the given key
+  // @brief  building block for dictionary, used to store a single letter
+  //         of a word
+  var Node = function(letter) {
+    this.letter = letter;
+    this.parent = null;
+    this.childs = {};
+    this.refs   = [];
+    this.uwc    = 0;    // unique words count (including childs words)
+    this.twc    = 0;    // total words count (including childs words)
+  };
+
+  // @brief  input node become a child for a current node
+  Node.prototype.addNode = function(node) {
+    var r = this.childs[node.letter];
+    if (_.isUndefined(r)) {
+      this.childs[node.letter] = node;
+      node.parent = this;
+    }
+  };
+
+  // @param  {string} letter a single character
+  // @return {object}        child node that have specified letter, null if
+  //                         no such child found
+  Node.prototype.getNode = function(letter) {
+    var r = this.childs[letter];
+    if (_.isUndefined(r))
+      return null;
+    return r;
+  };
+
+  // @brief  Added ref object into references list of the current node
+  // @param {string} ref  reference we are going to keep in the child node
+  Node.prototype.addRef = function(ref) {
+    var parent = null;
+    if (this.refs.length === 0) {
+      parent = this;
+      while (parent !== null) {
+        parent.uwc++;
+        parent = parent.parent;
+      }
+    }
+
+    this.refs.push(ref);
+
+    parent = this;
+    while (parent !== null) {
+      parent.twc++;
+      parent = parent.parent;
+    }
+  };
+
+  // @return {array}  Array containing all references that previously inserted
+  //                  into current node
+  Node.prototype.getRefs = function() {
+    return this.refs;
+  };
+
+  // @brief  Collect all references arrays for current node with all its
+  //         children and sub-children
+  // @param {array} arrays  Array object that should be used to store arrays
+  //                        Inserted array is an array of refereneces.
+  Node.prototype.getAllRefs = function(arrays) {
+    if (this.refs.length > 0) {
+      arrays.push(this.getRefs());
+    }
+
+    _.each(this.childs, function(node, key) {
+      node.getAllRefs(arrays);
+    });
+  };
+
+  // @return  Total number of words stored in the current node (i.e. it counts
+  //          every action of word insertion, with duplicates)
+  Node.prototype.addedWordsCount = function() {
+    return this.twc;
+  };
+
+  // @return  Number of unique words stored in the current node
+  Node.prototype.uniqueWordsCount = function() {
+    return this.uwc;
+  };
+
+  // @brief  Collect all words stored in the current node. Keep result in
+  //         the input object `words`
+  //         key:   word
+  //         value: {uwc: unique words count, twc: total words count}
+  //
+  Node.prototype.collectWords = function(words) {
+    var refs = this.getRefs();
+    if (refs.length !== 0) {
+      var parent = this;
+      var word = '';
+      while (parent !== null) {
+        word += parent.letter;
+        parent = parent.parent;
+      }
+      word = algo.reverse(word);
+      words[word] = {uwc: this.uwc, twc: this.twc};
+    }
+
+    _.each(this.childs, function(node, key) {
+      node.collectWords(words);
+    });
+  };
+
+  // @brief  Recursively scan all references of current node, sort ref array
+  //         and unify (leave only unique references, remove duplicates)
+  Node.prototype.optimize = function() {
+    _.each(this.childs, function(value, key) {
+      value.optimize();
+    });
+
+    if (this.refs.length > 1) {
+      this.refs.sort();
+      this.refs = _.unique(this.refs, true);
+    }
+  };
+
+  // @brief  Verify that the result of optimization is reached
+  Node.prototype.verify = function() {
+    _.each(this.childs, function(value, key) {
+      value.verify();
+    });
+
+    if (this.refs.length > 1) {
+      var o = this.refs;
+      for (var i = o.length - 1; i > 0; i--) {
+        if (o[i] < o[i - 1]) {
+          throw new Error('Verification failed');
+        }
+      }
+    }
+  };
+
+
+  /*------------------------------------------------------------------------*/
+
+
+  // Keep track of all occurrences (refs) of the given word
   // @param {string} desc  optional description of the dictionary
   function Dictionary(desc) {
     var desc_      = desc;   // optional description of the dictionary
     var optimized_ = false;
     var changed_   = false;
-    var index_     = {};
-    var numWords_  = 0;
+    var root_      = null;
 
-    // Add the word into dictionary, and holds all occurrences of the word
-    // into a single array
+    // Add the word into dictionary
     //
     // @param {string} word  word to add into dictionary, case sensitive
-    // @param {string} ref   object that will be included in the array of given
+    // @param {string} ref   object that will be included in the array of
     //                       word occurrences when it was queried
-    //
+    // @return this
     this.add = function(word, ref) {
-      var o = index_[word];
-      if (_.isUndefined(o)) {
-        o = {c: 0, refs: []};
-        index_[word] = o;
+      if (word.length === 0)
+        return;
+
+      var node = root_;
+      for (var i = 0; i < word.length; i++) {
+        var letter = word[i];
+        var child = node.getNode(letter);
+        if (child === null) {
+          child = new Node(letter);
+          node.addNode(child);
+        }
+        node = child;
       }
-      o.refs.push(ref);
-      o.c++;
+      node.addRef(ref);
       optimized_ = false;
       changed_   = true;
+      return this;
     };
 
     // @brief  Optimizes dictionary, i.e. remove any duplicate references from
-    //         the array of each key and sort them
+    //         the internal representation
     this.optimize = function() {
-      if (optimized_)
+      if (optimized_ === true)
         return;
 
-      _.each(index_, function(value, key) {
-        // we need to sort refs and make them unique
-        var o = value.refs;
-
-        // arrays with length 1 stay intact
-        if (o.length > 1) {
-          value.refs.sort();
-          value.refs = _.unique(value.refs, true);
-        }
-      });
-
-      numWords_  = Object.keys(index_).length;
+      root_.optimize();
       changed_   = false;
       optimized_ = true;
     };
 
-    // @param {string} word  Word that is going to be looked for
+    // @param {string} word  Word that is going to be searched
     // @return   Array containing all unique references of the given word,
     //           lookup is case sensitive
     this.find = function(word) {
       if (!optimized_)
         throw new Error('Dictionary is not optimized. Call optimize!!!');
-      var o = index_[word];
-      if (_.isUndefined(o))
+
+      var node = this.findNode(word);
+      if (node === null)
         return [];
-      return o.refs;
+      return node.getRefs();
+    };
+
+    // @param  {string}  word  Word that is going to be searched
+    // @return {object}  node containing all unique references of the given
+    //                   word, lookup is case sensitive
+    this.findNode = function(word) {
+      if (_.isUndefined(word))
+        return null;
+
+      var node = root_;
+      for (var i = 0; i < word.length; i++) {
+        var letter = word[i];
+        var child = node.getNode(letter);
+        if (child === null)
+          return null;
+        node = child;
+      }
+      return node;
     };
 
     // @returns  Array of all words
     this.words = function() {
       if (!optimized_)
         throw new Error('Dictionary is not optimized. Call optimize!!!');
-      return Object.keys(index_);
+      var node = root_;
+      var words = {};
+      node.collectWords(words);
+      return Object.keys(words);
+      //return words;
     };
 
-    // @param {string} word  Word that is going to be looked for
-    // @returns  Number showing how many times word was added into dictionary
-    //           -1 if word absent
+    // @param {string} word  Word that is going to be searched
+    // @returns  Number showing how many times word was added into the
+    //                  dictionary
+    //                  0 if word absent
     this.occurrence = function(word) {
-      var o = index_[word];
-      if (_.isUndefined(o))
-        return -1;
-      return o.c;
+      var node = this.findNode(word);
+      if (node === null || _.isUndefined(word) || word.length === 0)
+        return 0;
+      return node.addedWordsCount();
     };
 
 
     // @brief  Cleanup all internal data of dictionary
     this.clear = function() {
+      root_      = new Node('');
+      desc_      = '';
       optimized_ = false;
       changed_   = false;
-      index_     = {};
-      numWords_  = 0;
     };
 
     // @returns  Number of unique words
     this.count = function() {
-      if (!optimized_)
-        return Object.keys(index_).length;
-      return numWords_;
+      return root_.uniqueWordsCount();
     };
 
     // @brief  Verifies that the internal state of the dictionary is correct
     //         throws an exception if correction condition is not met
     this.verify = function() {
-      _.each(index_, function(value, key) {
-        var o = value.refs;
-        for (var i = o.length - 1; i > 0; i--) {
-          if (o[i] < o[i - 1]) {
-            throw new Error('Verification failed for dictionary: ' + desc_);
-          }
-        }
-      });
+      try {
+        root_.verify();
+      }
+      catch (e) {
+        throw new Error('Verification failed for dictionary: ' + desc_);
+      }
     };
 
 
@@ -246,11 +451,15 @@ var TextRenderer = lb.TextRenderer;
     // }
     //
     this.stat = function(top) {
+      var self = this;
+
       // calculate and return statistics for a dictionary
+      var index = this.words();
       var freqIndex = {};
       var totalWords = 0;
-      _.each(index_, function(value, key) {
-        var o = value.c;
+      _.each(index, function(value, key) {
+        var node = self.findNode(key);
+        var o = node.addedWordsCount();
         if (_.isUndefined(freqIndex[o]))
           freqIndex[o] = [];
         freqIndex[o].push(key);
@@ -258,64 +467,27 @@ var TextRenderer = lb.TextRenderer;
       });
 
       var fk = Object.keys(freqIndex);
+      fk.sort();
       top = top || 10;
 
       // construct string containing top `top` words
       var str = '';
       for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
         var t = fk[i];
-        str += util.format('%s : %j\n', _.padRight(t, 6, ' '), freqIndex[t]);
+        str += util.format('%s : %j\r\n', _.padRight(t, 6, ' '), freqIndex[t]);
       }
-      var that = this;
+
       return {
-        unique: that.count(),
-        total: totalWords,
+        unique: self.count(),
+        total: self.occurrence(''),
         freq: freqIndex,
-        index: index_,
+        index: index,
         str: str
       };
     };
-  }
 
-
-  /*------------------------------------------------------------------------*/
-
-
-  // helper function for search module
-  function resultLogger(desc, word, result) {
-    // if (result !== null) {
-    //   log.info(desc + ' [%d]: %s', result.length, word);
-    // } else {
-    //   log.info(desc + ' [0]: %s', word);
-    // }
-  }
-
-
-
-  // search each word from array `arr` inside the dictionary
-  // `dict` and combine result into single array
-  // that is sorted and contains unique elements
-  function runQuery(arr, dict) {
-    if (arr.length === 0)
-      return [];
-
-    var refs = [];
-    arr.forEach(function(w) {
-      var tmp = dict.find(w);
-      if (tmp !== null)
-        refs.push(tmp);
-    });
-
-    if (refs.length === 0)
-      return [];
-    if (refs.length === 1)
-      return refs[0];
-
-    var res = algo.union2Array(refs[0], refs[1]);
-    for (var i = 2; i < refs.length; ++i) {
-      res = algo.union2Array(res, refs[i]);
-    }
-    return res;
+    // clear will force of the initialization of the members above
+    this.clear();
   }
 
 
@@ -324,94 +496,60 @@ var TextRenderer = lb.TextRenderer;
 
   // Search functionality
   var Search = function() {
+    // case sensitive word from the bible
+    var cs_ = new Dictionary();
 
-    // key: original word from bible,
-    // ref: array of references to bible verses
-    var dict_  = new Dictionary('original words');
-
-    // here we keep only those keys from dict_ where lowercase(key) != key
-    // key: lowercase word from key of `dict_`
-    // ref: array of words containing in dict as keys
-    var cim_   = new Dictionary('lowercase words');
-
-    // key: sub word of each unique word presented in `dict_`
-    // ref: array of words from `dict_` keys
-    var swm_   = new Dictionary('partial words');
-
-    // the same usage as the `swm_` with the difference that all keys are
-    // lowercase
-    var ciswm_ = new Dictionary('lowercase partial words');
+    // lowercase words from cs_ dictionary
+    var ci_ = new Dictionary();
 
     // some temporary variables
-    var result, condidates;
+    var result = [];
+    var node   = null;
 
-    function updateSubWordDict(word, ref, dict) {
-      var len = word.length - 1;
-      while (len > 2) {
-        var wp = word.substr(0, len);
-        dict.add(wp, ref);
-        --len;
-      }
+    // helper function for search module
+    function resultLogger(desc, word, result) {
+      log.info(desc + _.padRight(' [' + result.length + ']', 8, ' ') +  ': %s', word);
     }
 
-    function updateCaseInsensitiveDict(word) {
-      var ciWord = word.toLowerCase();
-      cim_.add(ciWord, word);
-      updateSubWordDict(ciWord, word, ciswm_);
-    }
 
     // performs case sensitive and whole word searching
     function queryCS_WW(word) {
-      result = dict_.find(word);
+      result = cs_.find(word);
       resultLogger('CS && WW', word, result);
       return result;
     }
 
     // perform case sensitive match only
     function queryCS(word) {
-      condidates = swm_.find(word);
-
-      // word found in the main map
-      if (dict_.occurrence(word) !== -1) {
-        if (condidates.length !== 0)
-          condidates = algo.union2Array(condidates, [word]);
-        else
-          condidates = [word];
-      }
-
-      // now candidates contains all possible words that we
-      // should lookup in the main dictionary and merge results
-      result = runQuery(condidates, dict_);
+      node = cs_.findNode(word);
+      if (node === null)
+        return [];
+      var arrays = [];
+      //suaCollector.reset();
+      node.getAllRefs(arrays);
+      result = algo.unionMultipleArrays(arrays);//  suaCollector.combine();
       resultLogger('CS', word, result);
       return result;
     }
 
     // perform whole word search, cases insensitive match
     function queryWW(ciWord, word) {
-      condidates = cim_.find(ciWord);
-
-      result = runQuery(condidates, dict_);
+      result = ci_.find(ciWord);
       resultLogger('WW', word, result);
       return result;
     }
 
     // perform search of the word, case insensitive and any part of the word
     function queryAll(ciWord, word) {
-      var wordsGroup1 = ciswm_.find(ciWord);
-      var wordsGroup2 = cim_.find(ciWord);
-
-      // perform super-fast merging
-      condidates = algo.union2Array(wordsGroup1, wordsGroup2);
-
-      // sort all candidates by increasing order of word occurrence
-      if (condidates.length > 2) {
-        condidates.sort(function(a, b) {
-          return cim_.occurrence(a) - cim_.occurrence(b);
-        });
-      }
-
-      result = runQuery(condidates, dict_);
-      resultLogger('', word, result);
+      node = ci_.findNode(ciWord);
+      if (node === null)
+        return [];
+      var arrays = [];
+      //suaCollector.reset();
+      node.getAllRefs(arrays);
+      result = algo.unionMultipleArrays(arrays);//  suaCollector.combine();
+      //result = suaCollector.combine();
+      resultLogger('..', word, result);
       return result;
     }
 
@@ -424,45 +562,36 @@ var TextRenderer = lb.TextRenderer;
         // ignore empty strings
         if (word.length === 0)
           return;
-
-        dict_.add(word, ref);
-        updateSubWordDict(word, word, swm_);
-        updateCaseInsensitiveDict(word);
+        cs_.add(word, ref);
+        ci_.add(word.toLowerCase(), ref);
       },
 
 
       // build index should be call if words addition is completed
       build: function() {
-        dict_.optimize();
-        dict_.verify();
+        cs_.optimize();
+        ci_.optimize();
 
-        cim_.optimize();
-        cim_.verify();
-
-        swm_.optimize();
-        swm_.verify();
-
-        ciswm_.optimize();
-        ciswm_.verify();
+        cs_.verify();
+        ci_.verify();
       },
 
 
       // get main dictionary, here we store all cases sensitive
       // unique words. i.e. no duplicate are presented
       getDictionary: function() {
-        return dict_;
+        return cs_;
       },
 
 
       // show internal state of dictionaries
       getStatistics: function() {
         return {
-          'cs'   : dict_.stat(),
-          'ci'   : cim_.stat(),
-          'sub'  : swm_.stat(),
-          'cisub': ciswm_.stat()
+          'cs': cs_.stat(),
+          'ci': ci_.stat()
         };
       },
+
 
       // search specified word and return array of references
       // if succeeded, otherwise returns null
@@ -470,7 +599,6 @@ var TextRenderer = lb.TextRenderer;
       // cs -> case sensitive
       // ww -> whole word
       query: function(word, opts) {
-
         if (!_.isString(word))
           throw new TypeError('Bad arguments');
 
@@ -490,6 +618,11 @@ var TextRenderer = lb.TextRenderer;
 
         var caseSensitive = opts.cs;
         var wholeWord = opts.ww;
+
+        // enable whole word restriction for very short words
+        if (wholeWord === false && word.length < 3) {
+          wholeWord = true;
+        }
 
         if (caseSensitive) {
           if (wholeWord)
@@ -563,7 +696,8 @@ var TextRenderer = lb.TextRenderer;
           opts: opts
         };
         var words = text.split(' ');
-        words.sort();
+        //words.sort();
+        algo.sortByLength(words, algo.descending);
         words = _.unique(words, true);
 
         if (!opts) {

@@ -7,7 +7,7 @@ var fs      = require('fs-extra');
 
 var cfg     = require('../config').cfg;
 var lb      = require('../lib/bible.js');
-var search  = require('../lib/search.js');
+var search  = require('../lib/search-v2.js');
 var inherit = require('../lib/inherit.js').inherit;
 var cmn     = require('../lib/common.js');
 var rndr    = require('../lib/renderers.js');
@@ -983,7 +983,7 @@ describe('search functionality', function() {
 
     // each word should be found in the dictionary
     dict.words().forEach(function(word) {
-      expect(dict.find(word)).is.not.equal([]);
+      expect(dict.find(word).length).is.not.equal(0);
     });
 
     // should fail to find
@@ -1025,8 +1025,8 @@ describe('search functionality', function() {
 
     it('intersection', function() {
       cases.forEach(function(elem) {
-        var x  = search.algo.intersectSortedUniqueArrays(elem.a, elem.b);
-        var x1 = search.algo.intersectSortedUniqueArrays(elem.b, elem.a);
+        var x  = search.algo.intersect2Array(elem.a, elem.b);
+        var x1 = search.algo.intersect2Array(elem.b, elem.a);
         var y  = _.intersection(elem.a, elem.b);
         expect(x).to.deep.equal(y);
         expect(x1).to.deep.equal(y);
@@ -1035,8 +1035,8 @@ describe('search functionality', function() {
 
     it('union', function() {
       cases.forEach(function(elem) {
-        var x = search.algo.combineSortedUniqueArrays(elem.a, elem.b);
-        var x1 = search.algo.combineSortedUniqueArrays(elem.b, elem.a);
+        var x = search.algo.union2Array(elem.a, elem.b);
+        var x1 = search.algo.union2Array(elem.b, elem.a);
         var y = _.union(elem.a, elem.b);
         y.sort(sortNumber);
         expect(x).to.deep.equal(y);
@@ -1074,7 +1074,7 @@ describe('search functionality', function() {
     it('remind to build index', function() {
       // expect to throw
       expect(srch.query.bind(srch, 'dont mind')).to.throw();
-      srch.buildIndex();
+      srch.build();
       srch.query('dont mind 2');
       expect(srch.getDictionary().words()).deep.equal(['EARTH','temp', 'Other']);
     });
@@ -1203,7 +1203,7 @@ describe('search functionality', function() {
           srch.add(w, ti.r);
         });
       });
-      srch.buildIndex();
+      srch.build();
     });
 
     function initWordVariations(word) {

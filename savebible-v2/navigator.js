@@ -8,7 +8,7 @@ var help        = require('./helpers');
 var readline    = require('readline');
 var measur      = new help.Measurer();
 
-var search      = require('./lib/search');
+var search      = require('./lib/search-v2');
 var log         = log4js.getLogger('nav');
 
 var BibleSearch = search.BibleSearch;
