@@ -507,7 +507,7 @@ var TextRenderer = lb.TextRenderer;
 
     // helper function for search module
     function resultLogger(desc, word, result) {
-      log.info(desc + _.padRight(' [' + result.length + ']', 8, ' ') +  ': %s', word);
+      //log.info(desc + _.padRight(' [' + result.length + ']', 8, ' ') +  ': %s', word);
     }
 
 
@@ -617,6 +617,9 @@ var TextRenderer = lb.TextRenderer;
 
         var caseSensitive = opts.cs;
         var wholeWord = opts.ww;
+
+        if (word.length === 0)
+          return [];
 
         // enable whole word restriction for very short words
         if (wholeWord === false && word.length < 3) {
