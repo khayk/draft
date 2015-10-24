@@ -182,9 +182,12 @@
 
   /*------------------------------------------------------------------------*/
 
+  var haveParent = false;
 
   // Node base class, all verses stored as nodes in a tree like structure
   var Node = function() {
+    if (haveParent)
+      this.parent = 0;
   };
 
   // @param {object} node  object that is going to become child
@@ -201,6 +204,8 @@
       this.last.next = node;
       this.last = node;
     }
+    if (haveParent)
+      node.parent = this;
     return this;
   };
 
@@ -212,6 +217,8 @@
 
     this.first = node;
     this.last  = node;
+    if (haveParent)
+      node.parent = this;
     return this;
   };
 
@@ -241,6 +248,8 @@
     if (this.haveNext())
       node.next = this.getNext();
     this.next = node;
+    if (haveParent)
+      node.parent = this.parent;
     return this;
   };
 

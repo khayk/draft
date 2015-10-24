@@ -150,6 +150,18 @@ console.log(require('util').inspect(bbb.getChapter(1).getVerse(1).node, {depth: 
 /*------------------------------------------------------------------------*/
 // search verification for kjv+ version
 
+function verify(expectations, opts, desc) {
+  measur.begin('querying');
+  expectations.forEach(function(kq) {
+    var res = bs.query(kq.w, opts);
+    if (res.refs.length != kq.c)
+      console.error(desc + 'Query failed for "%s", expected %d to be equal %d', kq.w, kq.c, res.length);
+  });
+  measur.end();
+}
+
+// console.log(require('util').inspect(dict.root, {depth: 15, colors: true}));
+
 var opts = {cs: true, ww: true, op: 'and'};
 var knownQueries_CS_WW = [
   {w: 'Mat', c: 0},
@@ -215,3 +227,45 @@ var knownQueries_NO_RESTRICTION = [
   {w: 'than', c: 696},
 ];
 verify(knownQueries_NO_RESTRICTION, opts, '..: ');
+
+var dictionary = bs.search().getDictionary();
+
+var data = 'count: ' + dictionary.count() + '\n';
+data += 'occurrence: ' + dictionary.occurrence('') + '\n';
+var words = dictionary.words();
+
+
+var keys = Object.keys(words);
+keys.sort(function(a,b){return words[b].twc-words[a].twc;});
+
+keys.forEach(function(k) {
+  var o = words[k];
+  data += k + ':' + JSON.stringify(o) + '\n';
+});
+fs.writeFileSync('words', data);
+
+
+function query(istr, opts, count) {
+  if (_.isUndefined(count))
+    count = 1;
+  measur.begin('querying', istr);
+  for (var i = 0; i < count; ++i)
+    bs.query(istr, opts);
+  measur.end();
+}
+
+var rl = readline.createInterface(process.stdin, process.stdout);
+rl.setPrompt('ENTER> ');
+rl.prompt();
+
+rl.on('line', function(line) {
+  var istr = line.trim();
+  if (istr === 'EXIT')
+    process.exit(0);
+  query(istr, opts, 1);
+  rl.prompt();
+}).on('close', function() {
+  console.log('Have a great day!');
+  process.exit(0);
+});
+
