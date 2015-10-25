@@ -10,7 +10,6 @@
   var cfg      = require('./config').cfg;
   var lb       = require('./lib/bible');
   var rndr     = require('./lib/renderers');
-  var search   = require('./lib/search');
   var help     = require('./helpers');
   var bi       = require('./tools/bible-info.js');
 
