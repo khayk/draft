@@ -72,6 +72,42 @@
   var Renderer = function() {
     this.tagView_  = new TagView(this);
     this.indented_ = false;
+
+    // it is not neccessary to provide all variables to the function, needed
+    // only thoses which cannot be detected during render. For example, if
+    // we want to render a specified chapter, we should call this function
+    // with only `bid` argument, other parts will be detected during render
+    this.setNavigation = function(bid, cn, vn) {
+      // these are informative variables, which are designed to point what is
+      // rendering at the moment, these can be freely used in every derived
+      // renderer
+      this.title_ = '';
+      this.bid_   = bid || '';
+      this.cn_    = cn || 0;
+      this.vn_    = vn || 0;
+    };
+
+    this.updateNavigation = function(node) {
+      if (node.tag === TAG.V) {
+        this.vn_ = node.number;
+      }
+      else if (node.tag === TAG.C) {
+        this.cn_ = node.number;
+        this.vn_ = 0;
+      }
+      else if (node.tag === TAG.ID) {
+        var tcn = NH.textChild(node);
+        if (tcn !== null) {
+          this.bid_ = tcn.text.match(/\w+/);
+        }
+      }
+    };
+
+    this.resetNavigation = function() {
+      this.setNavigation();
+    };
+
+    this.resetNavigation();
   };
 
   // These functions `SHOULD BE` overridden in the derived classes
@@ -106,11 +142,8 @@
   //
   // if function returns true
   Renderer.prototype.haveComplexView   = function(node) {
-    if (node.tag === TAG.P) {
-      var child = node.firstChild();
-      if (child !== null && child.isText())
-        return true;
-    }
+    if (node.tag === TAG.P)
+      return NH.textChild(node) !== null;
     return false;
   };
 
@@ -126,6 +159,7 @@
       res += this.getTextView(node.text);
     }
     else {
+      this.updateNavigation(node);
       if (node.tag === TAG.V)
         vrd = 0;
 
@@ -159,7 +193,12 @@
       res += NL + _.pad('', 3 * (depth - 1));
     }
     res += vo.close;
-    return depth === 0 ? res.trimLeft() : res;
+    if (depth === 0) {
+      // reset all location values
+      this.resetNavigation();
+      return res.trimLeft();
+    }
+    return res;
   };
 
 
@@ -411,30 +450,78 @@
   var HtmlRenderer = function(opts) {
     Renderer.call(this, opts);
 
-    this.htmlBuilder = function(tag, cls) {
+    // @param {array} attributes   single attribute or an array of attributes 
+    //                             to be included in the tag, attribute must
+    //                             be an object like {n: name, v: value}
+    this.htmlBuilder = function(tag, attributes) {
+      var attribsStr = '';
+
+      if (_.isArray(attributes)) {
+        attributes.forEach(function(attr) {
+          attribsStr += ' ' + attr.n + '="' + attr.v + '"';
+        });
+      }
+      else if(!_.isUndefined(attributes)) {
+        attribsStr += ' ' + attributes.n + '="' + attributes.v + '"';
+      }
+
       return {
-        o: '<' + tag + (!_.isUndefined(cls) ? ' class="' + cls + '"' : '') + '>',
+        o: '<' + tag + attribsStr + '>',
         c: '</' + tag + '>'
       };
     };
 
     // usfm tag to html tag mapping
     this.tm = {};
-    this.tm[TAG.H]   = {tag: 'div', class: 'h'};
-    this.tm[TAG.C]   = {tag: 'div', class: 'c'};
-    this.tm[TAG.V]   = {tag: 'span', class: 'v'};
-    this.tm[TAG.P]   = {tag: 'div', class: 'p'};
+    this.tm[TAG.H]   = {tag: 'div',  attrs: {n: 'class', v: 'h'}};
+    this.tm[TAG.C]   = {tag: 'div',  attrs: {n: 'class', v: 'c'}};
+    this.tm[TAG.V]   = {tag: 'span', attrs: {n: 'class', v: 'v'}};
+    this.tm[TAG.P]   = {tag: 'div',  attrs: {n: 'class', v: 'p'}};
 
-    this.tm[TAG.WJ]  = {tag: 'span', class: 'wj'};
-    this.tm[TAG.ND]  = {tag: 'span', class: 'nd'};
-    this.tm[TAG.QT]  = {tag: 'span', class: 'qt'};
-    this.tm[TAG.ADD] = {tag: 'span', class: 'add'};
+    this.tm[TAG.WJ]  = {tag: 'span', attrs: {n: 'class', v: 'wj'}};
+    this.tm[TAG.ND]  = {tag: 'span', attrs: {n: 'class', v: 'nd'}};
+    this.tm[TAG.QT]  = {tag: 'span', attrs: {n: 'class', v: 'qt'}};
+    this.tm[TAG.ADD] = {tag: 'span', attrs: {n: 'class', v: 'add'}};
   };
 
   inherit(HtmlRenderer, Renderer);
 
+  HtmlRenderer.prototype.haveComplexView = function(node) {
+    if (Renderer.prototype.haveComplexView.call(this, node)) {
+      return true;
+    }
+
+    // we want to render these tags in a special way
+    if (node.tag === TAG.V || node.tag === TAG.C) {
+      return true;
+    }
+    return false;
+  };
+
   HtmlRenderer.prototype.defineComplexView = function(node, vo) {
-    vo.renderable = false;
+    var id = '';
+    if (node.tag === TAG.V) {
+      id = this.bid_ + ' ' + this.cn_ + ':' + this.vn_;
+    }
+    else if (node.tag === TAG.C) {
+      id = this.bid_ + ' ' + this.cn_;
+    }
+
+    if (id.length > 0) {
+      vo.tag = node.tag;
+      var attrsArray = [];
+      var subst = this.tm[vo.tag];
+      attrsArray.push(subst.attrs);
+      attrsArray.push({n: 'id', v: id});
+      vo.renderable = true;
+      var res  = this.htmlBuilder(subst.tag, attrsArray);
+      vo.open  = res.o;
+      vo.close = res.c;
+      vo.newline = true;
+    }
+    else {
+      vo.renderable = false;
+    }
   };
 
   HtmlRenderer.prototype.defineTagView = function(vo) {
@@ -458,7 +545,7 @@
       vo.renderable = false;
       return;
     }
-    var res  = this.htmlBuilder(subst.tag, subst.class);
+    var res  = this.htmlBuilder(subst.tag, subst.attrs);
     vo.open  = res.o;
     vo.close = res.c;
 
@@ -469,9 +556,9 @@
   HtmlRenderer.prototype.getNumberView = function(tag, number) {
     var res;
     if (tag === TAG.V)
-      res = this.htmlBuilder('span', 'verseNumber');
+      res = this.htmlBuilder('span', {n: 'class', v: 'verseNumber'});
     else {
-      res = this.htmlBuilder('div', 'chapterNumber');
+      res = this.htmlBuilder('div', {n: 'class', v: 'chapterNumber'});
     }
     return res.o + number + res.c;
   };

@@ -672,6 +672,7 @@ var TH  = cmn.TH;
 
     // @returns  Representation of the verse rendered with the given renderer
     render: function(renderer) {
+      renderer.setNavigation(this.bid(), this.cn());
       return renderer.renderVerse(this);
     }
   };
@@ -822,6 +823,7 @@ var TH  = cmn.TH;
 
     // @returns  Representation of the chapter rendered with the give renderer
     render: function(renderer) {
+      renderer.setNavigation(this.bid());
       return renderer.renderChapter(this);
     }
   };

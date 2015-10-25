@@ -384,6 +384,16 @@
       //   return ref;
       // },
 
+      //@returns  first child node if it does exists and is a text node,
+      //          otherwise null
+      textChild: function(node) {
+        var child = node.firstChild();
+        if (child !== null && child.isText()) {
+          return child;
+        }
+        return null;
+      },
+
       // @return true if the specified node contain number attribute
       haveNumber: function(node) {
         if (_.isUndefined(node.number))
