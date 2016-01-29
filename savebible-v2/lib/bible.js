@@ -684,9 +684,9 @@ var TH  = cmn.TH;
   //                                vn: verse number }
   // @returns  8 bytes lenght string of for 'XXCCCVVV'
   function encodeRef(decodedRef) {
-    return _.padLeft(decodedRef.ix, 2, '0') +
-           _.padLeft(decodedRef.cn, 3, '0') +
-           _.padLeft(decodedRef.vn, 3, '0');
+    return _.padStart(decodedRef.ix, 2, '0') +
+           _.padStart(decodedRef.cn, 3, '0') +
+           _.padStart(decodedRef.vn, 3, '0');
   }
 
   // See encodeRef, this function performs opposite job of encodeRef
@@ -1480,7 +1480,7 @@ var TH  = cmn.TH;
   // @return {string}      encoded file name
   //
   function encodeFileName(bid, opts) {
-    var fname = _.padLeft(BBM.instance().onById(bid), 2, '0') + '-' + bid;
+    var fname = _.padStart(BBM.instance().onById(bid), 2, '0') + '-' + bid;
     if (opts.strictFilename === true) {
       fname += opts.lang;
       fname += '-';

@@ -165,7 +165,7 @@ var TextRenderer = lb.TextRenderer;
         // arrays with length 1 stay intact
         if (o.length > 1) {
           value.refs.sort();
-          value.refs = _.unique(value.refs, true);
+          value.refs = _.uniq(value.refs, true);
         }
       });
 
@@ -264,7 +264,7 @@ var TextRenderer = lb.TextRenderer;
       var str = '';
       for (var i = fk.length - 1; i >= 0 && top > 0; i--, top--) {
         var t = fk[i];
-        str += util.format('%s : %j\n', _.padRight(t, 6, ' '), freqIndex[t]);
+        str += util.format('%s : %j\n', _.padEnd(t, 6, ' '), freqIndex[t]);
       }
       var that = this;
       return {
@@ -564,7 +564,7 @@ var TextRenderer = lb.TextRenderer;
         };
         var words = text.split(' ');
         words.sort();
-        words = _.unique(words, true);
+        words = _.uniq(words, true);
 
         if (!opts) {
           opts = {

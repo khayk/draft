@@ -34,8 +34,8 @@ function createSummaryInfo(bible) {
       nvs += c.numVerses();
     });
 
-    res += _.padRight(selectName(b.te.id), longestName, ' ') +
-      _.padRight(b.numChapters(), 6, ' ') +
+    res += _.padEnd(selectName(b.te.id), longestName, ' ') +
+      _.padEnd(b.numChapters(), 6, ' ') +
       nvs + CRLF;
 
     tcs += b.numChapters();
@@ -44,8 +44,8 @@ function createSummaryInfo(bible) {
   });
 
   res += _.pad('', longestName + 11, '-') + CRLF +
-    _.padRight(tbs, longestName, ' ') +
-    _.padRight(tcs, 6, ' ') +
+    _.padEnd(tbs, longestName, ' ') +
+    _.padEnd(tcs, 6, ' ') +
     tvs;
   return res;
 }
@@ -72,8 +72,8 @@ function preformattedBook(book) {
   var tres = '';
 
   book.chapters.forEach(function(c) {
-    cline += _.padRight(c.number, pln, ' ');
-    vline += _.padRight(c.numVerses(), pln, ' ');
+    cline += _.padEnd(c.number, pln, ' ');
+    vline += _.padEnd(c.numVerses(), pln, ' ');
 
     if (cline.length > lineMaxLen - longestName - 3) {
       tres += cline.trim() + CRLF;
@@ -95,7 +95,7 @@ function preformattedBook(book) {
     tres += ppad;
   }
 
-  var res = _.padRight(selectName(book.te.id), longestName, ' ');
+  var res = _.padEnd(selectName(book.te.id), longestName, ' ');
   res += tres.trim();
 
   return res;

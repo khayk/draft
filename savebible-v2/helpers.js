@@ -157,7 +157,7 @@ var SearchResultPrettifier = function(bible) {
           result.words.forEach(function(w) {
             res = that.colorize(res, w, result.opts.cs, result.opts.ww);
           });
-          log.info('%s  %s', _.padRight(verse.id(), 11, ' '), res);
+          log.info('%s  %s', _.padEnd(verse.id(), 11, ' '), res);
         }
       });
     }

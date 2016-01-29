@@ -434,7 +434,7 @@
 
   PrettyRenderer.prototype.getNumberView = function(tag, number) {
     if (tag === TAG.V) {
-      return _.padRight(number, 3, ' ');
+      return _.padEnd(number, 3, ' ');
     }
     else if (tag === TAG.C) {
       return NL + '=== ' + number + ' ===' + NL;
@@ -450,7 +450,7 @@
   var HtmlRenderer = function(opts) {
     Renderer.call(this, opts);
 
-    // @param {array} attributes   single attribute or an array of attributes 
+    // @param {array} attributes   single attribute or an array of attributes
     //                             to be included in the tag, attribute must
     //                             be an object like {n: name, v: value}
     this.htmlBuilder = function(tag, attributes) {

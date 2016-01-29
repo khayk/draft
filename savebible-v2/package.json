@@ -14,8 +14,8 @@
   "dependencies": {
     "chai": "^3.3.0",
     "colors": "^1.1.2",
-    "fs-extra": "^0.24.0",
-    "lodash": "^3.10.1",
+    "fs-extra": "^0.26.5",
+    "lodash": "^4.1.0",
     "log4js": "^0.6.27",
     "nconf": "^0.8.2",
     "path-is-absolute": "^1.0.0"
