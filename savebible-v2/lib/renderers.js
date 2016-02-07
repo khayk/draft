@@ -206,12 +206,14 @@
   // @brief    render given verse based on the renderer configuration
   // @returns  string containing the rendered verse
   Renderer.prototype.renderVerse = function(verse) {
+    this.setNavigation(verse.bid(), verse.cn());
     return this.renderNode(verse.node, 0, 0);
   };
 
   // @brief    render given chapter based on the renderer configuration
   // @returns  string containing the rendered chapter
   Renderer.prototype.renderChapter = function(chapter) {
+    this.setNavigation(chapter.bid());
     return this.renderNode(chapter.node, 0, 0);
   };
 
