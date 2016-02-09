@@ -35,15 +35,15 @@ var output = cfg.bibleDir(name).to;
 measur.begin('loading bible');
 //var bible = lb.loadBible(input, {types: [3]});
 //var book = lb.loadBook(path.join(input, '02-GENeng-kjv.usfm'));
-var book = lb.loadBook(path.join(input, '87-PHMeng-kjv.usfm'));
+//var book = lb.loadBook(path.join(input, '87-PHMeng-kjv.usfm'));
 measur.end();
 
-var verse = book.getChapter(1).getVerse(1);
+//var verse = book.getChapter(1).getVerse(1);
 //var verse = bible.getBook('SIR').getChapter(1).getVerse(1);
 
-var usfm = verse.render(opts[0].renderer);
+//var usfm = verse.render(opts[0].renderer);
 
-console.log(usfm);
+//console.log(usfm);
 
 
 // | Abbreviation      |  Biblical reference                                   |
@@ -61,26 +61,41 @@ console.log(usfm);
 // |John 9:1-12; 12:3-6|John, the two passages 9:1-12 and 12:3-6               |
 // |John 9:12-13       |John, chapter 9, verses 12 and 13 ("12 and following") |
 
+var reVerse = /(\w+)(?:\s(?:(\d+)(?::(\d+))?)?)?/g;
+
 var Reference = function(input) {
-  this.ix = input.ix || 0;     // book index
-  this.cn = input.cn || 0;     // chapter number
-  this.vn = input.vn || 0;     // verse number
+  if (_.isObject(input)) {
+    this.ix = input.ix || 0;     // book index
+    this.cn = input.cn || 0;     // chapter number
+    this.vn = input.vn || 0;     // verse number
+  }
+  else if (_.isString(input)) {
+    var arr = reVerse.exec(input);
+    if (null === arr)
+      throw new Error('Invalid reference string: ' + input);
+    var on = lb.BBM.instance().onById(arr[1]);
+    if (null === on)
+      throw new Error('Invalid book id in reference: ' + input);
+    this.ix = on;
+    this.cn = arr[2] || 1;
+    this.vn = arr[3] || 1;
+  }
 };
 
 Reference.prototype.bid = function() {
-  var bid = BBM.instance().idByOn(this.ix);
+  var bid = lb.BBM.instance().idByOn(this.ix);
   if (bid === null)
     return 'null';
   return bid;
 };
 
-Reference.prototype.cn = function() {
-  return this.cn;
-};
+// Reference.prototype.cn = function() {
+//   return this.cn;
+// };
 
-Reference.prototype.vn = function() {
-  return this.vn;
-};
+// Reference.prototype.vn = function() {
+//   return this.vn;
+// };
 
 Reference.prototype.encode = function() {
   return _.padStart(this.ix, 2, '0') +
@@ -96,24 +111,33 @@ Reference.prototype.decode = function(encoded) {
 };
 
 Reference.prototype.str = function() {
-  return this.bid() + this.cn() + ':' + this.vn();
+  return this.bid() + ' ' + this.cn + ':' + this.vn;
 };
 
 
-ReferenceParser = (function() {
-  var re = /([\S]+)\s(\d+)(?::(\d+)(?:\-(\d+))?)?/g;
+var ref = new Reference('JHN 12:34');
+console.log(ref.str());
 
-  return {
-    parse: function(str) {
-      var ref = new Reference();
-      var array = str.match(re);
-      if (array === null)
-        return bestGuess;
-    }
-  };
-})();
+ref = new Reference('GEN 5');
+console.log(ref.str());
 
-ReferenceParser.parse('John');
+ref = new Reference('MAT');
+console.log(ref.str());
+
+// ReferenceParser = (function() {
+//   var re = /([\S]+)\s(\d+)(?::(\d+)(?:\-(\d+))?)?/g;
+
+//   return {
+//     parse: function(str) {
+//       var ref = new Reference();
+//       var array = str.match(re);
+//       if (array === null)
+//         return bestGuess;
+//     }
+//   };
+// })();
+
+//ReferenceParser.parse('John');
 // measur.begin('creating bible search');
 // var bs = srch.BibleSearch(bible);
 // measur.end();
