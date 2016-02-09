@@ -284,9 +284,9 @@
       vo.close = '';
 
       switch (vo.tag) {
-        case TAG.P:
-        case TAG.Q:
-          return;
+      case TAG.P:
+      case TAG.Q:
+        return;
       }
       vo.open += ' ';
     }
@@ -332,9 +332,9 @@
       vo.close = vo.open + '*';
 
       switch (vo.tag) {
-        case TAG.P:
-        case TAG.Q:
-          return;
+      case TAG.P:
+      case TAG.Q:
+        return;
       }
       vo.open += ' ';
     }

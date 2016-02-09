@@ -139,11 +139,11 @@
       //              with the same name, otherwise returns false
       isSelfContained: function(tag) {
         switch (tag) {
-          case TAG.ADD:
-          case TAG.WJ:
-          case TAG.ND:
-          case TAG.QT:
-            return true;
+        case TAG.ADD:
+        case TAG.WJ:
+        case TAG.ND:
+        case TAG.QT:
+          return true;
         }
         return false;
       },

@@ -83,7 +83,7 @@ createLogDirectory(loggerConfig);
 var cmd = nconf.argv().get('$0');
 if (path.basename(cmd) === '_mocha') {
   // disable logging for all loggers
-  loggerConfig.levels = {"[all]": "ERROR"};
+  loggerConfig.levels = {'[all]': 'ERROR'};
 }
 
 // configure logging and process with our modules
