@@ -1,4 +1,3 @@
-var path   = require('path');
 var _      = require('lodash');
 var fs     = require('fs-extra');
 
@@ -9,8 +8,6 @@ var rndr   = require('./lib/renderers');
 var srch   = require('./lib/search');
 var cmn    = require('./lib/common');
 
-var TH     = cmn.TH;
-var TAG    = cmn.TAG;
 var MC     = lb.MC;
 var measur = new help.Measurer();
 
@@ -75,7 +72,7 @@ function benchmarkAllWordsSearch() {
       }
     });
 
-    console.log("Max length: %d, word: %s", maxLength, resWord);
+    console.log('Max length: %d, word: %s', maxLength, resWord);
   }, 'searching words', 1);
 }
 

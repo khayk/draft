@@ -11,10 +11,6 @@ var help   = require('./helpers');
 
 var measur = new help.Measurer();
 
-var Node   = cmn.Node;
-var TAG    = cmn.TAG;
-var TH     = cmn.TH;
-var NH     = cmn.NH;
 var NL     = cmn.NL;
 
 var dirNames = [
@@ -25,7 +21,7 @@ var dirNames = [
 
 var bids = ['MAT'];
 
-var indentedUsfmRenderer = new rnd.IndentedUsfmRenderer();
+//var indentedUsfmRenderer = new rnd.IndentedUsfmRenderer();
 var usfmRenderer         = new rnd.UsfmRenderer();
 var textRenderer         = new rnd.TextRenderer({textOnly: false});
 var prettyRenderer       = new rnd.PrettyRenderer();
@@ -45,7 +41,7 @@ bids.forEach(function(bid) {
     log.info(file);
     var str = fse.readFileSync(file, 'utf8');
     var root = parser.parse(str);
-    console.log("nodes count: ", root.count());
+    console.log('nodes count: ', root.count());
 
     fse.writeFileSync('data.pretty', prettyRenderer.renderNode(root, 0, 0));
     fse.writeFileSync('data.usfm', usfmRenderer.renderNode(root, 0, 0));

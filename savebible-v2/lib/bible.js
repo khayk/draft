@@ -425,7 +425,7 @@ var TH  = cmn.TH;
 
     // verify that core attributes are presented in the table of content
     validate: function() {
-      _.each(this.content_, function(val, key) {
+      _.each(this.content_, function(val) {
         val.validate();
       });
     }
@@ -1228,7 +1228,7 @@ var TH  = cmn.TH;
 
   ParserHelper.prototype.unwind = function(tag) {
     var top = null;
-    while (true) {
+    for (;;) {
       top = this.stack.top();
       if (top === null || top.tag === tag)
         break;

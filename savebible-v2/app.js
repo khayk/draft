@@ -3,9 +3,9 @@
 
   var path     = require('path');
   var fs       = require('fs');
-  var log4js   = require('log4js');
-  var readline = require('readline');
-  var _        = require('lodash');
+  //var log4js   = require('log4js');
+  //var readline = require('readline');
+  //var _        = require('lodash');
 
   var cfg      = require('./config').cfg;
   var lb       = require('./lib/bible');
@@ -13,7 +13,7 @@
   var help     = require('./helpers');
   var bi       = require('./tools/bible-info.js');
 
-  var log      = log4js.getLogger('app');
+  //var log      = log4js.getLogger('app');
   var measur   = new help.Measurer();
 
   var MC       = lb.MC;
@@ -83,8 +83,6 @@
 
     bi.saveBibleSummary(dir, bible);
   });
-
-
 
 }());
 

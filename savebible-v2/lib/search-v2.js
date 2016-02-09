@@ -7,8 +7,6 @@ var log    = require('log4js').getLogger('srch');
 
 var Lexical      = lb.Lexical;
 var MC           = lb.MC;
-var BBM          = lb.BBM;
-var TextRenderer = lb.TextRenderer;
 
 
 (function() {
@@ -166,7 +164,9 @@ var TextRenderer = lb.TextRenderer;
 
       // @return  reversed input string
       reverse: function(str) {
-        for (var i = str.length - 1, o = ''; i >= 0; o += str[i--]) {}
+        var o = '';
+        for (var i = str.length - 1; i >= 0; --i)
+          o += str[i];
         return o;
       }
     };
@@ -319,7 +319,6 @@ var TextRenderer = lb.TextRenderer;
   function Dictionary(desc) {
     var desc_      = desc;   // optional description of the dictionary
     var optimized_ = false;
-    var changed_   = false;
     var root_      = null;
 
     // Add the word into dictionary
@@ -344,7 +343,6 @@ var TextRenderer = lb.TextRenderer;
       }
       node.addRef(ref);
       optimized_ = false;
-      changed_   = true;
       return this;
     };
 
@@ -355,7 +353,6 @@ var TextRenderer = lb.TextRenderer;
         return;
 
       root_.optimize();
-      changed_   = false;
       optimized_ = true;
     };
 
@@ -417,7 +414,6 @@ var TextRenderer = lb.TextRenderer;
       root_      = new Node('');
       desc_      = '';
       optimized_ = false;
-      changed_   = false;
     };
 
     // @returns  Number of unique words
