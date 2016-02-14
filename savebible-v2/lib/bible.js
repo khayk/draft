@@ -17,11 +17,10 @@ var TH  = cmn.TH;
   'use strict';
 
   // Bible book types
-  var BOOK_TYPE_OLD = 1,              // old testament book
-      BOOK_TYPE_NEW = 2,              // new testament book
-      BOOK_TYPE_DEU = 3,              // deuterocanon book
-      BOOK_TYPE_APO = 4;              // apocryphal book
-
+  const BT_OLD = 1;   // old testament book
+  const BT_NEW = 2;   // new testament book
+  const BT_DEU = 3;   // deuterocanon book
+  const BT_APO = 4;   // apocryphal book
 
   /*------------------------------------------------------------------------*/
 
@@ -33,7 +32,7 @@ var TH  = cmn.TH;
   // @param {string} type  book type, i.e. old, new testaments
   //
   var BBMItem = function(id, index, type) {
-    if (!type || type < BOOK_TYPE_OLD || type > BOOK_TYPE_APO)
+    if (!type || type < BT_OLD || type > BT_APO)
       throw new Error('Invalid Bible book mapping item type: ' + type);
 
     this.id    = id;
