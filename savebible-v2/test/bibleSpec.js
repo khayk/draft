@@ -1,8 +1,10 @@
+
 /// <reference path ="../typings/mocha/mocha.d.ts"/>
+/*eslint-env node, mocha */
+
 var _       = require('lodash');
 var expect  = require('chai').expect;
 var path    = require('path');
-var util    = require('util');
 var fs      = require('fs-extra');
 
 var cfg     = require('../config').cfg;
@@ -28,6 +30,7 @@ var Chapter              = lb.Chapter;
 var Book                 = lb.Book;
 var Bible                = lb.Bible;
 var Parser               = lb.Parser;
+var Reference            = lb.Reference;
 
 var Renderer             = rndr.Renderer;
 var UsfmRenderer         = rndr.UsfmRenderer;
@@ -40,8 +43,6 @@ var findBook             = lb.findBook;
 var loadBible            = lb.loadBible;
 var loadBook             = lb.loadBook;
 var saveBible            = lb.saveBible;
-var encodeRef            = lb.encodeRef;
-var decodeRef            = lb.decodeRef;
 var decodeFileName       = lb.decodeFileName;
 
 var Dictionary           = search.Dictionary;
@@ -98,7 +99,7 @@ describe('module BBM', function() {
     expect(o.numItems()).to.equal(initialCount);
 
     var indices = [];
-    _.each(o.ons(), function(val, key) {
+    _.each(o.ons(), function(val/*, key*/) {
       indices.push(val);
     });
 
@@ -148,24 +149,24 @@ describe('module BBM', function() {
 
   it('invalid mapping', function() {
     var duplicateId = [
-      {"id":"HEB", "index":13, "type":1},
-      {"id":"HEB", "index":70, "type":2},
+      {'id':'HEB', 'index':13, 'type':1},
+      {'id':'HEB', 'index':70, 'type':2}
     ];
 
     var duplicateIndex = [
-      {"id":"HEB", "index":13, "type":1},
-      {"id":"GEN", "index":13, "type":2},
+      {'id':'HEB', 'index':13, 'type':1},
+      {'id':'GEN', 'index':13, 'type':2}
     ];
 
     var invalidType = [
-      {"id":"GEN", "index":13, "type":0},
-      {"id":"HEB", "index":70, "type":2},
+      {'id':'GEN', 'index':13, 'type':0},
+      {'id':'HEB', 'index':70, 'type':2}
     ];
 
     var validMapping = [
-      {"id":"ONE", "index":7, "type":1},
-      {"id":"TWO", "index":5, "type":2},
-      {"id":"SIX", "index":9, "type":3}
+      {'id':'ONE', 'index':7, 'type':1},
+      {'id':'TWO', 'index':5, 'type':2},
+      {'id':'SIX', 'index':9, 'type':3}
     ];
 
     var defaultInstance = BBM.activate();
@@ -392,9 +393,9 @@ describe('module TableOfContents', function() {
     expect(itm.validate.bind(itm)).not.throw();
 
     var arr = [
-      {"id":"JOS", "name":"Joshua", "abbr":"Jos",  "desc":"The Book of Joshua"},
-      {"id":"JDG", "name":"Judges", "abbr":"Jdg",  "desc":"The Book of Judges"},
-      {"id":"RUT", "name":"Ruth",   "abbr":"Rut",  "desc":"The Book of Ruth"  }
+      {id:'JOS', name:'Joshua', abbr:'Jos',  desc:'The Book of Joshua'},
+      {id:'JDG', name:'Judges', abbr:'Jdg',  desc:'The Book of Judges'},
+      {id:'RUT', name:'Ruth',   abbr:'Rut',  desc:'The Book of Ruth'  }
     ];
     var tocFromArray = new TableOfContents(arr);
     expect(tocFromArray.length()).to.be.equal(arr.length);
@@ -481,7 +482,7 @@ describe('core components', function() {
 
   it('parser robustness', function() {
     var parser = new Parser();
-    str = '\\v 1 \\add xx \\wj \\add* yy \\wj*';
+    var str = '\\v 1 \\add xx \\wj \\add* yy \\wj*';
     expect(parser.parse.bind(parser, str)).to.throw(Error, /Expecting to see pair for/);
 
     str = '\\v \\add xx \\wj \\add* yy \\wj*';
@@ -489,7 +490,7 @@ describe('core components', function() {
     expect(parser.isIgnoredTag('wj')).to.be.equal(false);
 
     var fn = function(arg) {
-      var parser = new Parser(arg);
+      return new Parser(arg);
     };
     expect(fn.bind(fn, {})).to.throw(Error, /Expected array in Parser constructor/);
     expect(fn.bind(fn, '')).to.throw(Error, /Expected array in Parser constructor/);
@@ -497,41 +498,36 @@ describe('core components', function() {
 
   describe('bible interface', function() {
     var parser = new Parser();
+    var tid1 = 'EXO';
+    var tid2 = 'MAT';
+
     var v1 = parser.parseVerse('\\v 0');
     var v2 = parser.parseVerse('\\v 0');
     var c1 = parser.parseChapter('\\c 0');
     var c2 = parser.parseChapter('\\c 0');
-    var b1 = parser.parseBook('\\id GEN Genesis');
-    var b2 = parser.parseBook('\\id EXO Exodus');
+    var b1 = parser.parseBook('\\id ' + tid1 + ' Exodus');
+    var b2 = parser.parseBook('\\id ' + tid2 + ' Matthew');
     var bb = new Bible();
 
     // isolated behavior
     describe('isolated behavior', function() {
       it('verse', function() {
-        expect(v1.id()).to.be.equal('null 0: 0');
+        expect(v1.id()).to.be.equal('null');
         expect(v1.vn()).to.be.equal(0);
         expect(v1.cn()).to.be.equal(0);
         expect(v1.bid()).to.be.equal('');
         expect(v1.next()).to.be.equal(null);
         expect(v1.prev()).to.be.equal(null);
-        expect(v1.ref()).to.be.deep.equal({
-          ix: 0,
-          cn: 0,
-          vn: 0
-        });
+        expect(v1.ref()).to.be.deep.equal(new Reference());
       });
 
       it('chapter', function() {
-        expect(c1.id()).to.be.equal('null 0');
+        expect(c1.id()).to.be.equal('null');
         expect(c1.bid()).to.be.equal('');
         expect(c1.next()).to.be.equal(null);
         expect(c1.prev()).to.be.equal(null);
         expect(c1.numVerses()).to.be.equal(0);
-        expect(c1.ref()).to.be.deep.equal({
-          ix: 0,
-          cn: 0,
-          vn: 0
-        });
+        expect(c1.ref()).to.be.deep.equal(new Reference());
       });
 
       it('book', function() {
@@ -539,19 +535,12 @@ describe('core components', function() {
         expect(b1.next()).to.be.equal(null);
         expect(b1.prev()).to.be.equal(null);
         expect(b1.numChapters()).to.be.equal(0);
-        expect(b1.ref()).to.be.deep.equal({
-          ix: 1,
-          cn: 0,
-          vn: 0
-        });
+        expect(b1.ref()).to.be.deep.equal(new Reference({ix: 2}));
       });
     });
 
     // combined behavior
     describe('combined behavior', function() {
-      var tid1 = 'MAT';
-      var tid2 = 'MRK';
-
       before(function() {
         v1.number = 1;
         c1.number = 1;
@@ -687,12 +676,11 @@ describe('core components', function() {
             expect(vc.vn).to.be.equal(verse.vn());
 
             var ref = verse.ref();
-            var encRef = encodeRef(ref);
+            var encRef = ref.encode();
 
             // references have 8 bytes length
             expect(encRef.length).to.be.equal(8);
-
-            var decRef = decodeRef(encRef);
+            var decRef = (new lb.Reference()).decode(encRef);
             expect(ref).to.deep.equal(decRef);
           }
         }
@@ -828,7 +816,7 @@ describe('core components', function() {
       }).to.throw();
 
       var book = loadBook(path.join(filesDir, '70-MATeng-kjv.usfm'));
-      expect(book.ref()).to.be.deep.equal({ix: BBM.instance().onById('MAT'), cn: 0, vn: 0});
+      expect(book.ref()).to.be.deep.equal(new Reference({ix: BBM.instance().onById('MAT')}));
     });
 
     // save data to hdd
@@ -852,23 +840,29 @@ describe('core components', function() {
 
     it('usfm', function() {
       var str = bible.render(usfmRndr);
+      expect(str.length).to.be.equal(17948);
     });
 
     it('text', function() {
       var str = bible.render(textAndIdsRndr);
+      expect(str.length).to.be.equal(7218);
       str = bible.render(textRndr);
+      expect(str.length).to.be.equal(7025);
     });
 
     it('indented usfm', function() {
       var str = bible.render(indentUsfmRndr);
+      expect(str.length).to.be.equal(36073);
     });
 
     it('pretty', function() {
       var str = bible.render(prettyRndr);
+      expect(str.length).to.be.equal(7525);
     });
 
     it('html', function() {
       var str = bible.render(htmlRndr);
+      expect(str.length).to.be.equal(19795);
     });
 
     var samples = 50;
@@ -894,7 +888,7 @@ describe('core components', function() {
         'defineTagView',
         'getTextView',
         'getNumberView',
-        'defineComplexView',
+        'defineComplexView'
       ];
 
       listOfMethodsToImplement.forEach(function(methodName) {
@@ -1200,7 +1194,7 @@ describe('search functionality', function() {
       {s: '', r: '8'}
     ];
 
-    var opts, res, xref, axref, i, orig, tcase, lcase, ucase;
+    var opts;
 
     // add some words into dictionary
     before(function() {
@@ -1211,13 +1205,6 @@ describe('search functionality', function() {
       });
       srch.build();
     });
-
-    function initWordVariations(word) {
-      tcase = cmn.toTitleCase(word);
-      lcase = word.toLowerCase();
-      ucase = word.toUpperCase();
-    }
-
 
     it('cs && ww', function() {
       opts = {cs: true,  ww: true};
@@ -1290,7 +1277,7 @@ describe('module BibleSearch', function() {
     text.forEach(function(ti) {
       var v = parser.parseVerse(ti.s);
       chap.addVerse(v);
-      ti.r = encodeRef(v.ref());
+      ti.r = v.ref().encode();
     });
 
     var bsCreator = function() {
@@ -1306,6 +1293,10 @@ describe('module BibleSearch', function() {
     expect(bs.bible()).to.be.equal(bible);
 
     var stats = bs.search().getStatistics();
+    expect(stats.cs.unique).to.be.equal(50);
+    expect(stats.cs.total).to.be.equal(77);
+    expect(stats.ci.unique).to.be.equal(49);
+    expect(stats.ci.total).to.be.equal(77);
   });
 
   it('word searching', function() {

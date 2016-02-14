@@ -534,7 +534,7 @@ var TextRenderer = lb.TextRenderer;
       var vit = bible_.verseIterator();
       while ((verse = vit.next()) !== null) {
         var text = verse.render(rndr);
-        var ref  = lb.encodeRef(verse.ref());
+        var ref  = verse.ref().encode();
         text     = lexic_.removePunctuations(text);
 
         // process every single word

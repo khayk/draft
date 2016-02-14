@@ -596,6 +596,72 @@ var TH  = cmn.TH;
   })();
 
 
+  var reVerse = /(\w+)(?:\s(?:(\d+)(?::(\d+))?)?)?/;
+
+  // @brief Represents bible reference object
+  // @param input {object|string}
+  //                    { ix: number, cn: chapter number, vn: verse number }
+  //                    or
+  //                    'id chapter:verse'
+  var Reference = function(input) {
+    input = input || {};
+    if (_.isString(input)) {
+      var arr = reVerse.exec(input);
+      if (null === arr)
+        throw new Error('Invalid reference string: ' + input);
+      var on = BBM.instance().onById(arr[1]);
+      if (null === on)
+        throw new Error('Invalid book id in reference: ' + input);
+      this.ix = on;
+      this.cn = arr[2] || 0;
+      this.vn = arr[3] || 0;
+    }
+    else {
+      this.ix = input.ix || 0;     // book index
+      this.cn = input.cn || 0;     // chapter number
+      this.vn = input.vn || 0;     // verse number
+    }
+  };
+
+  // @return bood id of the reference
+  Reference.prototype.bid = function() {
+    var bid = BBM.instance().idByOn(this.ix);
+    if (bid === null)
+      return 'null';
+    return bid;
+  };
+
+  // @returns  8 bytes lenght string of the form 'XXCCCVVV'
+  Reference.prototype.encode = function() {
+    return _.padStart(this.ix, 2, '0') +
+           _.padStart(this.cn, 3, '0') +
+           _.padStart(this.vn, 3, '0');
+  };
+
+  // @brief  Extract encoded information from the string and initialize  itself
+  // @returns {object} this
+  Reference.prototype.decode = function(encoded) {
+    this.ix = parseInt(encoded.substr(0, 2));
+    this.cn = parseInt(encoded.substr(2, 3));
+    this.vn = parseInt(encoded.substr(5, 3));
+    return this;
+  };
+
+  // @returns {string}  of form
+  //                   'ID CHAPTER:VERSE' if cn and vn different from 0
+  //                   'ID CHAPTER' if vn is 0
+  //                   'ID' if chapter is 0
+  Reference.prototype.str = function() {
+    var s = this.bid();
+    if (this.cn > 0) {
+      s += ' ' + this.cn;
+      if (this.vn > 0)
+        s += ':' + this.vn;
+    }
+    return s;
+  };
+
+
   /*------------------------------------------------------------------------*/
 
 
@@ -617,19 +683,15 @@ var TH  = cmn.TH;
     // @returns  id that will uniquely identify verse in the scope of the
     //           whole bible
     id: function() {
-      if (this.parent === null) {
-        return 'null 0: ' + this.number;
-      }
-      return this.parent.id() + ':' + this.number;
+      return this.ref().str();
     },
 
     // @returns  Reference {ix: book unchangeable index,
     //                      cn: chapter number,
     //                      vn: verse number}
     ref: function() {
-      if (this.parent === null) {
-        return {ix: 0, cn: 0, vn: this.vn()};
-      }
+      if (this.parent === null)
+        return new Reference({vn: this.vn()});
       var t = this.parent.ref();
       t.vn = this.vn();
       return t;
@@ -676,27 +738,6 @@ var TH  = cmn.TH;
     }
   };
 
-  // @param  {string} decodedRef  Object retrieved by Verse.ref(),
-  //                              Expected input have a specified form
-  //                              { ix: number,
-  //                                cn: chapter number,
-  //                                vn: verse number }
-  // @returns  8 bytes lenght string of for 'XXCCCVVV'
-  function encodeRef(decodedRef) {
-    return _.padStart(decodedRef.ix, 2, '0') +
-           _.padStart(decodedRef.cn, 3, '0') +
-           _.padStart(decodedRef.vn, 3, '0');
-  }
-
-  // See encodeRef, this function performs opposite job of encodeRef
-  function decodeRef(encodedRef) {
-    return {
-      ix: parseInt(encodedRef.substr(0, 2)),
-      cn: parseInt(encodedRef.substr(2, 3)),
-      vn: parseInt(encodedRef.substr(5, 3))
-    };
-  }
-
 
   /*------------------------------------------------------------------------*/
 
@@ -726,20 +767,13 @@ var TH  = cmn.TH;
 
   Chapter.prototype = {
     id: function() {
-      if (this.parent === null) {
-        return 'null ' + this.number;
-      }
-      return this.parent.id() + ' ' + this.number;
+      return this.ref().str();
     },
 
-    // @returns  reference for the chapter
-    //           { ix: book unchangeable index,
-    //             cn: chapter number,
-    //             vn: verse number }
+    // @returns  Reference for the chapter
     ref: function() {
-      if (this.parent === null) {
-        return {ix: 0, cn: this.number, vn: 0};
-      }
+      if (this.parent === null)
+        return new Reference({cn: this.number});
       var t = this.parent.ref();
       t.cn = this.number;
       return t;
@@ -900,7 +934,7 @@ var TH  = cmn.TH;
 
     // @returns  Book id
     id: function() {
-      return this.te.id;
+      return  this.te.id;
     },
 
     // @returns  Reference for the chapter
@@ -908,7 +942,7 @@ var TH  = cmn.TH;
     //             cn: chapter number,
     //             vn: verse number }
     ref: function() {
-      return {ix: this.index, cn: 0, vn: 0};
+      return new Reference({ix: this.index});
     },
 
     // @return   Next book of the Bible, null if there are no more books
@@ -1730,7 +1764,7 @@ var TH  = cmn.TH;
   exports.MC              = MC;
   exports.Stack           = Stack;
 
-
+  exports.Reference       = Reference;
   exports.Verse           = Verse;
   exports.Book            = Book;
   exports.Chapter         = Chapter;
@@ -1738,8 +1772,6 @@ var TH  = cmn.TH;
   exports.Parser          = Parser;
 
   // functions
-  exports.encodeRef       = encodeRef;
-  exports.decodeRef       = decodeRef;
   exports.findBook        = findBook;
   exports.loadBook        = loadBook;
   exports.loadBible       = loadBible;

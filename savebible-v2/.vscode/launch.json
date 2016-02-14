@@ -9,7 +9,7 @@
 			// Type of configuration. Possible values: "node", "mono".
 			"type": "node",
 			// Workspace relative or absolute path to the program.
-			"program": "tools/myneeds.js",
+			"program": "${workspaceRoot}/tools/myneeds.js",
 			// Automatically stop program after launch.
 			"stopOnEntry": true,
 			// Command line arguments passed to the program.
@@ -35,16 +35,17 @@
 			"sourceMaps": false
 		},
 		{
-            "name": "Run mocha",
-            "type": "node",
-            "program": "C:/Users/Hayk/AppData/Roaming/npm/node_modules/mocha/bin/_mocha",
-            "stopOnEntry": false,
-            "args": ["*"],
-            "cwd": ".",
-            "runtimeExecutable": null,
-			"runtimeArguments": [],			
-            "env": {},
-			"sourceMaps": false			
+            "request": "launch",
+			"name": "Run mocha",
+			"type": "node",
+		    "program": "\\Users\\Hayk\\AppData\\Roaming\\npm\\node_modules\\mocha\\bin\\_mocha",
+			"stopOnEntry": false,
+			"args": ["test"],
+			"cwd": ".",
+			"runtimeExecutable": null,
+			"runtimeArguments": [],
+			"env": { },
+			"sourceMaps": false
         }
 	]
 }
