@@ -30,6 +30,10 @@ var cfg = (function() {
   data.media = path.join(root, data.media);
 
   return {
+    books: function() {
+      return path.normalize(data.bibles);
+    },
+
     bibleDir: function(name) {
       return {
         name: name,

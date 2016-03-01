@@ -437,6 +437,7 @@ var TH  = cmn.TH;
   // Kind of storage where we collect bible specific data for a given language
   // like, table of content, language specific lexical data and so on.
   var Meta = function() {
+    this.name = '',
     this.lex  = null;
     this.toc  = null;
     this.lang = '';
@@ -455,6 +456,7 @@ var TH  = cmn.TH;
     this.lang = path.basename(file, ext);
     this.lex  = new Lexical(js.lexical);
     this.toc  = new TableOfContents(js.toc);
+    this.name = js.name;
 
     return this;
   };
@@ -593,6 +595,53 @@ var TH  = cmn.TH;
       }
     };
   })();
+
+  var BibleManager = function() {
+    // {lang: 'ln', name: 'bible name', bible: null, meta: null}
+    var avail_ = [];
+    var dir_ = '';
+
+    return {
+      initialize: function(dir) {
+        avail_ = [];
+        dir_ = dir;
+        var dirs = fse.readdirSync(dir);
+        dirs.forEach(function(d) {
+          var arr = /(\w+)-(\S+)/g.exec(d);
+          if (arr !== null) {
+            var lang = arr[1];
+            var name = arr[2];
+            var meta = MC.instance().getMeta(lang);
+            if (null === meta) {
+              log.error('Language \'' + lang + '\' is missing from the meta.');
+              return;
+            }
+            avail_.push({lang: lang, name: name, meta: meta, bible: null});
+          }
+        });
+      },
+
+      list: function() {
+        return avail_.map(function(i) {
+          return {lang: i.lang, name: i.name};
+        });
+      },
+
+      bible: function(ln, name) {
+        var found = avail_.find(function(x) {
+          return x.name === name && x.lang === ln;
+        });
+        if (_.isUndefined(found))
+          return null;
+        if (null === found.bible) {
+          var loc = path.join(dir_, ln + '-' + name);
+          log.info('Loading bible from: ' + loc);
+          found.bible = loadBible(loc);
+        }
+        return found.bible;
+      }
+    };
+  };
 
 
   var reVerse = /(\w+)(?:\s(?:(\d+)(?::(\d+))?)?)?/;
@@ -1761,6 +1810,7 @@ var TH  = cmn.TH;
   exports.TableOfContents = TableOfContents;
   exports.Lexical         = Lexical;
   exports.MC              = MC;
+  exports.BibleManager    = BibleManager;
   exports.Stack           = Stack;
 
   exports.Reference       = Reference;

@@ -1,4 +1,6 @@
 {
+  "name": "English",
+
   "lexical": {
     "letters": "A-Za-z",
     "question": "?",

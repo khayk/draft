@@ -1,4 +1,6 @@
 {
+  "name": "Русский",
+
   "lexical": {
     "letters": "А-Яа-яёЁ",
     "question": "?",
