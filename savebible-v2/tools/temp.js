@@ -34,16 +34,17 @@ measur.begin('detecting available bible');
 bm.initialize(cfg.books());
 
 var l = bm.list();
-var i = 1;
+var i = 2;
 
 console.log(l);
 
 var bible = bm.bible(l[i].lang, l[i].name);
 
-console.log(bible.numBooks());
-console.log(bible.getToc());
+// console.log(bible.numBooks());
+// console.log(bible.getToc());
 
 measur.end();
+
 
 
 //measur.begin('loading bible');
@@ -59,7 +60,7 @@ measur.end();
 
 //console.log(usfm);
 
-var ref = new Reference('JHN 12:34');
+// var ref = new Reference('JHN 12:34');
 // console.log(ref.str());
 
 // ref = new Reference('GEN 5');

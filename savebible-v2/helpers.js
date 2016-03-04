@@ -148,7 +148,7 @@ var SearchResultPrettifier = function(bible) {
     if (count < 80) {
       var that = this;
       result.refs.forEach(function(ref) {
-        var dref = lb.decodeRef(ref);
+        var dref = (new lb.Reference()).decode(ref);
         var book = bible_.getBook(lb.BBM.instance().idByOn(dref.ix));
         var chap = book ? book.getChapter(dref.cn) : null;
         var verse = chap ? chap.getVerse(dref.vn) : null;

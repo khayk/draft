@@ -1,6 +1,7 @@
 {
   "port": 3000,
   "data": {
+    "bibles": "set local path of repository bibles",
     "input": "C:/Users/Hayk/Dropbox (Personal)/Data/",
     "output": "./output/",
     "media": "./media/",

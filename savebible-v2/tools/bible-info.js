@@ -116,6 +116,31 @@ function createDetailedInfo(bible) {
   return res;
 }
 
+
+function createSummaryInfo2(bible) {
+  var str = '';
+  var it = bible.bookIterator();
+  var book = it.next();
+  while (null != book) {
+    var e = {};
+    e.id = book.id();
+    e.chapters = [book.numChapters()];
+    var chap = book.getChapter(1);
+    while (null !== chap) {
+      e.chapters.push(chap.numVerses());
+      chap = chap.next();
+    }
+    str += JSON.stringify(e) + ',\n';
+    book = it.next();
+  }
+
+  if (str.length > 0)
+    str = str.slice(0, -2);
+  str = '[' + str + ']';
+  return str;
+}
+
+
 function saveBibleSummary(dir, bible) {
   fse.mkdirsSync(dir);
 
@@ -126,4 +151,5 @@ function saveBibleSummary(dir, bible) {
   fse.writeFileSync(path.join(dir, '/', '00-detailed.txt'), res);
 }
 
-exports.saveBibleSummary = saveBibleSummary;
+exports.saveBibleSummary   = saveBibleSummary;
+exports.createSummaryInfo2 = createSummaryInfo2;

@@ -616,14 +616,14 @@ var TH  = cmn.TH;
               log.error('Language \'' + lang + '\' is missing from the meta.');
               return;
             }
-            avail_.push({lang: lang, name: name, meta: meta, bible: null});
+            avail_.push({lang: lang, name: name, meta: meta, bible: null, folder: d});
           }
         });
       },
 
       list: function() {
         return avail_.map(function(i) {
-          return {lang: i.lang, name: i.name};
+          return {lang: i.lang, name: i.name, folder: i.folder};
         });
       },
 
