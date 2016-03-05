@@ -596,8 +596,10 @@ var TH  = cmn.TH;
     };
   })();
 
+
   var BibleManager = function() {
-    // {lang: 'ln', name: 'bible name', bible: null, meta: null}
+    // {lang: 'ln', name: 'bible name', bible: null,
+    //  meta: null, folder: 'folder name', sum: null}
     var avail_ = [];
     var dir_ = '';
 
@@ -616,9 +618,38 @@ var TH  = cmn.TH;
               log.error('Language \'' + lang + '\' is missing from the meta.');
               return;
             }
-            avail_.push({lang: lang, name: name, meta: meta, bible: null, folder: d});
+
+            avail_.push({
+              lang: lang,
+              name: name,
+              meta: meta,
+              folder: d,
+              bible: null,
+              sum: null
+            });
+
+            try {
+              // read bible summary file, it will let us
+              // postphone the loading process if whole bible
+              var sf = path.join(dir, d, '00-SUM.json');
+              fse.accessSync(sf, fse.F_OK);
+              var summary = fse.readFileSync(sf, 'utf8');
+              avail_[avail_.length - 1].sum = JSON.parse(summary);
+            } catch (e) {
+              // It isn't accessible
+            }
           }
         });
+      },
+
+      count: function() {
+        return avail_.length;
+      },
+
+      entry: function(i) {
+        if (i < 0 || i > avail_.length)
+          throw new Error('BibleManager: Requested entry with invalid index:' + i);
+        return avail_[i];
       },
 
       list: function() {
