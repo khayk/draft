@@ -612,7 +612,7 @@ var TH  = cmn.TH;
           var arr = /(\w+)-(\S+)/g.exec(d);
           if (arr !== null) {
             var lang = arr[1];
-            var name = arr[2];
+            var name = arr[2].toUpperCase();
             var meta = MC.instance().getMeta(lang);
             if (null === meta) {
               log.error('Language \'' + lang + '\' is missing from the meta.');
@@ -620,6 +620,7 @@ var TH  = cmn.TH;
             }
 
             avail_.push({
+              id: lang + '_' + name,
               lang: lang,
               name: name,
               meta: meta,
@@ -652,20 +653,29 @@ var TH  = cmn.TH;
         return avail_[i];
       },
 
+      entryById: function(id) {
+        var found = avail_.find(function(x) {
+          return x.id === id;
+        });
+        if (_.isUndefined(found))
+          return null;
+        return found;
+      },
+
       list: function() {
         return avail_.map(function(i) {
-          return {lang: i.lang, name: i.name, folder: i.folder};
+          return {id: i.id, lang: i.lang, name: i.name, folder: i.folder};
         });
       },
 
-      bible: function(ln, name) {
+      bible: function(id) {
         var found = avail_.find(function(x) {
-          return x.name === name && x.lang === ln;
+          return x.id === id;
         });
         if (_.isUndefined(found))
           return null;
         if (null === found.bible) {
-          var loc = path.join(dir_, ln + '-' + name);
+          var loc = path.join(dir_, found.folder);
           log.info('Loading bible from: ' + loc);
           found.bible = loadBible(loc);
         }
@@ -1143,15 +1153,27 @@ var TH  = cmn.TH;
     return this;
   };
 
-  // @returns bible book object with specified id
-  Bible.prototype.getBook = function(id) {
-    var ref = this.ids[id];
+  // @returns  verse object for a valid input, otherwise null
+  Bible.prototype.getVerse = function(bid, cn, vn) {
+    var chap = this.getChapter(bid, cn);
+    return chap ? chap.getVerse(vn) : null;
+  };
+
+  // @returns  chapter object for a valid input, otherwise null
+  Bible.prototype.getChapter = function(bid, cn) {
+    var book = this.getBook(bid);
+    return book ? book.getChapter(cn) : null;
+  };
+
+  // @returns bible book object with specified bid
+  Bible.prototype.getBook = function(bid) {
+    var ref = this.ids[bid];
     if (_.isUndefined(ref))
       return null;
     return this.books[ref];
   };
 
-  // @returns bible table of content object
+  // @returns table of content for a bible
   Bible.prototype.getToc = function() {
     return this.toc;
   };

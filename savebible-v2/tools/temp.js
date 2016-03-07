@@ -34,17 +34,15 @@ measur.begin('detecting available bible');
 bm.initialize(cfg.books());
 
 var l = bm.list();
-var i = 2;
-
 console.log(l);
 
-var bible = bm.bible(l[i].lang, l[i].name);
-
-// console.log(bible.numBooks());
-// console.log(bible.getToc());
+for (var i = 0; i < bm.count(); ++i) {
+  var x = bm.entry(i);
+  if (null != x.sum)
+    console.log(x.sum.length);
+}
 
 measur.end();
-
 
 
 //measur.begin('loading bible');
