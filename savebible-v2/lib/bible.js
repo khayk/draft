@@ -1083,7 +1083,7 @@ var TH  = cmn.TH;
     // @returns  the chapter object with given number
     //           if no chapter exist with given number `null` will be returned
     getChapter: function(number) {
-      if (number < 1 || number > this.numChapters())
+      if (_.isUndefined(number) || number < 1 || number > this.numChapters())
         return null;
       return this.chapters[number - 1];
     },
