@@ -484,6 +484,13 @@
     this.tm[TAG.ND]  = {tag: 'span', attrs: {n: 'class', v: 'nd'}};
     this.tm[TAG.QT]  = {tag: 'span', attrs: {n: 'class', v: 'qt'}};
     this.tm[TAG.ADD] = {tag: 'span', attrs: {n: 'class', v: 'add'}};
+
+    this.refBuilder = function(bid, cn, vn) {
+      var ref = bid + '_' + cn;
+      if (!_.isUndefined(vn))
+        ref += '_' + vn;
+      return ref;
+    }
   };
 
   inherit(HtmlRenderer, Renderer);
@@ -502,12 +509,10 @@
 
   HtmlRenderer.prototype.defineComplexView = function(node, vo) {
     var id = '';
-    if (node.tag === TAG.V) {
-      id = this.bid_ + ' ' + this.cn_ + ':' + this.vn_;
-    }
-    else if (node.tag === TAG.C) {
-      id = this.bid_ + ' ' + this.cn_;
-    }
+    if (node.tag === TAG.V)
+      id = this.refBuilder(this.bid_, this.cn_, this.vn_);
+    else if (node.tag === TAG.C)
+      id = this.refBuilder(this.bid_, this.cn_);
 
     if (id.length > 0) {
       vo.tag = node.tag;
@@ -557,12 +562,19 @@
 
   HtmlRenderer.prototype.getNumberView = function(tag, number) {
     var res;
-    if (tag === TAG.V)
+    //var wrap = null;
+    if (tag === TAG.V) {
       res = this.htmlBuilder('span', {n: 'class', v: 'verseNumber'});
+      //wrap = this.htmlBuilder('span', {n: 'class', v: 'vref'});
+    }
     else {
       res = this.htmlBuilder('div', {n: 'class', v: 'chapterNumber'});
     }
-    return res.o + number + res.c;
+    return res.o + number + ' ' + res.c;
+    // var ret = res.o + number + res.c;
+    // if (null !== wrap)
+    //   ret = wrap.o + ret + wrap.c;
+    // return ret;
   };
 
   HtmlRenderer.prototype.getTextView = function(text) {

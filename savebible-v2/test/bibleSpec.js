@@ -862,7 +862,7 @@ describe('core components', function() {
 
     it('html', function() {
       var str = bible.render(htmlRndr);
-      expect(str.length).to.be.equal(19795);
+      expect(str.length).to.be.equal(19873);
     });
 
     var samples = 50;
