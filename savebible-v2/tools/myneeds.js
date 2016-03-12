@@ -16,6 +16,7 @@
   var opts = [
     {folder: 'pretty', extension: '.txt' , renderer: new rndr.PrettyRenderer()                },
     {folder: 'usfm',   extension: '.usfm', renderer: new rndr.UsfmRenderer()                  },
+    {folder: 'iusfm',   extension: '.usfm', renderer: new rndr.IndentedUsfmRenderer()         },
     {folder: 'text',   extension: '.txt' , renderer: new rndr.TextRenderer({textOnly: false}) },
     {folder: 'html',   extension: '.html', renderer: new rndr.HtmlRenderer()                  }
   ];

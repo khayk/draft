@@ -21,32 +21,99 @@ var startupInitialization = function() {
 
 startupInitialization();
 
-// var opts = [
-//   {folder: 'usfm',   extension: '.usfm', renderer: new rndr.UsfmRenderer()                     },
-//   // {folder: 'pretty', extension: '.txt' , renderer: new rndr.PrettyRenderer()                },
-//   //{getCombined: false, folder: 'text',   extension: '.txt' , renderer: new rndr.TextRenderer({textOnly: true}) }
-//   // {folder: 'html',   extension: '.html', renderer: new rndr.HtmlRenderer()                  }
-// ];
+// var bm = new lb.BibleManager;
 
-var bm = new lb.BibleManager;
+// measur.begin('detecting available bible');
+// bm.initialize(cfg.books());
 
-measur.begin('detecting available bible');
-bm.initialize(cfg.books());
+// var l = bm.list();
+// console.log(l);
 
-var l = bm.list();
-console.log(l);
+// for (var i = 0; i < bm.count(); ++i) {
+//   var x = bm.entry(i);
+//   if (null != x.sum)
+//     console.log(x.sum.length);
+// }
+// measur.end();
 
-for (var i = 0; i < bm.count(); ++i) {
-  var x = bm.entry(i);
-  if (null != x.sum)
-    console.log(x.sum.length);
-}
+
+var options = [
+  {folder: 'usfm',   extension: '.usfm', renderer: new rndr.UsfmRenderer()                     }
+  // {folder: 'pretty', extension: '.txt' , renderer: new rndr.PrettyRenderer()                },
+  //{getCombined: false, folder: 'text',   extension: '.txt' , renderer: new rndr.TextRenderer({textOnly: true}) }
+  // {folder: 'html',   extension: '.html', renderer: new rndr.HtmlRenderer()                  }
+];
+
+var opt = options[0];
+var dir = cfg.bibleDir('en-kjv-usfm+').from;
+
+
+
+
+
+/*
+//var dir = cfg.books() + '/' + 'en-kjv+';
+//console.log(dir);
+
+
+
+var vre = /(\\\+?(\w+)\*?\s?)/gm;
+var tags = {};
+
+measur.begin('recognizing bible tags');
+
+var files  = fs.readdirSync(dir, 'utf8');
+files.forEach(function(f) {
+  console.log(f);
+  var name = path.join(dir, f);
+  var str = fs.readFileSync(name, 'utf8');
+  vre.lastIndex = 0;
+  var arr = vre.exec(str);
+  while (null !== arr) {
+    var match = arr[1];
+    var tag   = arr[2];
+
+    if (_.isUndefined(tags[tag]))
+      tags[tag] = {o: 0, c: 0};
+
+    if (match[match.length - 1] === '*')
+      tags[tag].c++;
+    else
+      tags[tag].o++;
+    arr = vre.exec(str);
+  }
+});
 
 measur.end();
 
+function printTags(tags, haveClosing) {
+  if (haveClosing === true)
+    console.log('Tags with closing');
+  else
+    console.log('Tags without closing');
 
-//measur.begin('loading bible');
-//var bible = lb.loadBible(input, {types: [3]});
+  _.each(tags, function(val, key) {
+    if (haveClosing === true && val.c > 0)
+      console.log('%s - ', key, val);
+    else if (haveClosing === false && val.c === 0)
+      console.log('%s - ', key, val);
+  });
+
+  console.log('\n');
+}
+
+printTags(tags, true);
+printTags(tags, false);
+*/
+
+
+
+measur.begin('loading bible');
+var bible = lb.loadBible(dir, {types: []});
+var usfm = bible.render(new rndr.IndentedUsfmRenderer());
+
+
+
 //var book = lb.loadBook(path.join(input, '02-GENeng-kjv.usfm'));
 //var book = lb.loadBook(path.join(input, '87-PHMeng-kjv.usfm'));
 //measur.end();
