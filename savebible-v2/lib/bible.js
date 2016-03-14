@@ -1430,6 +1430,8 @@ var TH  = cmn.TH;
   // @param ignoredTags (optional)  array of tags to be ignored by parser
   //                    ifto collect all tags do not pass anything
   var Parser = function(ignoredTags) {
+    // @todo:hayk - this is a more pricise rule for identifying tags
+    //            /\\([a-z]+)(\d)?\*?(?:\s(\w+))?/gm
     this.vre = /(\\\+?(\w+)\s?\*?)/gm;
     if (_.isUndefined(ignoredTags))
       this.ignoredTags = [];
