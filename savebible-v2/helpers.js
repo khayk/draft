@@ -54,16 +54,16 @@ var HiResTimer = function() {
 var Measurer = function() {
   var timer = new HiResTimer();
   var len = 80; // padding length
-  var heapTotal = 0;
-  var heapUsed = 0;
+  // var heapTotal = 0;
+  // var heapUsed = 0;
 
   this.begin = function(msg) {
     if (msg) {
       log.info(_.pad(_.pad(msg, msg.length + 2, ' '), len - 1, '-'));
     }
     var usage = process.memoryUsage();
-    heapTotal = usage.heapTotal;
-    heapUsed  = usage.heapUsed;
+    // heapTotal = usage.heapTotal;
+    // heapUsed  = usage.heapUsed;
     timer.start();
   };
 
