@@ -12,12 +12,12 @@
     "url": "https://github.com/khayk/draft"
   },
   "dependencies": {
-    "chai": "^3.3.0",
+    "chai": "^3.5.0",
     "colors": "^1.1.2",
-    "fs-extra": "^0.26.5",
-    "lodash": "^4.1.0",
-    "log4js": "^0.6.27",
-    "nconf": "^0.8.2",
+    "fs-extra": "^0.30.0",
+    "lodash": "^4.16.1",
+    "log4js": "^0.6.38",
+    "nconf": "^0.8.4",
     "path-is-absolute": "^1.0.0"
   },
   "readme": "README.md"
