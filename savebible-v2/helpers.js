@@ -145,7 +145,7 @@ var SearchResultPrettifier = function(bible) {
   this.expend = function(result) {
     var count = result.refs.length;
 
-    if (count < 80) {
+    if (count < 300) {
       var that = this;
       result.refs.forEach(function(ref) {
         var dref = (new lb.Reference()).decode(ref);
