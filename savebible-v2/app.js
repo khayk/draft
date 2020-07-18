@@ -54,10 +54,15 @@
     renderer: new rndr.HtmlRenderer()
   }];
 
+  // var inputs = [
+  //   ['ru-synod-usfm-from-text', 'ru', 'synod'],
+  //   ['en-kjv-usfm+',            'en', 'kjv'],
+  //   ['am-eab-usfm-from-text',   'hy', 'eab']
+  // ];
   var inputs = [
-    ['ru-synod-usfm-from-text', 'ru', 'synod'],
-    ['en-kjv-usfm+',            'en', 'kjv'],
-    ['am-eab-usfm-from-text',   'hy', 'eab']
+    ['en-kjv+', 'en', 'kjv'],
+//    ['ru-synod-usfm-from-text', 'ru', 'synod'],
+//    ['am-eab-usfm-from-text',   'hy', 'eab']
   ];
 
   inputs.forEach(function(input) {
